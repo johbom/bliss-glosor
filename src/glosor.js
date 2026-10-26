@@ -221,13 +221,15 @@ function defaults() {
     milestoneAtoms: 0,  // högsta nådda milstolpe, lärda grundtecken
   };
 }
+/** Sparat läge kompletterat med standardvärden (nya inställningar i senare versioner). */
+function normalize(s) {
+  const d = defaults();
+  return { ...d, ...s, settings: { ...d.settings, ...s.settings, modes: { ...d.settings.modes, ...s.settings?.modes } } };
+}
 function load() {
   try {
     const s = JSON.parse(localStorage.getItem(KEY) || 'null');
-    if (s && s.cards) {
-      const d = defaults();
-      return { ...d, ...s, settings: { ...d.settings, ...s.settings, modes: { ...d.settings.modes, ...s.settings?.modes } } };
-    }
+    if (s && s.cards) return normalize(s);
   } catch (_) { /* tom eller blockerad lagring -> börja om */ }
   return defaults();
 }
@@ -243,6 +245,33 @@ function setLang(l) {
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) { /* privat fönster: fortsätt utan att spara */ }
 }
+// ---- Säkerhetskopia: framstegen finns bara på den egna enheten (på iPhone raderas de om appen
+// tas bort från hemskärmen), så de kan sparas som en fil och läsas in igen, även på en annan enhet.
+const BACKUP_APP = 'bliss-glosor';
+function exportBackup() {
+  return JSON.stringify({ app: BACKUP_APP, format: 1, saved: new Date().toISOString(), state: S });
+}
+/** Läser en säkerhetskopia utan att ändra något: { saved, words } eller null om filen inte är en kopia. */
+function readBackup(text) {
+  try {
+    const o = JSON.parse(text);
+    const st = o && o.app === BACKUP_APP ? o.state : null;
+    if (!st || typeof st.cards !== 'object' || Array.isArray(st.cards)) return null;
+    return { saved: o.saved || '', words: Object.keys(st.cards).length, state: st };
+  } catch (_) { return null; }
+}
+/** Ersätter alla framsteg och inställningar med säkerhetskopians. */
+function importBackup(text) {
+  const b = readBackup(text);
+  if (!b) return false;
+  const next = normalize(b.state);
+  for (const k of Object.keys(S)) delete S[k];
+  Object.assign(S, next);
+  if (S.settings.lang) LANG = S.settings.lang;
+  save();
+  return true;
+}
+
 /** Nollställer inlärningen men behåller inställningar och listan Mina ord (den är ett val, inte framsteg). */
 function resetProgress() {
   const keep = S.settings, mine = S.mine;
@@ -433,7 +462,8 @@ function pickMode(c) {
   let m = [];
   if (on.sym) m.push('sym');
   if (on.word) m.push('word');
-  if (c.complete && on.parts) m.push('parts', 'parts');
+  // Delövningen bara när det finns minst två olika delar att välja – par = person + person blir annars bara "person".
+  if (c.complete && on.parts && new Set(c.parts).size > 1) m.push('parts', 'parts');
   if (c.complete && !c.isChar && on.build) m.push('build', 'build');
   if (!m.length) m = ['sym'];
   if (S.cards[c.id].b === 0) {
@@ -691,6 +721,7 @@ window.Glosor = {
   MODES, S, save, resetProgress, stats, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
+  exportBackup, readBackup, importBackup,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
   milestoneState, checkMilestones, rankOf, lang, setLang,
   sentenceDrafts: SHOW_DRAFTS,

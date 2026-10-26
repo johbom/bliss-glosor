@@ -156,6 +156,11 @@ h2{font-size:17px;margin-bottom:12px}
 .tabs{display:flex;gap:4px;margin-bottom:10px}
 .tabs button{background:none;border:1px solid var(--rule);border-radius:999px;padding:4px 12px;font-size:14px;color:var(--dim)}
 .tabs button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.backup .row{margin-top:6px}
+.backup .ghost{padding:8px 14px}
+.backup-msg:empty{display:none}
+.backup-msg{margin-top:8px;padding:10px 12px;border-radius:10px;background:var(--panel-2)}
+.backup-msg.good{background:var(--ok-soft)} .backup-msg.bad{background:var(--bad-soft)}
 .confirm{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px;border-radius:10px;background:var(--bad-soft)}
 .confirm .ghost{padding:8px 14px}
 .confirm .yes{background:var(--bad);color:var(--panel);border:0;border-radius:10px;padding:8px 14px;font-weight:700}
@@ -282,6 +287,7 @@ const {
   S, save, resetProgress, stats, nextStep, grade, checkParts, fmtInterval, boxOf, card, deck,
   symbolSVG, chip, classChip, formulaHTML, mergedNote, esc, MODES, nextAtom,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, reviewCount, nextDue,
+  exportBackup, readBackup, importBackup,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG, sentenceDrafts,
   milestoneState, checkMilestones, rankOf, lang, setLang,
 } = window.Glosor;
@@ -340,6 +346,16 @@ function home() {
       <fieldset><legend>${tx('Takt', 'Pace')}</legend>
         <label>${tx('Nya symboler per dag', 'New symbols per day')} <input type="number" id="npd" min="1" max="100" value="${S.settings.newPerDay}"></label>
         <label><input type="checkbox" id="staff" ${S.settings.staff ? 'checked' : ''}> ${tx('Visa himmels- och jordlinje', 'Show sky and earth lines')}</label>
+      </fieldset>
+      <fieldset class="backup"><legend>${tx('Säkerhetskopia', 'Backup')}</legend>
+        <p class="small muted">${tx('Framstegen finns bara på den här enheten. På iPhone försvinner de om appen tas bort från hemskärmen. Spara en säkerhetskopia då och då – den kan läsas in igen här eller på en annan enhet.',
+          'Your progress is stored only on this device. On iPhone it is deleted if the app is removed from the home screen. Save a backup now and then – it can be loaded again here or on another device.')}</p>
+        <div class="row">
+          <button type="button" class="ghost" id="backup-save">${tx('Spara säkerhetskopia', 'Save backup')}</button>
+          <button type="button" class="ghost" id="backup-load">${tx('Läs in säkerhetskopia', 'Load backup')}</button>
+          <input type="file" id="backup-file" accept=".json,application/json" hidden>
+        </div>
+        <div class="backup-msg small" id="backupmsg" role="status"></div>
       </fieldset>
       <p class="small muted">${tx(`Grundtecknen kommer först, i ordningen <i>flest ord bygger på dem</i>. Ett sammansatt ord
         låses upp när du har svarat rätt på alla dess delar. Rätt svar flyttar ordet till längre intervall
@@ -796,7 +812,8 @@ function aboutEn(lic) {
     <p>The app collects no data, has no accounts, no statistics, no ads and no cookies, and
       it fetches nothing from other services. What you practise is stored only on your own device, in the browser or
       app you use – it is not visible to anyone else and does not follow you to another device. You delete it with
-      <i>Reset progress</i> under Overview, or by uninstalling the app.</p>
+      <i>Reset progress</i> under Overview, or by uninstalling the app. With <i>Backup</i> under
+      Overview you can save it as a file and load it again, for example on a new phone.</p>
 
     <h3>The parts of the symbols</h3>
     <p>Which parts a symbol is made of comes from BCI's vocabulary BCI-AV and its derivations – for example
@@ -894,7 +911,8 @@ function about() {
     <p>Appen samlar inte in några uppgifter, har inga konton, ingen statistik, ingen reklam och inga cookies, och
       den hämtar ingenting från andra tjänster. Det du övat sparas bara på din egen enhet, i den webbläsare eller
       app du använder – det syns inte för någon annan och följer inte med till en annan enhet. Du tar bort det med
-      <i>Nollställ framsteg</i> under Översikt, eller genom att avinstallera appen.</p>
+      <i>Nollställ framsteg</i> under Översikt, eller genom att avinstallera appen. Med <i>Säkerhetskopia</i> under
+      Översikt kan du spara dem som en fil och läsa in dem igen, till exempel på en ny telefon.</p>
 
     <h3>Symbolernas delar</h3>
     <p>Vilka delar en symbol består av kommer ur BCI:s ordförråd BCI-AV och dess härledningar – till exempel
@@ -947,6 +965,54 @@ function switchLang(l) {
 }
 document.getElementById('lang-toggle').addEventListener('click', () => switchLang(lang() === 'en' ? 'sv' : 'en'));
 
+// ---------------------------------------------------------------- säkerhetskopia
+let pendingBackup = null;   // inläst fil som väntar på bekräftelse
+function backupMsg(html, kind = '') {
+  const box = document.getElementById('backupmsg');
+  if (!box) return;
+  box.className = `backup-msg small ${kind}`;
+  box.innerHTML = html;
+  if (html) box.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+/** Dela-menyn där den kan ta emot filer (iPhone: Spara i Filer, AirDrop, Mail …), annars en vanlig nedladdning. */
+async function saveBackup() {
+  const name = `bliss-glosor-${new Date().toISOString().slice(0, 10)}.json`;
+  const file = new File([exportBackup()], name, { type: 'application/json' });
+  const words = Object.keys(S.cards).length;
+  const done = () => backupMsg(tx(`Säkerhetskopian (${words} ord) är sparad som <b>${esc(name)}</b>.`, `The backup (${words} words) is saved as <b>${esc(name)}</b>.`), 'good');
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: name });
+      return done();
+    }
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;   // användaren stängde dela-menyn
+  }
+  try {
+    const url = URL.createObjectURL(file);
+    const a = Object.assign(document.createElement('a'), { href: url, download: name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    done();
+  } catch (_) {
+    backupMsg(tx('Det gick inte att spara filen här. Öppna appen i webbläsaren och försök igen.', 'The file could not be saved here. Open the app in the browser and try again.'), 'bad');
+  }
+}
+function loadBackupFile(input) {
+  const f = input.files && input.files[0];
+  input.value = '';
+  if (!f) return;
+  f.text().then((text) => {
+    const b = readBackup(text);
+    if (!b) return backupMsg(tx('Filen är ingen säkerhetskopia från Bliss-glosor.', 'The file is not a Bliss-glosor backup.'), 'bad');
+    pendingBackup = text;
+    const when = b.saved ? new Date(b.saved).toLocaleString(lang() === 'en' ? 'en-GB' : 'sv-SE', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+    backupMsg(`<div class="confirm"><span>${tx(`Ersätta dina nuvarande framsteg med säkerhetskopian${when ? ` från ${when}` : ''} (${b.words} ord)?`,
+      `Replace your current progress with the backup${when ? ` from ${when}` : ''} (${b.words} words)?`)}</span>
+      <button type="button" class="yes" id="backup-yes">${tx('Läs in', 'Load')}</button><button type="button" class="ghost" id="backup-no">${tx('Avbryt', 'Cancel')}</button></div>`);
+  }, () => backupMsg(tx('Filen kunde inte läsas.', 'The file could not be read.'), 'bad'));
+}
+
 // ---------------------------------------------------------------- navigering & händelser
 function setView(v) {
   view = v;
@@ -969,6 +1035,16 @@ app.addEventListener('click', (e) => {
   if (t.id === 'review' || t.dataset.act === 'review') return startSession('review');
   if (t.id === 'sentences' || t.dataset.act === 'sentences') return startSession('sentences');
   if (t.id === 'go-list') return setView('list');
+  if (t.id === 'backup-save') return saveBackup();
+  if (t.id === 'backup-load') return document.getElementById('backup-file').click();
+  if (t.id === 'backup-yes') {
+    if (!pendingBackup || !importBackup(pendingBackup)) return backupMsg(tx('Säkerhetskopian kunde inte läsas in.', 'The backup could not be loaded.'), 'bad');
+    pendingBackup = null;
+    applyLang();
+    home();
+    return backupMsg(tx('Säkerhetskopian är inläst.', 'The backup has been loaded.'), 'good');
+  }
+  if (t.id === 'backup-no') { pendingBackup = null; return backupMsg(''); }
   if (t.id === 'copy-contact') {
     // Urklipp kan nekas (vissa inbäddade vyer) – markera då adressen så att den kan kopieras för hand.
     const done = () => { t.textContent = tx('Kopierad', 'Copied'); setTimeout(() => { t.textContent = tx('Kopiera adressen', 'Copy the address'); }, 2000); };
@@ -1000,6 +1076,7 @@ app.addEventListener('click', (e) => {
 
 app.addEventListener('change', (e) => {
   const t = e.target;
+  if (t.id === 'backup-file') return loadBackupFile(t);
   if (t.name === 'lang') return switchLang(t.value);
   if (t.dataset.mode) {
     S.settings.modes[t.dataset.mode] = t.checked;
