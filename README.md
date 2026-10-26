@@ -3,8 +3,8 @@
 Fritt och gratis glosprogram för Blissymbolik: lär dig grundtecknen först och sedan
 de sammansatta orden – deras beståndsdelar, att bygga symboler och att repetera över tid.
 
-Av John Säbom. Symbolerna ritas med BlissEngine av P-O Hedvall, en port av WinBliss
-av P-O Hedvall och Jonas Paulsson (AnyCom AB).
+Av John Säbom. Symbolerna ritas med BlissEngine av P-O Hedvall och Jonas Paulsson
+(AnyCom AB) – ritmotorn ur WinBliss.
 
 **Öppna appen:** https://johbom.github.io/bliss-glosor/
 
