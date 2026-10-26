@@ -27,7 +27,7 @@ och [LICENSE](LICENSE) för glosprogrammets egen kod (MIT).
 
 ## Fel och förslag
 
-Skriv till john.sabom@gmail.com.
+Skriv till john.s@tfhuk.com.
 
 ## Informationsblad
 

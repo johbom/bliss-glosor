@@ -33,4 +33,4 @@ Vilka delar en symbol består av kommer ur BCI-AV:s egen härledningskolumn.
 Delarna kopplas till symboler strikt efter BCI:s data; där BCI:s namn inte
 entydigt pekar ut en symbol visas BCI:s text i stället. Kopplingen och de
 svenska översättningarna är projektets arbete och inte granskade av BCI.
-Rapportera gärna fel till **john.sabom@gmail.com**.
+Rapportera gärna fel till **john.s@tfhuk.com**.
