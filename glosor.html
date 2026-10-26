@@ -147,8 +147,23 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .feedback{margin-top:16px;padding:14px;border-radius:12px;background:var(--panel-2)}
 .feedback.good{background:var(--ok-soft)} .feedback.wrong{background:var(--bad-soft)}
 .feedback h3{font-size:17px;margin-bottom:4px}
-.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px}
+/* I kortet sitter knapparna i en list som fastnar i skärmens nederkant när kortet är längre än
+   skärmen (mobil): "Fortsätt"/"Kontrollera" nås alltid utan att bläddra. Ryms allt ligger den
+   kvar på sin plats. Efter svaret visar listen också resultatet. */
+#card .actions{position:sticky;bottom:0;z-index:5;margin:16px -20px -20px;
+  padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));
+  background:var(--panel);border-top:1px solid var(--rule);border-radius:0 0 14px 14px}
+#card .actions.result{justify-content:space-between}
+#card .actions.good{background:var(--ok-soft);border-top-color:var(--ok)}
+#card .actions.wrong{background:var(--bad-soft);border-top-color:var(--bad)}
+.verdict{font-weight:700;font-size:18px}
+.actions.good .verdict{color:var(--ok)} .actions.wrong .verdict{color:var(--bad)}
 .hint{font-size:12px;color:var(--dim);text-align:right;margin-top:6px}
+#card .actions .hint{margin:0 auto 0 0;text-align:left}
+#card .actions.result .hint{margin:0 0 0 12px}
+#card .actions.result .verdict{margin-right:auto}
+@media (hover:none),(max-width:520px){.hint{display:none}}   /* tangentbordstips: inte på pekskärm eller smal skärm */
 
 /* ordlista */
 .search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--panel-2);color:var(--ink);margin-bottom:12px}
@@ -164,6 +179,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   .opts{grid-template-columns:1fr 1fr;gap:8px}
   .word{font-size:24px}
   .panel{padding:16px}
+  #card .actions{margin:16px -16px -16px;padding-left:16px;padding-right:16px}
 }
 </style>
 </head>
@@ -270,6 +286,7 @@ function advance() {
   answered = false;
   if (step?.kind === 'intro') sess.fresh++;
   renderStep();
+  window.scrollTo(0, 0);   // nästa kort börjar överst, även om man bläddrat ner i förra
 }
 
 function progressBar() {
@@ -290,8 +307,7 @@ function introHTML(c) {
     ${c.raw.length ? `<p class="small muted" style="margin-top:12px">Byggs av:</p>${formulaHTML(c)}` : ''}
     ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
     ${users}
-    <div class="actions"><button type="button" class="primary" data-act="next">Jag har tittat på den →</button></div>
-    <div class="hint">Enter = fortsätt</div>`;
+    <div class="actions"><span class="hint">Enter = fortsätt</span><button type="button" class="primary" data-act="next">Jag har tittat på den →</button></div>`;
 }
 
 function quizHTML() {
@@ -315,16 +331,14 @@ function quizHTML() {
       <div class="stage">${symbolSVG(c, 9)}</div>
       <p class="small muted">Markera alla delar du ser i symbolen (${new Set(c.parts).size} st).</p>
       <div class="palette">${pal}</div>
-      <div class="actions"><button type="button" class="primary" data-act="check">Kontrollera</button></div>
-      <div class="hint">Siffror markerar · Enter kontrollerar</div>`;
+      <div class="actions"><span class="hint">Siffror markerar · Enter kontrollerar</span><button type="button" class="primary" data-act="check">Kontrollera</button></div>`;
   }
   return `<div class="kicker">${MODES.build}</div><p class="prompt">Bygg symbolen för</p>
     <div class="word">${esc(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
     <div class="strip" id="strip">${step.sel.map((id, i) => `<button type="button" class="chip" data-unsel="${i}" title="Ta bort">${symbolSVG(card(id), 3.4)}<span>${esc(card(id).word)}</span></button>`).join('')}</div>
     <p class="small muted" style="margin-top:6px">${c.parts.length} delar. Klicka i raden ovan för att ta bort en del.</p>
     <div class="palette">${pal}</div>
-    <div class="actions"><button type="button" class="ghost" data-act="clear">Rensa</button><button type="button" class="primary" data-act="check">Kontrollera</button></div>
-    <div class="hint">Siffror lägger till · Backsteg tar bort · Enter kontrollerar</div>`;
+    <div class="actions"><span class="hint">Siffror lägger till · Backsteg tar bort · Enter kontrollerar</span><button type="button" class="ghost" data-act="clear">Rensa</button><button type="button" class="primary" data-act="check">Kontrollera</button></div>`;
 }
 
 function renderStep() {
@@ -356,8 +370,8 @@ function feedbackHTML(ok, ms, note = '') {
     ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
     <p class="small muted" style="margin-top:6px">Kommer igen ${fmtInterval(ms)}.</p>
   </div>
-  <div class="actions"><button type="button" class="primary" data-act="next">Fortsätt →</button></div>
-  <div class="hint">Enter = fortsätt</div>`;
+  <div class="actions result ${ok ? 'good' : 'wrong'}"><span class="verdict" aria-hidden="true">${ok ? 'Rätt!' : 'Inte riktigt'}</span>
+    <span class="hint">Enter = fortsätt</span><button type="button" class="primary" data-act="next">Fortsätt →</button></div>`;
 }
 
 function finish(ok, note) {
