@@ -91,6 +91,12 @@ h2{font-size:17px;margin-bottom:12px}
 .prose .promo h3{margin:2px 0 6px;font-size:18px}
 .promo-link{display:inline-block;margin-top:10px;padding:8px 16px;border-radius:10px;background:var(--accent);color:var(--accent-ink)!important;font-weight:700;text-decoration:none}
 .promo-link:hover{filter:brightness(1.08)}
+.flyer{display:flex;gap:14px;align-items:flex-start}
+.flyer-doc{flex:none;width:52px;height:68px;border-radius:6px;background:var(--panel-2);border:1px solid var(--rule);
+  position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px}
+.flyer-doc::before{content:"";position:absolute;top:0;left:0;right:0;height:18px;background:var(--accent);border-radius:6px 6px 0 0}
+.flyer-doc span{font-size:11px;font-weight:700;color:var(--accent)}
+.flyer p{margin:0}
 .contact{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .contact a{font-size:17px;font-weight:700;user-select:all}
 .contact .ghost{padding:6px 12px;font-size:14px}
@@ -488,6 +494,9 @@ function showDetail(id) {
 // ---------------------------------------------------------------- om
 const APP_VERSION = '1.0 · BCI-AV 2026-07-25';
 const CONTACT = 'john.sabom@gmail.com';   // felrapporter och förslag
+// Informationsbladet (scripts/build-informationsblad.py). Fast adress på GitHub Pages, så att länken
+// fungerar överallt – även i inbäddade vyer där nedladdningslänkar blockeras.
+const FLYER_URL = 'https://johbom.github.io/bliss-glosor/informationsblad/Bliss-glosor-informationsblad.pdf';
 function about() {
   const lic = (what, who, name, url) => `<div><b>${what}</b><span class="who">${who}</span> ·
     <a href="${url}" target="_blank" rel="noopener">${name}</a></div>`;
@@ -518,6 +527,16 @@ function about() {
       <li><b>Dator:</b> i Chrome eller Edge, klicka på installationsikonen i adressfältet.</li>
     </ul>
     <p>Installerad fungerar appen också utan internet.</p>
+
+    <h3>Informationsblad</h3>
+    <div class="flyer">
+      <div class="flyer-doc" aria-hidden="true"><span>PDF</span></div>
+      <div>
+        <p>Vill du tipsa andra om Bliss-glosor? Informationsbladet är ett A4 med QR-kod till appen, kort om hur den
+          fungerar och hur man installerar den – att skriva ut, sätta upp eller skicka vidare.</p>
+        <a class="promo-link" href="${FLYER_URL}" target="_blank" rel="noopener">Ladda ner informationsbladet (PDF, 47 kB)</a>
+      </div>
+    </div>
 
     <h3>Integritet</h3>
     <p>Appen samlar inte in några uppgifter, har inga konton, ingen statistik, ingen reklam och inga cookies, och

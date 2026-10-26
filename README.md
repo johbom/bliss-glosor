@@ -29,4 +29,9 @@ och [LICENSE](LICENSE) för glosprogrammets egen kod (MIT).
 
 Skriv till john.sabom@gmail.com.
 
+## Informationsblad
+
+[Bliss-glosor-informationsblad.pdf](informationsblad/Bliss-glosor-informationsblad.pdf) – ett A4 med QR-kod
+till appen, att skriva ut eller dela.
+
 *Den här mappen genereras av `scripts/build-glosor-pwa.js` i blissmaiker-projektet.*
