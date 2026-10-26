@@ -388,12 +388,13 @@ function geometry(c) {
  * så att storlek och läge — som bär betydelse i Bliss — syns.
  * unit = px per åttondels-kvadrat.
  */
-function symbolSVG(c, unit = 8, cls = '') {
+function symbolSVG(c, unit = 8, cls = '', frame = null) {
   const { body, bb } = geometry(c);
   const pad = 140, minW = 800 + 2 * pad;
   let x0 = bb.x - pad, w = bb.width + 2 * pad;
   if (w < minW) { x0 -= (minW - w) / 2; w = minW; }
-  const y0 = Math.min(250, bb.y - pad), y1 = Math.max(2050, bb.y + bb.height + pad), h = y1 - y0;
+  // frame: gemensam höjd för alla ord i en mening, så att himmels- och jordlinjen går rakt igenom.
+  const y0 = frame ? frame[0] : Math.min(250, bb.y - pad), y1 = frame ? frame[1] : Math.max(2050, bb.y + bb.height + pad), h = y1 - y0;
   const staff = S.settings.staff
     ? `<line class="staff" x1="${x0}" x2="${x0 + w}" y1="800" y2="800"/><line class="staff earth" x1="${x0}" x2="${x0 + w}" y1="1600" y2="1600"/>`
     : '';
@@ -435,9 +436,43 @@ function mergedNote(c) {
   return `<p class="merged-note">Sammanslaget tecken: delarna är sammanfogade till ett tecken och kan vara ritade i ändrad form.</p>`;
 }
 
+// ---------------------------------------------------------------- meningar
+// Övningen "Färdigställ meningen": meningar ur src/vendor/bliss-meningar.js (byggd av
+// scripts/build-meningar.mjs ur data/meningar.json). Bara status "godkänd" används —
+// utkasten granskas först. ?utkast=1 i adressen tar med utkasten (för granskare).
+const SHOW_DRAFTS = /[?&]utkast=1\b/.test(location.search);
+const SENTENCES = (window.MENINGAR || []).filter((m) => m.status === 'godkänd' || (SHOW_DRAFTS && m.status === 'utkast'));
+let sfocus = null;
+const sentenceCount = () => SENTENCES.length;
+function startSentences() {
+  sfocus = { queue: shuffle(SENTENCES.map((m) => m.nr)), total: SENTENCES.length };
+}
+const endSentences = () => { sfocus = null; };
+const sentenceState = () => (sfocus ? { left: sfocus.queue.length, total: sfocus.total } : null);
+function nextSentence() {
+  if (!sfocus || !sfocus.queue.length) return null;
+  // samma mening inte två gånger i rad om det går att undvika
+  const nr = sfocus.queue.find((x) => x !== sfocus.last) ?? sfocus.queue[0];
+  sfocus.last = nr;
+  const m = SENTENCES.find((x) => x.nr === nr);
+  const opts = shuffle(m.alt.map((a, i) => ({ ...a, ok: i === 0 })));
+  return { kind: 'sentence', m, options: opts, answer: opts.findIndex((o) => o.ok) };
+}
+function answerSentence(nr, ok) {
+  const k = sfocus.queue.indexOf(nr);
+  if (k >= 0) { sfocus.queue.splice(k, 1); if (!ok) sfocus.queue.push(nr); }
+}
+/** Ett ord i en mening (elementlista ur bygget) ritat i meningens gemensamma ram. */
+const SENTENCE_FRAME = [-60, 2060];
+function wordSVG(key, e, unit, cls = '') {
+  return symbolSVG({ id: 'w:' + key, v: { e } }, unit, cls, SENTENCE_FRAME);
+}
+
 window.Glosor = {
   MODES, S, save, resetProgress, stats, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote,
+  sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
+  sentenceDrafts: SHOW_DRAFTS,
 };
 })();
