@@ -119,6 +119,37 @@ for (const c of deck.values()) {
     : Math.log1p(reach) * 3 + Math.log1p(c.freq) * 0.5;
 }
 const atomOrder = [...deck.values()].filter((c) => !c.parts.length).sort((a, b) => b.score - a.score);
+
+// ---- "Utan operatorn": samma ritning utan indikatorn ovanpå ----
+// vara (12639) = H2 + W2 + handlingsindikatorn; utan indikatorn är ritningen exakt
+// tillvaro, existens (2) (24443, BCI: "life [half sized]"). Bara exakt lika ritningar räknas
+// (form, storlek, riktning och läge), så kopplingen är BCI:s egen – inget gissas.
+const INDICATOR_CODES = new Set([...deck.values()].filter((c) => /^indicator_\(/.test(c.v.en))
+  .flatMap((c) => c.v.e.map((e) => `${e[0]}${e[1]}/${e[2]}`)));
+const isIndicatorEl = (e) => e[5] < 8 && INDICATOR_CODES.has(`${e[0]}${e[1]}/${e[2]}`);
+// Hela ritningen, även text (landsymbolerna skiljs åt av sina bokstäver).
+const drawingKey = (els) => {
+  if (!els.length) return '';
+  const x0 = Math.min(...els.map((e) => e[4]));
+  return els.map((e) => `${e[0]}${e[1]}/${e[2]}@${e[4] - x0},${e[5]}${e[0] === 'Z' ? ':' + e[8] : ''}`).sort().join(' ');
+};
+const isIndicatorCard = (id) => /^indicator_\(/.test(deck.get(id)?.v.en || '');
+const byDrawing = new Map();
+for (const c of deck.values()) {
+  if (/^indicator_\(/.test(c.v.en)) continue;
+  const k = drawingKey(c.v.e);
+  if (k) { if (!byDrawing.has(k)) byDrawing.set(k, []); byDrawing.get(k).push(c.id); }
+}
+for (const c of deck.values()) {
+  // Bara när BCI:s egen härledning anger en indikator ("+ action indicator") – en likadan form
+  // ovanpå kan annars vara något annat (t.ex. skydd i "fridlyst fågel").
+  if (!c.parts.some(isIndicatorCard)) continue;
+  const inds = c.v.e.filter(isIndicatorEl);
+  if (!inds.length || inds.length === c.v.e.length) continue;
+  const same = (byDrawing.get(drawingKey(c.v.e.filter((e) => !isIndicatorEl(e)))) || [])
+    .filter((id) => id !== c.id && !c.parts.includes(id));
+  if (same.length) c.bare = same;
+}
 // Former (familj + storlek) som minst ett grundtecken är ritat med – de går att lära sig.
 const ATOM_SHAPES = new Set(atomOrder.flatMap((c) => [...c.shapes]));
 const compoundCount = deck.size - atomOrder.length;
@@ -507,14 +538,22 @@ function chip(c, unit = 3.2, extra = '', note = '') {
  * ut visas som BCI:s text, utan symbol — hellre det än en gissning.
  */
 function formulaHTML(c, unit = 3.2) {
-  if (!c.raw.length) return '';
+  if (!c.raw.length) return bareFormHTML(c, unit);
   const label = (p) => (typeof p === 'number' ? (getById(p)?.sv.split(',')[0] || p) : String(p).replace(/_/g, ' '));
   const parts = c.raw.map((p, i) => {
     const note = c.notes[i] || '';
     if (typeof p === 'number' && deck.has(p)) return chip(deck.get(p), unit, '', note);
     return `<span class="chip txt" title="BCI:s text – ingen entydig symbol">${esc(label(p))}${note ? `<small class="note">${esc(note)}</small>` : ''}</span>`;
   });
-  return `<div class="formula">${parts.join('<span class="op">+</span>')}</div>` + mergedNote(c);
+  return `<div class="formula">${parts.join('<span class="op">+</span>')}</div>` + mergedNote(c) + bareFormHTML(c, unit);
+}
+
+/** "Utan operatorn: …" – symbolen med exakt samma ritning men utan indikatorn ovanpå. */
+function bareFormHTML(c, unit = 2.8) {
+  if (!c.bare) return '';
+  // Hela BCI-glosan ("tillvaro, existens (2)"), så att det syns vilken betydelse som avses.
+  const one = (o) => `<button type="button" class="chip" data-detail="${o.id}">${symbolSVG(o, unit)}<span>${esc(o.syns.join(', '))}</span></button>`;
+  return `<div class="bare-form"><span class="bare-label">Utan operatorn:</span>${c.bare.map((id) => one(deck.get(id))).join('')}</div>`;
 }
 
 /** Förklaring under formeln för sammanslagna tecken (BCI: superimposed, Fundamental Rules 5.1.4). */
