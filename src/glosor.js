@@ -258,6 +258,12 @@ const newLeft = () => { const d = dayState(); return Math.max(0, S.settings.newP
 const boxOf = (id) => (S.cards[id] ? S.cards[id].b : -1);
 const introduced = () => Object.keys(S.cards).map(Number).filter((id) => deck.has(id));
 
+/** När nästa ord ska repeteras (ms från nu), eller null. */
+function nextDue(now = Date.now()) {
+  const d = introduced().map((id) => S.cards[id].d).filter((t) => t > now);
+  return d.length ? Math.min(...d) - now : null;
+}
+
 function dueIds(now = Date.now()) {
   return introduced().filter((id) => S.cards[id].d <= now).sort((a, b) => S.cards[a].d - S.cards[b].d);
 }
@@ -395,16 +401,19 @@ function introduce(id, countToday = true) {
 /** @returns {number} ms till nästa repetition */
 function grade(id, ok) {
   const s = S.cards[id], now = Date.now();
+  if (focus) {
+    // Mina ord-pass och fri repetition: rätt -> klart för det här passet, fel -> sist i kön igen.
+    const k = focus.queue.indexOf(+id);
+    if (k >= 0) { focus.queue.splice(k, 1); if (!ok) focus.queue.push(+id); }
+  }
   s.n++;
+  // Fri repetition före utsatt tid: rätt svar flyttar inte fram ordet (då skulle intervallen tappa
+  // sin mening), men ett fel räknas som vanligt så att ordet kommer tillbaka snart.
+  if (focus?.review && ok && s.d > now) { save(); return s.d - now; }
   if (ok) s.b = Math.min(s.b + 1, INTERVALS.length - 1);
   else { s.w++; s.b = 0; }
   s.d = now + INTERVALS[s.b];
   save();
-  if (focus) {
-    // Mina ord-pass: rätt -> klart för det här passet, fel -> sist i kön igen.
-    const k = focus.queue.indexOf(+id);
-    if (k >= 0) { focus.queue.splice(k, 1); if (!ok) focus.queue.push(+id); }
-  }
   return INTERVALS[s.b];
 }
 
@@ -482,15 +491,23 @@ function palette(c, size = 8) {
 }
 
 const recent = [];
-// Mina ord-pass: en kö med de valda orden; varje ord stannar kvar tills det besvarats rätt en gång.
+// Mina ord-pass och fri repetition: en kö med ord; varje ord stannar kvar tills det besvarats rätt en gång.
 let focus = null;
-function startFocus() {
-  focus = { queue: shuffle(mineCards().map((c) => c.id)), total: 0 };
+const REVIEW_SIZE = 20;
+function startFocus(kind = 'mine') {
+  const review = kind === 'review';
+  focus = { queue: review ? reviewPick(REVIEW_SIZE) : shuffle(mineCards().map((c) => c.id)), total: 0, review };
   focus.total = focus.queue.length;
   recent.length = 0;
 }
+/** Fri repetition: de svagaste av de inlärda orden (låg låda, många fel), med lite slump så att passen varierar. */
+function reviewPick(n) {
+  const weak = (id) => S.cards[id].b * 2 - S.cards[id].w + Math.random() * 3;
+  return shuffle(introduced().sort((a, b) => weak(a) - weak(b)).slice(0, n));
+}
+const reviewCount = () => introduced().length;
 const endFocus = () => { focus = null; };
-const focusState = () => (focus ? { left: focus.queue.length, total: focus.total } : null);
+const focusState = () => (focus ? { left: focus.queue.length, total: focus.total, review: focus.review } : null);
 
 /** Nästa steg i passet: förfallna repetitioner först, sedan nya kort, null när dagens pass är klart. */
 function nextStep() {
@@ -507,7 +524,7 @@ function nextStep() {
   return makeStep(id, kind);
 }
 
-/** Mina ord: nästa ord i kön (inte samma som nyss om det går); ej påbörjade ord visas först som introduktion. */
+/** Mina ord / fri repetition: nästa ord i kön (inte samma som nyss om det går); ej påbörjade ord visas först som introduktion. */
 function focusStep() {
   if (!focus.queue.length) return null;
   const id = focus.queue.find((x) => !recent.includes(x)) ?? focus.queue[0];
@@ -673,7 +690,7 @@ function wordSVG(key, e, unit, cls = '') {
 window.Glosor = {
   MODES, S, save, resetProgress, stats, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
-  isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote,
+  isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
   milestoneState, checkMilestones, rankOf, lang, setLang,
   sentenceDrafts: SHOW_DRAFTS,
