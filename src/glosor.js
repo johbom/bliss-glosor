@@ -245,7 +245,7 @@ const RANKS = {
     5: [12603, 'Baby'], 10: [13166, 'Barn'], 25: [17446, 'Elev'], 50: [17516, 'Tonåring'], 75: [23693, 'Resenär'],
     100: [25059, 'Upptäcktsresande'], 150: [25045, 'Detektiv'], 200: [23652, 'Forskare'], 300: [29239, 'Expert'],
     400: [17513, 'Lärare'], 500: [25746, 'Riddare'], 750: [23528, 'Hjälte'], 1000: [23713, 'Trollkarl'],
-    1500: [12590, 'Astronaut'], 2000: [23612, 'Filosof'], 3000: [23626, 'Drottning'], 4000: [23559, 'Kung'],
+    1500: [12590, 'Astronaut'], 2000: [23612, 'Filosof'], 3000: [23626, 'Drottning'], 4000: [22828, 'Viking'],
     5000: [25381, 'Superman'], all: [24520, 'Universum'],
   },
   atoms: {
