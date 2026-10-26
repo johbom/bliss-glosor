@@ -1,7 +1,8 @@
 # Licenser för Bliss-glosor
 
 Bliss-glosor är gjort av John Säbom. Symbolerna ritas med BlissEngine av
-P-O Hedvall och Jonas Paulsson (AnyCom AB) – ritmotorn ur WinBliss.
+P-O Hedvall och Jonas Paulsson (AnyCom AB) – ritmotorn ur WinBliss. BlissEngine
+skapades på Furuboda folkhögskola inom ett projekt med stöd från Allmänna arvsfonden.
 
 Bliss-glosor är fritt och gratis att använda, kopiera och sprida. Appen består
 av delar med olika upphovspersoner och licenser. Den som sprider appen eller

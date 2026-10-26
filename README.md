@@ -4,7 +4,10 @@ Fritt och gratis glosprogram för Blissymbolik: lär dig grundtecknen först och
 de sammansatta orden – deras beståndsdelar, att bygga symboler och att repetera över tid.
 
 Av John Säbom. Symbolerna ritas med BlissEngine av P-O Hedvall och Jonas Paulsson
-(AnyCom AB) – ritmotorn ur WinBliss.
+(AnyCom AB) – ritmotorn ur WinBliss, skapad på Furuboda folkhögskola inom ett projekt
+med stöd från Allmänna arvsfonden.
+
+Tips: [Blisshuset – Sunderby folkhögskola](https://blisshuset.com).
 
 **Öppna appen:** https://johbom.github.io/bliss-glosor/
 
