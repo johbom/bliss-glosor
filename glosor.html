@@ -258,7 +258,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 <body>
 <div class="statusbar" aria-hidden="true"></div>
 <header>
-  <h1>Bliss-glosor</h1>
+  <h1 id="app-title">Bliss-glosor</h1>
   <nav>
     <button type="button" data-view="home" aria-current="true">Översikt</button>
     <button type="button" data-view="list">Ordlista</button>
@@ -758,13 +758,13 @@ const FLYER_URL = 'https://johbom.github.io/bliss-glosor/informationsblad/Bliss-
 /** Om-sidan på engelska (samma innehåll som den svenska). */
 function aboutEn(lic) {
   return `<section class="panel prose">
-    <h2>About Bliss-glosor</h2>
-    <p>Bliss-glosor is a free vocabulary trainer for Blissymbolics. You learn the symbols and what they are built from:
+    <h2>About Bliss Vocabulary</h2>
+    <p>Bliss Vocabulary (Bliss-glosor in Swedish) is a free vocabulary trainer for Blissymbolics. You learn the symbols and what they are built from:
       first the basic characters, then the compound words – a word is unlocked when you know its parts.
       The exercises are symbol → word, word → symbol, parts and build the symbol, and what you know is reviewed
       at ever longer intervals (10 minutes, 1 day, 3, 7, 16, 35 and 90 days). Under <i>My words</i> you can choose words
       to practise in particular, and with <i>Review</i> you can test yourself on words you have learned at any time. The app was made in Sweden; the English words and explanations are BCI's own.</p>
-    <p>Bliss-glosor is made by John Säbom. The symbols are drawn with BlissEngine by P-O Hedvall and Jonas Paulsson –
+    <p>Bliss Vocabulary is made by John Säbom. The symbols are drawn with BlissEngine by P-O Hedvall and Jonas Paulsson –
       the drawing engine from WinBliss, the tool they created at AnyCom AB and that BCI has used to standardise
       the Blissymbols. BlissEngine was created at Furuboda folkhögskola in a project funded by the Swedish Inheritance Fund (Allmänna arvsfonden).</p>
 
@@ -809,7 +809,7 @@ function aboutEn(lic) {
     <div class="flyer">
       <div class="flyer-doc" aria-hidden="true"><span>PDF</span></div>
       <div>
-        <p>Want to tell others about Bliss-glosor? The information sheet is an A4 page with a QR code to the app, a short
+        <p>Want to tell others about Bliss Vocabulary? The information sheet is an A4 page with a QR code to the app, a short
           description of how it works and how to install it – to print, put up or pass on. The sheet is in Swedish.</p>
         <a class="promo-link" href="${FLYER_URL}" target="_blank" rel="noopener">Download the information sheet (PDF, 47 kB, Swedish)</a>
       </div>
@@ -955,8 +955,10 @@ function about() {
 // ---------------------------------------------------------------- språk
 const NAV = { home: ['Översikt', 'Overview'], list: ['Ordlista', 'Word list'], about: ['Om', 'About'] };
 /** Sidhuvud och dokumentspråk efter valt språk; knappen erbjuder alltid det andra språket. */
+const APP_NAME = ['Bliss-glosor', 'Bliss Vocabulary'];
 function applyLang() {
   document.documentElement.lang = lang();
+  document.getElementById('app-title').textContent = document.title = tx(...APP_NAME);
   document.querySelectorAll('header nav button').forEach((b) => { b.textContent = tx(...NAV[b.dataset.view]); });
   const t = document.getElementById('lang-toggle');
   t.textContent = tx('EN', 'SV');
@@ -1011,7 +1013,7 @@ function loadBackupFile(input) {
   if (!f) return;
   f.text().then((text) => {
     const b = readBackup(text);
-    if (!b) return backupMsg(tx('Filen är ingen säkerhetskopia från Bliss-glosor.', 'The file is not a Bliss-glosor backup.'), 'bad');
+    if (!b) return backupMsg(tx('Filen är ingen säkerhetskopia från Bliss-glosor.', 'The file is not a Bliss Vocabulary backup.'), 'bad');
     pendingBackup = text;
     const when = b.saved ? new Date(b.saved).toLocaleString(lang() === 'en' ? 'en-GB' : 'sv-SE', { dateStyle: 'medium', timeStyle: 'short' }) : '';
     backupMsg(`<div class="confirm"><span>${tx(`Ersätta dina nuvarande framsteg med säkerhetskopian${when ? ` från ${when}` : ''} (${b.words} ord)?`,
