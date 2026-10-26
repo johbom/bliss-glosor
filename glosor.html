@@ -313,17 +313,7 @@ function home() {
   const learnt = reviewCount(), wait = nextDue();
   app.innerHTML = `
     <section class="panel">
-      ${milestoneHTML()}
-      <div class="stats">
-        <div class="stat"><b>${st.due}</b><span>${tx('att repetera nu', 'to review now')}</span></div>
-        <div class="stat"><b>${st.newLeft}</b><span>${tx('nya kvar i dag', 'new left today')}</span></div>
-        <div class="stat"><b>${st.learned}</b><span>${tx('lärda (klarat en repetition efter ett dygn)', 'learned (passed a review after a day)')}</span></div>
-        <div class="stat"><b>${st.unlocked}</b><span>${tx('sammansatta ord upplåsta', 'compound words unlocked')}</span></div>
-      </div>
-      <div class="small muted">${tx(`Grundtecken: ${st.atoms} av ${st.atomTotal}`, `Basic characters: ${st.atoms} of ${st.atomTotal}`)}</div>
-      <div class="bar"><i style="width:${pct(st.atoms, st.atomTotal)}%"></i></div>
-      <div class="small muted">${tx(`Sammansatta ord: ${st.compounds} av ${st.compoundTotal}`, `Compound words: ${st.compounds} of ${st.compoundTotal}`)}</div>
-      <div class="bar"><i style="width:${pct(st.compounds, st.compoundTotal)}%"></i></div>
+      ${work ? `<p class="small muted" style="margin-bottom:8px">${tx(`${st.due} att repetera nu · ${st.newLeft} nya kvar i dag`, `${st.due} to review now · ${st.newLeft} new left today`)}</p>` : ''}
       ${!work && learnt ? `<p class="small muted" style="margin-bottom:8px">${tx('Klart för i dag!', 'Done for today!')}${wait != null ? tx(` Nästa ord ska repeteras ${fmtInterval(wait)}.`, ` The next word is due ${fmtInterval(wait)}.`) : ''}
         ${tx(`Du kan ändå repetera ${Math.min(20, learnt)} av dina ord nu – de svagaste först.`, `You can still review ${Math.min(20, learnt)} of your words now – the weakest first.`)}</p>` : ''}
       <div class="row">
@@ -336,6 +326,19 @@ function home() {
     </section>
     ${minePanel()}
     ${sentencesPanel()}
+    <section class="panel">
+      ${milestoneHTML()}
+      <div class="stats">
+        <div class="stat"><b>${st.due}</b><span>${tx('att repetera nu', 'to review now')}</span></div>
+        <div class="stat"><b>${st.newLeft}</b><span>${tx('nya kvar i dag', 'new left today')}</span></div>
+        <div class="stat"><b>${st.learned}</b><span>${tx('lärda (klarat en repetition efter ett dygn)', 'learned (passed a review after a day)')}</span></div>
+        <div class="stat"><b>${st.unlocked}</b><span>${tx('sammansatta ord upplåsta', 'compound words unlocked')}</span></div>
+      </div>
+      <div class="small muted">${tx(`Grundtecken: ${st.atoms} av ${st.atomTotal}`, `Basic characters: ${st.atoms} of ${st.atomTotal}`)}</div>
+      <div class="bar"><i style="width:${pct(st.atoms, st.atomTotal)}%"></i></div>
+      <div class="small muted">${tx(`Sammansatta ord: ${st.compounds} av ${st.compoundTotal}`, `Compound words: ${st.compounds} of ${st.compoundTotal}`)}</div>
+      <div class="bar"><i style="width:${pct(st.compounds, st.compoundTotal)}%"></i></div>
+    </section>
     <section class="panel settings">
       <h2>${tx('Inställningar', 'Settings')}</h2>
       <fieldset><legend>${tx('Språk', 'Language')}</legend>
