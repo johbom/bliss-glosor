@@ -288,7 +288,7 @@ const {
   symbolSVG, chip, classChip, formulaHTML, mergedNote, esc, MODES, nextAtom,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, reviewCount, nextDue,
   exportBackup, readBackup, importBackup,
-  sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG, sentenceDrafts,
+  sentenceCount, sentenceTotal, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG, sentenceDrafts,
   milestoneState, checkMilestones, rankOf, lang, setLang,
 } = window.Glosor;
 /** Text på valt språk: tx('svenska', 'English'). */
@@ -428,12 +428,16 @@ function milestoneHTML() {
 }
 
 function sentencesPanel() {
-  const n = sentenceCount();
-  if (!n) return '';   // syns först när det finns godkända meningar
+  const n = sentenceCount(), total = sentenceTotal();
+  if (!total) return '';   // syns först när det finns godkända meningar
+  const more = n < total
+    ? tx(` ${n} av ${total} meningar är upplåsta – en mening låses upp när du har mött något av orden i den.`,
+      ` ${n} of ${total} sentences are unlocked – a sentence unlocks when you have met one of its words.`)
+    : '';
   return `<section class="panel">
       <div class="head"><h2>${tx('Meningar', 'Sentences')}</h2>
-        <button type="button" class="primary" id="sentences">${tx('Öva meningar', 'Practise sentences')} (${n})</button></div>
-      <p class="small muted">${tx('Läs en mening i Bliss och välj ordet som saknas.', 'Read a sentence in Bliss and choose the missing word.')}${sentenceDrafts ? tx(' <b>Utkast visas</b> (granskningsläge).', ' <b>Drafts shown</b> (review mode).') : ''}</p>
+        <button type="button" class="primary" id="sentences" ${n ? '' : 'disabled'}>${tx('Öva meningar', 'Practise sentences')}${n ? ` (${n})` : ''}</button></div>
+      <p class="small muted">${tx('Läs en mening i Bliss och välj ordet som saknas.', 'Read a sentence in Bliss and choose the missing word.')}${more}${sentenceDrafts ? tx(' <b>Utkast visas</b> (granskningsläge).', ' <b>Drafts shown</b> (review mode).') : ''}</p>
     </section>`;
 }
 

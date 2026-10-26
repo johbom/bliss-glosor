@@ -697,9 +697,15 @@ function opNote(c) {
 const SHOW_DRAFTS = /[?&]utkast=1\b/.test(location.search);
 const SENTENCES = (window.MENINGAR || []).filter((m) => m.status === 'godkänd' || (SHOW_DRAFTS && m.status === 'utkast'));
 let sfocus = null;
-const sentenceCount = () => SENTENCES.length;
+// En mening låses upp när man har mött minst ett av dess ord – resten får man upptäcka (översättningen
+// visas under symbolerna efter svaret). Granskare (?utkast=1) ser alla.
+const sentenceOpen = (m) => SHOW_DRAFTS || m.ord.some((w) => S.cards[w.id]);
+const openSentences = () => SENTENCES.filter(sentenceOpen);
+const sentenceCount = () => openSentences().length;
+const sentenceTotal = () => SENTENCES.length;
 function startSentences() {
-  sfocus = { queue: shuffle(SENTENCES.map((m) => m.nr)), total: SENTENCES.length };
+  const open = openSentences();
+  sfocus = { queue: shuffle(open.map((m) => m.nr)), total: open.length };
 }
 const endSentences = () => { sfocus = null; };
 const sentenceState = () => (sfocus ? { left: sfocus.queue.length, total: sfocus.total } : null);
@@ -729,7 +735,7 @@ window.Glosor = {
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
   exportBackup, readBackup, importBackup,
-  sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
+  sentenceCount, sentenceTotal, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
   milestoneState, checkMilestones, rankOf, lang, setLang,
   sentenceDrafts: SHOW_DRAFTS,
 };
