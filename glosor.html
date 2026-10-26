@@ -448,6 +448,11 @@ function introHTML(c) {
 /** "Markera alla delar …" – säger till när samma del förekommer flera gånger (arbete = aktivitet + aktivitet). */
 function partsCountText(c) {
   const distinct = new Set(c.parts).size, total = c.parts.length;
+  if (c.optInd) {
+    const n = `${distinct - c.optInd.length}–${distinct}`;
+    return tx(`Markera alla delar du ser i symbolen (${n} st – operatorn får du ta med eller hoppa över).`,
+      `Select all the parts you see in the symbol (${n} – you may include or skip the indicator).`);
+  }
   if (total > distinct) {
     return tx(`Markera alla delar du ser i symbolen (${distinct} ${distinct === 1 ? 'del' : 'olika delar'} – samma del förekommer flera gånger i symbolen).`,
       `Select all the parts you see in the symbol (${distinct} ${distinct === 1 ? 'part' : 'different parts'} – the same part appears more than once).`);
@@ -482,7 +487,7 @@ function quizHTML() {
   return `<div class="kicker">${MODES.build}</div><p class="prompt">${tx('Bygg symbolen för', 'Build the symbol for')}</p>
     <div class="word">${esc(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
     <div class="strip" id="strip">${step.sel.map((id, i) => `<button type="button" class="chip" data-unsel="${i}" title="${tx('Ta bort', 'Remove')}">${symbolSVG(card(id), 3.4)}<span>${esc(card(id).word)}</span></button>`).join('')}</div>
-    <p class="small muted" style="margin-top:6px">${tx(`${c.parts.length} delar. Klicka i raden ovan för att ta bort en del.`, `${c.parts.length} parts. Click in the row above to remove a part.`)}</p>
+    <p class="small muted" style="margin-top:6px">${c.optInd ? tx(`${c.parts.length} delar (operatorn får utelämnas).`, `${c.parts.length} parts (the indicator may be left out).`) : tx(`${c.parts.length} delar.`, `${c.parts.length} parts.`)} ${tx('Klicka i raden ovan för att ta bort en del.', 'Click in the row above to remove a part.')}</p>
     <div class="palette">${pal}</div>
     <div class="actions"><span class="hint">${tx('Siffror lägger till · Backsteg tar bort · Enter kontrollerar', 'Numbers add · Backspace removes · Enter checks')}</span><button type="button" class="ghost" data-act="clear">${tx('Rensa', 'Clear')}</button><button type="button" class="primary" data-act="check">${tx('Kontrollera', 'Check')}</button></div>`;
 }
@@ -610,8 +615,9 @@ function togglePal(i) {
 function checkStep() {
   if (answered) return;
   if (!step.sel.length) return;
-  const { ok, order } = checkParts(step);
+  const { ok, order, skipped } = checkParts(step);
   const want = new Set(step.c.parts);
+  if (ok && skipped) step.c.optInd.forEach((id) => want.delete(id));   // frivillig operator utelämnad – inte "missad"
   document.querySelectorAll('.pal').forEach((b, i) => {
     const id = step.palette[i].id, picked = step.sel.includes(id);
     b.disabled = true;
@@ -623,6 +629,7 @@ function checkStep() {
   let note = '';
   if (!ok) note = tx('Streckade rutor = delar du missade, röda = delar som inte ingår.', 'Dashed boxes = parts you missed, red = parts that are not included.');
   else if (step.mode === 'build' && !order) note = tx('Rätt delar! I BCI:s definition står de i ordningen nedan.', 'Right parts! In the BCI definition they come in the order below.');
+  if (ok && skipped) note = (note ? note + ' ' : '') + tx('BCI skriver också ut operatorn – den enda som hela ordet har.', 'BCI also lists the indicator – the single one the whole word has.');
   finish(ok, note);
 }
 

@@ -183,6 +183,24 @@ for (const c of deck.values()) {
     .filter((id) => id !== c.id && !c.parts.includes(id));
   if (same.length) c.bare = same;
 }
+// ---- Delarnas operatorer i sammansatta ord ----
+// bli = gå + vara + operator: gå och vara har var sin operator när de står ensamma, men när ord sätts
+// ihop tappar delarna sina operatorer och hela ordet får en enda (BCI-AV-ritningen av bli har bara en,
+// över pilen). Den operatorn står i BCI:s formel och visas därför, men i övningarna är den frivillig
+// när en del redan ritas med samma operator.
+const indCode = (id) => drawingKey(deck.get(id).v.e);
+for (const c of deck.values()) {
+  const inds = c.parts.filter(isIndicatorCard);
+  if (!inds.length) continue;
+  const carried = new Set(c.parts.filter((p) => !isIndicatorCard(p)).flatMap((p) => {
+    const o = deck.get(p);
+    return [...o.parts.filter(isIndicatorCard).map(indCode), ...o.v.e.filter(isIndicatorEl).map((e) => drawingKey([e]))];
+  }));
+  if (!carried.size) continue;
+  c.opDropped = true;
+  const opt = inds.filter((id) => carried.has(indCode(id)));
+  if (opt.length) c.optInd = [...new Set(opt)];
+}
 // Former (familj + storlek) som minst ett grundtecken är ritat med – de går att lära sig.
 const ATOM_SHAPES = new Set(atomOrder.flatMap((c) => [...c.shapes]));
 const compoundCount = deck.size - atomOrder.length;
@@ -512,15 +530,19 @@ function makeStep(id, kind) {
 }
 
 /** Rätt om valda delar (som mängd för 'parts', som multimängd för 'build') stämmer. */
+/** skipped = rätt utan den frivilliga operatorn (se "Delarnas operatorer" ovan). */
 function checkParts(step) {
-  const want = step.c.parts.slice().sort((a, b) => a - b);
-  const got = step.sel.slice().sort((a, b) => a - b);
+  const opt = new Set(step.c.optInd || []);
+  const sorted = (a) => a.slice().sort((x, y) => x - y);
+  const same = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
+  const full = step.c.parts, short = full.filter((x) => !opt.has(x));
+  const skipped = opt.size > 0 && !step.sel.some((x) => opt.has(x));
+  const ref = skipped ? short : full;
   if (step.mode === 'parts') {
-    const w = [...new Set(want)], g = [...new Set(got)];
-    return { ok: w.length === g.length && w.every((x, i) => x === g[i]), order: true };
+    return { ok: same(sorted([...new Set(ref)]), sorted([...new Set(step.sel)])), order: true, skipped };
   }
-  const ok = want.length === got.length && want.every((x, i) => x === got[i]);
-  return { ok, order: ok && step.sel.every((x, i) => x === step.c.parts[i]) };
+  const ok = same(sorted(ref), sorted(step.sel));
+  return { ok, order: ok && step.sel.every((x, i) => x === ref[i]), skipped };
 }
 
 // ---------------------------------------------------------------- rendering
@@ -589,7 +611,7 @@ function formulaHTML(c, unit = 3.2) {
     if (typeof p === 'number' && deck.has(p)) return chip(deck.get(p), unit, '', note);
     return `<span class="chip txt" title="${L('BCI:s text – ingen entydig symbol', 'BCI text – no unambiguous symbol')}">${esc(label(p, i))}${note ? `<small class="note">${esc(note)}</small>` : ''}</span>`;
   });
-  return `<div class="formula">${parts.join('<span class="op">+</span>')}</div>` + mergedNote(c) + bareFormHTML(c, unit);
+  return `<div class="formula">${parts.join('<span class="op">+</span>')}</div>` + mergedNote(c) + opNote(c) + bareFormHTML(c, unit);
 }
 
 /** "Utan operatorn: …" – symbolen med exakt samma ritning men utan indikatorn ovanpå. */
@@ -605,6 +627,13 @@ function mergedNote(c) {
   if (!c.merged) return '';
   return `<p class="merged-note">${L('Sammanslaget tecken: delarna är sammanfogade till ett tecken och kan vara ritade i ändrad form.',
     'Composite character: the parts are merged into one character and may be drawn in a changed form.')}</p>`;
+}
+
+/** Förklaring när delar har egna operatorer (bli = gå + vara + operator): bara en operator syns i ordet. */
+function opNote(c) {
+  if (!c.opDropped) return '';
+  return `<p class="merged-note">${L('Delarnas egna operatorer tas bort när de sätts ihop – hela ordet får en enda operator.',
+    'The parts lose their own indicators when they are combined – the whole word gets a single indicator.')}</p>`;
 }
 
 // ---------------------------------------------------------------- meningar
