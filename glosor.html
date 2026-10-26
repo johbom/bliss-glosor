@@ -120,6 +120,13 @@ h2{font-size:17px;margin-bottom:12px}
 .ms-all{font-weight:700}
 .ms-hit + .ms-hit{margin-top:-4px}
 .ms-hit{margin:-2px 0 10px;padding:10px 12px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-size:15px}
+.links{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.link-card{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:12px;background:var(--panel-2);
+  border:1px solid var(--rule);text-decoration:none;color:var(--ink)}
+.prose .link-card{color:var(--ink)}
+.link-card:hover{border-color:var(--accent)}
+.link-card span{font-size:14px;color:var(--dim)}
+.link-card .link-url{color:var(--accent);font-weight:700;font-size:13px}
 .flyer{display:flex;gap:14px;align-items:flex-start}
 .flyer-doc{flex:none;width:52px;height:68px;border-radius:6px;background:var(--panel-2);border:1px solid var(--rule);
   position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px}
@@ -684,6 +691,20 @@ function about() {
         tavlor och mycket mer.</p>
       <a class="promo-link" href="https://blisshuset.com" target="_blank" rel="noopener">Besök blisshuset.com</a>
     </aside>
+
+    <h3>Länkar</h3>
+    <div class="links">
+      <a class="link-card" href="https://tfhsensory.se" target="_blank" rel="noopener">
+        <b>TFH Sensory – Sinnesupplevelser för alla</b>
+        <span>Sinnesstimulerande produkter för vård, skola, äldreomsorg och hemmet.</span>
+        <span class="link-url">tfhsensory.se</span>
+      </a>
+      <a class="link-card" href="https://furuboda.org" target="_blank" rel="noopener">
+        <b>Föreningen Furuboda</b>
+        <span>Huvudman för Furuboda folkhögskola, där BlissEngine skapades.</span>
+        <span class="link-url">furuboda.org</span>
+      </a>
+    </div>
 
     <h3>Installera som app</h3>
     <ul>
