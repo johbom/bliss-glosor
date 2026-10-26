@@ -33,9 +33,19 @@ const UNLOCK_BOX = 1;   // en del räknas som känd när den besvarats rätt min
 const LEARNED_BOX = 3;  // "lärd" = klarat en repetition efter minst ett dygn
 const KEY = 'bm-glosor-v1';
 
-const MODES = { sym: 'Symbol → ord', word: 'Ord → symbol', parts: 'Beståndsdelar', build: 'Bygg symbolen' };
+// ---- språk: svenska eller engelska (S.settings.lang). Ord, förklaringar och anteckningar finns på båda. ----
+let LANG = 'sv';
+const L = (sv, en) => (LANG === 'en' ? en : sv);
+const MODE_TEXT = {
+  sym: ['Symbol → ord', 'Symbol → word'], word: ['Ord → symbol', 'Word → symbol'],
+  parts: ['Beståndsdelar', 'Parts'], build: ['Bygg symbolen', 'Build the symbol'],
+};
+/** Övningarnas namn på valt språk (Object.entries fungerar som förut). */
+const MODES = {};
+for (const [k, [sv, en]] of Object.entries(MODE_TEXT)) Object.defineProperty(MODES, k, { enumerable: true, get: () => L(sv, en) });
 const CLASS = {
-  YELLOW: 'sak', RED: 'handling', GREEN: 'beskrivning', BLUE: 'person', WHITE: 'funktionsord', GRAY: 'markör',
+  YELLOW: ['sak', 'thing'], RED: ['handling', 'action'], GREEN: ['beskrivning', 'description'], BLUE: ['person', 'person'],
+  WHITE: ['funktionsord', 'function word'], GRAY: ['markör', 'marker'],
 };
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -57,15 +67,38 @@ function splitSyns(s) {
   return out;
 }
 
+/** BCI:s engelska glosa för visning: "be,am,are,is,exist-(to)" -> ["to be", "am", "are", "is", "exist"]. */
+function enSyns(en) {
+  const verb = /-\(to\)$/.test(en);
+  const out = splitSyns(en.replace(/-\(to\)$/, ''))
+    .map((s) => s.replace(/_/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean);
+  if (verb && out.length) out[0] = 'to ' + out[0];
+  return out;
+}
+
 const deck = new Map();
-for (const [k, [raw, expl, isChar, freq, old, , notes, merged]] of Object.entries(DERIV)) {
+for (const [k, [raw, expl, isChar, freq, old, , notes, merged, en]] of Object.entries(DERIV)) {
   const v = getById(+k);
   if (old || !v || !v.e?.length) continue;
   if (/_\((lower|upper)case\)|half_sized|\(OLD\)/i.test(v.en)) continue;
-  const syns = splitSyns(v.sv).map((s) => s.replace(/\s*\(etc\)/, '').trim()).filter(Boolean);
+  const synsSv = splitSyns(v.sv).map((s) => s.replace(/\s*\(etc\)/, '').trim()).filter(Boolean);
+  const synsEn = enSyns(v.en);
   // notes: BCI:s anteckning per del ("halv storlek", "förkortning"), samma ordning som raw.
   // merged: sammanslaget tecken (BCI: "Character (superimposed)") — delarna är sammanfogade till ett tecken.
-  deck.set(v.id, { id: v.id, v, raw, notes: (notes || []).slice(), merged: !!merged, expl, isChar: !!isChar, freq, word: syns[0] || v.sv, syns, users: [] });
+  // en: [förklaring, textdelar, anteckningar] – BCI:s engelska original.
+  const c = {
+    id: v.id, v, raw, merged: !!merged, isChar: !!isChar, freq, users: [],
+    synsSv, synsEn, explSv: expl, explEn: (en && en[0]) || '',
+    notesSv: (notes || []).slice(), notesEn: ((en && en[2]) || []).slice(), textEn: (en && en[1]) || [],
+  };
+  // Ord, synonymer, förklaring och anteckningar följer valt språk.
+  Object.defineProperties(c, {
+    word: { get: () => (LANG === 'en' ? c.synsEn[0] : c.synsSv[0]) || c.v.sv },
+    syns: { get: () => (LANG === 'en' ? c.synsEn : c.synsSv) },
+    expl: { get: () => (LANG === 'en' ? c.explEn : c.explSv) },
+    notes: { get: () => (LANG === 'en' ? c.notesEn : c.notesSv) },
+  });
+  deck.set(v.id, c);
 }
 // "ability_(half_sized)" är samma tecken som "ability" i halv storlek (BCI:s egen variant) —
 // räkna det som den delen, men visa att den står i halv storlek.
@@ -78,7 +111,7 @@ const baseOf = (p) => {
 for (const c of deck.values()) {
   c.raw = c.raw.map((p, i) => {
     const b = baseOf(p);
-    if (b !== p && !c.notes[i]) c.notes[i] = 'halv storlek';
+    if (b !== p && !c.notesSv[i]) { c.notesSv[i] = 'halv storlek'; c.notesEn[i] = 'half-sized'; }
     return b;
   });
   c.parts = c.raw.filter((p) => typeof p === 'number' && deck.has(p));
@@ -155,14 +188,14 @@ const ATOM_SHAPES = new Set(atomOrder.flatMap((c) => [...c.shapes]));
 const compoundCount = deck.size - atomOrder.length;
 
 const card = (id) => deck.get(+id) || null;
-const className = (c) => CLASS[c.v.c] || '';
+const className = (c) => (CLASS[c.v.c] ? L(...CLASS[c.v.c]) : '');
 
 // ---------------------------------------------------------------- framsteg
 
 function defaults() {
   return {
     cards: {},
-    settings: { modes: { sym: true, word: true, parts: true, build: true }, newPerDay: 10, staff: true },
+    settings: { modes: { sym: true, word: true, parts: true, build: true }, newPerDay: 10, staff: true, lang: null },
     day: { date: today(), n: 0, extra: 0 },
     alt: false,
     mine: [],   // "Mina ord": BCI-id:n som användaren valt att träna särskilt
@@ -181,6 +214,14 @@ function load() {
   return defaults();
 }
 const S = load();
+// Språk: sparat val, annars webbläsarens (svenska för sv/nb/nn/no/da, annars engelska).
+LANG = S.settings.lang || (/^(sv|nb|nn|no|da)\b/i.test(navigator.language || '') ? 'sv' : 'en');
+const lang = () => LANG;
+function setLang(l) {
+  LANG = l === 'en' ? 'en' : 'sv';
+  S.settings.lang = LANG;
+  save();
+}
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) { /* privat fönster: fortsätt utan att spara */ }
 }
@@ -273,22 +314,23 @@ function stats() {
 // Nyckeln 'all' är den sista milstolpen – hela ordförrådet resp. alla grundtecken.
 const RANKS = {
   words: {
-    5: [12603, 'Baby'], 10: [13166, 'Barn'], 25: [17446, 'Elev'], 50: [17516, 'Tonåring'], 75: [23693, 'Resenär'],
-    100: [25059, 'Upptäcktsresande'], 150: [25045, 'Detektiv'], 200: [23652, 'Forskare'], 300: [29239, 'Expert'],
-    400: [17513, 'Lärare'], 500: [25746, 'Riddare'], 750: [23528, 'Hjälte'], 1000: [23713, 'Trollkarl'],
-    1500: [12590, 'Astronaut'], 2000: [23612, 'Filosof'], 3000: [23626, 'Drottning'], 4000: [22828, 'Viking'],
-    5000: [25381, 'Superman'], all: [24520, 'Universum'],
+    5: [12603, 'Baby', 'Baby'], 10: [13166, 'Barn', 'Child'], 25: [17446, 'Elev', 'Pupil'], 50: [17516, 'Tonåring', 'Teenager'],
+    75: [23693, 'Resenär', 'Traveller'], 100: [25059, 'Upptäcktsresande', 'Explorer'], 150: [25045, 'Detektiv', 'Detective'],
+    200: [23652, 'Forskare', 'Researcher'], 300: [29239, 'Expert', 'Expert'], 400: [17513, 'Lärare', 'Teacher'],
+    500: [25746, 'Riddare', 'Knight'], 750: [23528, 'Hjälte', 'Hero'], 1000: [23713, 'Trollkarl', 'Wizard'],
+    1500: [12590, 'Astronaut', 'Astronaut'], 2000: [23612, 'Filosof', 'Philosopher'], 3000: [23626, 'Drottning', 'Queen'],
+    4000: [22828, 'Viking', 'Viking'], 5000: [25381, 'Superman', 'Superman'], all: [24520, 'Universum', 'Universe'],
   },
   atoms: {
-    10: [12395, 'Myra'], 25: [15665, 'Mus'], 50: [12383, 'Katt'], 100: [12380, 'Hund'], 150: [14897, 'Häst'],
-    200: [12643, 'Björn'], 300: [15217, 'Lejon'], all: [26159, 'Drake'],
+    10: [12395, 'Myra', 'Ant'], 25: [15665, 'Mus', 'Mouse'], 50: [12383, 'Katt', 'Cat'], 100: [12380, 'Hund', 'Dog'],
+    150: [14897, 'Häst', 'Horse'], 200: [12643, 'Björn', 'Bear'], 300: [15217, 'Lejon', 'Lion'], all: [26159, 'Drake', 'Dragon'],
   },
 };
 /** Titeln för en milstolpe: { id, name } eller null. */
 function rankOf(track, n) {
   if (!n) return null;
   const t = TRACKS[track], r = n === t.total() ? RANKS[track].all : RANKS[track][n];
-  return r ? { id: r[0], name: r[1] } : null;
+  return r ? { id: r[0], name: L(r[1], r[2]) } : null;
 }
 
 const TRACKS = {
@@ -350,11 +392,11 @@ function grade(id, ok) {
 
 function fmtInterval(ms) {
   const m = Math.round(ms / MIN);
-  if (m < 1) return 'om en stund';
-  if (m < 60) return `om ${m} min`;
-  if (m < 1440) return `om ${Math.round(m / 60)} tim`;
+  if (m < 1) return L('om en stund', 'in a moment');
+  if (m < 60) return L(`om ${m} min`, `in ${m} min`);
+  if (m < 1440) { const h = Math.round(m / 60); return L(`om ${h} tim`, `in ${h} h`); }
   const d = Math.round(m / 1440);
-  return d === 1 ? 'i morgon' : `om ${d} dagar`;
+  return d === 1 ? L('i morgon', 'tomorrow') : L(`om ${d} dagar`, `in ${d} days`);
 }
 
 // ---------------------------------------------------------------- frågor
@@ -539,11 +581,13 @@ function chip(c, unit = 3.2, extra = '', note = '') {
  */
 function formulaHTML(c, unit = 3.2) {
   if (!c.raw.length) return bareFormHTML(c, unit);
-  const label = (p) => (typeof p === 'number' ? (getById(p)?.sv.split(',')[0] || p) : String(p).replace(/_/g, ' '));
+  const label = (p, i) => (typeof p === 'number'
+    ? (LANG === 'en' ? enSyns(getById(p)?.en || '')[0] : getById(p)?.sv.split(',')[0]) || p
+    : (LANG === 'en' && c.textEn[i]) || String(p).replace(/_/g, ' '));
   const parts = c.raw.map((p, i) => {
     const note = c.notes[i] || '';
     if (typeof p === 'number' && deck.has(p)) return chip(deck.get(p), unit, '', note);
-    return `<span class="chip txt" title="BCI:s text – ingen entydig symbol">${esc(label(p))}${note ? `<small class="note">${esc(note)}</small>` : ''}</span>`;
+    return `<span class="chip txt" title="${L('BCI:s text – ingen entydig symbol', 'BCI text – no unambiguous symbol')}">${esc(label(p, i))}${note ? `<small class="note">${esc(note)}</small>` : ''}</span>`;
   });
   return `<div class="formula">${parts.join('<span class="op">+</span>')}</div>` + mergedNote(c) + bareFormHTML(c, unit);
 }
@@ -553,13 +597,14 @@ function bareFormHTML(c, unit = 2.8) {
   if (!c.bare) return '';
   // Hela BCI-glosan ("tillvaro, existens (2)"), så att det syns vilken betydelse som avses.
   const one = (o) => `<button type="button" class="chip" data-detail="${o.id}">${symbolSVG(o, unit)}<span>${esc(o.syns.join(', '))}</span></button>`;
-  return `<div class="bare-form"><span class="bare-label">Utan operatorn:</span>${c.bare.map((id) => one(deck.get(id))).join('')}</div>`;
+  return `<div class="bare-form"><span class="bare-label">${L('Utan operatorn:', 'Without the indicator:')}</span>${c.bare.map((id) => one(deck.get(id))).join('')}</div>`;
 }
 
 /** Förklaring under formeln för sammanslagna tecken (BCI: superimposed, Fundamental Rules 5.1.4). */
 function mergedNote(c) {
   if (!c.merged) return '';
-  return `<p class="merged-note">Sammanslaget tecken: delarna är sammanfogade till ett tecken och kan vara ritade i ändrad form.</p>`;
+  return `<p class="merged-note">${L('Sammanslaget tecken: delarna är sammanfogade till ett tecken och kan vara ritade i ändrad form.',
+    'Composite character: the parts are merged into one character and may be drawn in a changed form.')}</p>`;
 }
 
 // ---------------------------------------------------------------- meningar
@@ -601,7 +646,7 @@ window.Glosor = {
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
-  milestoneState, checkMilestones, rankOf,
+  milestoneState, checkMilestones, rankOf, lang, setLang,
   sentenceDrafts: SHOW_DRAFTS,
 };
 })();

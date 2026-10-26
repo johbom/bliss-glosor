@@ -50,6 +50,8 @@ header h1{font-size:20px}
 header nav{margin-left:auto;display:flex;gap:4px}
 header nav button{background:none;border:0;padding:6px 12px;border-radius:8px;color:var(--dim)}
 header nav button[aria-current="true"]{background:var(--panel);color:var(--ink);font-weight:600}
+.lang-toggle{background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:4px 11px;font-size:13px;font-weight:700;color:var(--accent)}
+.lang-toggle:hover{border-color:var(--accent)}
 main{padding-block:0 40px}
 .panel{background:var(--panel);border-radius:14px;padding:20px}
 .panel + .panel{margin-top:14px}
@@ -244,6 +246,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
     <button type="button" data-view="list">Ordlista</button>
     <button type="button" data-view="about">Om</button>
   </nav>
+  <button type="button" class="lang-toggle" id="lang-toggle" lang="en" aria-label="Switch to English">EN</button>
 </header>
 <main id="app"></main>
 <dialog id="detail"></dialog>
@@ -267,8 +270,11 @@ const {
   symbolSVG, chip, classChip, formulaHTML, mergedNote, esc, MODES, nextAtom,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG, sentenceDrafts,
-  milestoneState, checkMilestones, rankOf,
+  milestoneState, checkMilestones, rankOf, lang, setLang,
 } = window.Glosor;
+/** Text på valt språk: tx('svenska', 'English'). */
+const tx = (sv, en) => (lang() === 'en' ? en : sv);
+const fmtN = (n) => n.toLocaleString(lang() === 'en' ? 'en-GB' : 'sv-SE');
 /** Avsluta Mina ord- och meningspass (vid byte av vy). */
 const endModes = () => { endFocus(); endSentences(); };
 
@@ -289,53 +295,64 @@ function home() {
     <section class="panel">
       ${milestoneHTML()}
       <div class="stats">
-        <div class="stat"><b>${st.due}</b><span>att repetera nu</span></div>
-        <div class="stat"><b>${st.newLeft}</b><span>nya kvar i dag</span></div>
-        <div class="stat"><b>${st.learned}</b><span>lärda (klarat en repetition efter ett dygn)</span></div>
-        <div class="stat"><b>${st.unlocked}</b><span>sammansatta ord upplåsta</span></div>
+        <div class="stat"><b>${st.due}</b><span>${tx('att repetera nu', 'to review now')}</span></div>
+        <div class="stat"><b>${st.newLeft}</b><span>${tx('nya kvar i dag', 'new left today')}</span></div>
+        <div class="stat"><b>${st.learned}</b><span>${tx('lärda (klarat en repetition efter ett dygn)', 'learned (passed a review after a day)')}</span></div>
+        <div class="stat"><b>${st.unlocked}</b><span>${tx('sammansatta ord upplåsta', 'compound words unlocked')}</span></div>
       </div>
-      <div class="small muted">Grundtecken: ${st.atoms} av ${st.atomTotal}</div>
+      <div class="small muted">${tx(`Grundtecken: ${st.atoms} av ${st.atomTotal}`, `Basic characters: ${st.atoms} of ${st.atomTotal}`)}</div>
       <div class="bar"><i style="width:${pct(st.atoms, st.atomTotal)}%"></i></div>
-      <div class="small muted">Sammansatta ord: ${st.compounds} av ${st.compoundTotal}</div>
+      <div class="small muted">${tx(`Sammansatta ord: ${st.compounds} av ${st.compoundTotal}`, `Compound words: ${st.compounds} of ${st.compoundTotal}`)}</div>
       <div class="bar"><i style="width:${pct(st.compounds, st.compoundTotal)}%"></i></div>
       <div class="row">
-        <button type="button" class="primary" id="start" ${work ? '' : 'disabled'}>${work ? 'Börja öva' : 'Klart för i dag'}</button>
-        ${work ? '' : '<button type="button" class="ghost" id="more">Lär 5 nya till</button>'}
-        ${atom ? `<span class="small muted">Nästa grundtecken:</span>${chip(atom, 2.6)}` : ''}
+        <button type="button" class="primary" id="start" ${work ? '' : 'disabled'}>${work ? tx('Börja öva', 'Start practising') : tx('Klart för i dag', 'Done for today')}</button>
+        ${work ? '' : `<button type="button" class="ghost" id="more">${tx('Lär 5 nya till', 'Learn 5 more')}</button>`}
+        ${atom ? `<span class="small muted">${tx('Nästa grundtecken:', 'Next basic character:')}</span>${chip(atom, 2.6)}` : ''}
       </div>
     </section>
     ${minePanel()}
     ${sentencesPanel()}
     <section class="panel settings">
-      <h2>Inställningar</h2>
-      <fieldset><legend>Övningar</legend>${modes}</fieldset>
-      <fieldset><legend>Takt</legend>
-        <label>Nya symboler per dag <input type="number" id="npd" min="1" max="100" value="${S.settings.newPerDay}"></label>
-        <label><input type="checkbox" id="staff" ${S.settings.staff ? 'checked' : ''}> Visa himmels- och jordlinje</label>
+      <h2>${tx('Inställningar', 'Settings')}</h2>
+      <fieldset><legend>${tx('Språk', 'Language')}</legend>
+        <label><input type="radio" name="lang" value="sv" ${lang() === 'sv' ? 'checked' : ''}> Svenska</label>
+        <label><input type="radio" name="lang" value="en" ${lang() === 'en' ? 'checked' : ''}> English</label>
       </fieldset>
-      <p class="small muted">Grundtecknen kommer först, i ordningen <i>flest ord bygger på dem</i>. Ett sammansatt ord
+      <fieldset><legend>${tx('Övningar', 'Exercises')}</legend>${modes}</fieldset>
+      <fieldset><legend>${tx('Takt', 'Pace')}</legend>
+        <label>${tx('Nya symboler per dag', 'New symbols per day')} <input type="number" id="npd" min="1" max="100" value="${S.settings.newPerDay}"></label>
+        <label><input type="checkbox" id="staff" ${S.settings.staff ? 'checked' : ''}> ${tx('Visa himmels- och jordlinje', 'Show sky and earth lines')}</label>
+      </fieldset>
+      <p class="small muted">${tx(`Grundtecknen kommer först, i ordningen <i>flest ord bygger på dem</i>. Ett sammansatt ord
         låses upp när du har svarat rätt på alla dess delar. Rätt svar flyttar ordet till längre intervall
-        (10 min → 1 dag → 3 → 7 → 16 → 35 → 90 dagar), fel svar börjar om. Framstegen sparas i den här webbläsaren.</p>
-      <div style="margin-top:10px" id="resetbox"><button type="button" class="danger" id="reset">Nollställ framsteg</button></div>
+        (10 min → 1 dag → 3 → 7 → 16 → 35 → 90 dagar), fel svar börjar om. Framstegen sparas i den här webbläsaren.`,
+        `Basic characters come first, starting with <i>those most words are built from</i>. A compound word is
+        unlocked when you have answered all its parts correctly. A correct answer moves the word to a longer interval
+        (10 min → 1 day → 3 → 7 → 16 → 35 → 90 days); a wrong answer starts it over. Progress is saved in this browser.`)}</p>
+      <div style="margin-top:10px" id="resetbox"><button type="button" class="danger" id="reset">${tx('Nollställ framsteg', 'Reset progress')}</button></div>
     </section>`;
 }
 
 function minePanel() {
   const mine = mineCards();
   return `<section class="panel">
-      <div class="head"><h2>Mina ord</h2>
-        <button type="button" class="primary" id="focus" ${mine.length ? '' : 'disabled'}>Öva mina ord${mine.length ? ` (${mine.length})` : ''}</button></div>
+      <div class="head"><h2>${tx('Mina ord', 'My words')}</h2>
+        <button type="button" class="primary" id="focus" ${mine.length ? '' : 'disabled'}>${tx('Öva mina ord', 'Practise my words')}${mine.length ? ` (${mine.length})` : ''}</button></div>
       ${mine.length
-        ? `<p class="small muted">Ord du har valt att träna särskilt. De kommer också först bland nya ord i vanliga pass. Klicka på ett ord för att ta bort det.</p>
+        ? `<p class="small muted">${tx('Ord du har valt att träna särskilt. De kommer också först bland nya ord i vanliga pass. Klicka på ett ord för att ta bort det.',
+            'Words you have chosen to practise in particular. They also come first among new words in regular sessions. Click a word to remove it.')}</p>
            <div class="formula">${mine.map((c) => chip(c, 2.6)).join('')}</div>`
-        : `<p class="small muted">Inga ord valda än. Öppna <button type="button" class="linklike" id="go-list">Ordlista</button>, sök upp ett ord,
-           klicka på det och välj <b>☆ Lägg till i Mina ord</b>.</p>`}
+        : `<p class="small muted">${tx(`Inga ord valda än. Öppna <button type="button" class="linklike" id="go-list">Ordlista</button>, sök upp ett ord,
+           klicka på det och välj <b>☆ Lägg till i Mina ord</b>.`, `No words chosen yet. Open the <button type="button" class="linklike" id="go-list">Word list</button>, look up a word,
+           click it and choose <b>☆ Add to My words</b>.`)}</p>`}
     </section>`;
 }
 
 /** Milstolpar: lärda ord och lärda grundtecken, var för sig med statusbar och märken. */
-const MS_UNIT = { words: 'lärda ord', atoms: 'lärda grundtecken' };
-const MS_TITLE = { words: 'Ord', atoms: 'Grundtecken' };
+const MS_UNIT_T = { words: ['lärda ord', 'learned words'], atoms: ['lärda grundtecken', 'learned basic characters'] };
+const MS_TITLE_T = { words: ['Ord', 'Words'], atoms: ['Grundtecken', 'Basic characters'] };
+const MS_UNIT = { get words() { return tx(...MS_UNIT_T.words); }, get atoms() { return tx(...MS_UNIT_T.atoms); } };
+const MS_TITLE = { get words() { return tx(...MS_TITLE_T.words); }, get atoms() { return tx(...MS_TITLE_T.atoms); } };
 /** En titel: Blissymbolen (ur BCI-AV) och namnet. */
 function rankHTML(r, unit = 3.4) {
   if (!r) return '';
@@ -344,34 +361,35 @@ function rankHTML(r, unit = 3.4) {
 }
 function milestoneTrackHTML(track) {
   const m = milestoneState(track);
-  const fmt = (n) => n.toLocaleString('sv-SE');
+  const fmt = fmtN;
   if (!m.next) {
     return `<div class="ms-track"><div class="ms-top"><span class="ms-title">${MS_TITLE[track]}</span>
-      <span class="ms-count">Alla ${fmt(m.total)} ${MS_UNIT[track]} – grattis!</span></div>
-      <div class="ms-ranks"><div class="ms-rank"><span class="ms-lbl">Du är</span>${rankHTML(m.rankNow)}</div></div></div>`;
+      <span class="ms-count">${tx(`Alla ${fmt(m.total)} ${MS_UNIT[track]} – grattis!`, `All ${fmt(m.total)} ${MS_UNIT[track]} – congratulations!`)}</span></div>
+      <div class="ms-ranks"><div class="ms-rank"><span class="ms-lbl">${tx('Du är', 'You are')}</span>${rankHTML(m.rankNow)}</div></div></div>`;
   }
   const pct = Math.min(100, (100 * m.learned) / m.next);
   const i = m.steps.indexOf(m.next);
   const chips = m.steps.slice(Math.max(0, i - 3), i + 3)
-    .map((n) => `<span class="ms-chip${n <= m.prev ? ' done' : n === m.next ? ' next' : ''}" title="${esc(rankOf(track, n)?.name || '')}">${n === m.total ? 'alla ' : ''}${fmt(n)}</span>`).join('');
+    .map((n) => `<span class="ms-chip${n <= m.prev ? ' done' : n === m.next ? ' next' : ''}" title="${esc(rankOf(track, n)?.name || '')}">${n === m.total ? tx('alla ', 'all ') : ''}${fmt(n)}</span>`).join('');
   return `<div class="ms-track">
       <div class="ms-top"><span class="ms-title">${MS_TITLE[track]}</span>
-        <span class="ms-count"><b>${fmt(m.learned)}</b> av ${fmt(m.next)} ${MS_UNIT[track]}</span></div>
+        <span class="ms-count"><b>${fmt(m.learned)}</b> ${tx('av', 'of')} ${fmt(m.next)} ${MS_UNIT[track]}</span></div>
       <div class="ms-ranks">
-        <div class="ms-rank"><span class="ms-lbl">Du är</span>${m.rankNow ? rankHTML(m.rankNow) : '<span class="rank-name muted">på väg</span>'}</div>
+        <div class="ms-rank"><span class="ms-lbl">${tx('Du är', 'You are')}</span>${m.rankNow ? rankHTML(m.rankNow) : `<span class="rank-name muted">${tx('på väg', 'on your way')}</span>`}</div>
         <span class="ms-arrow" aria-hidden="true">→</span>
-        <div class="ms-rank next"><span class="ms-lbl">Nästa vid ${fmt(m.next)}</span>${rankHTML(m.rankNext)}</div>
+        <div class="ms-rank next"><span class="ms-lbl">${tx('Nästa vid', 'Next at')} ${fmt(m.next)}</span>${rankHTML(m.rankNext)}</div>
       </div>
-      <div class="ms-bar" role="progressbar" aria-label="${MS_TITLE[track]}: ${MS_UNIT[track]} mot nästa milstolpe" aria-valuemin="0" aria-valuemax="${m.next}" aria-valuenow="${m.learned}"><i style="width:${pct.toFixed(1)}%"></i></div>
+      <div class="ms-bar" role="progressbar" aria-label="${MS_TITLE[track]}: ${MS_UNIT[track]} ${tx('mot nästa milstolpe', 'towards the next milestone')}" aria-valuemin="0" aria-valuemax="${m.next}" aria-valuenow="${m.learned}"><i style="width:${pct.toFixed(1)}%"></i></div>
       <div class="ms-chips">${chips}</div>
     </div>`;
 }
 function milestoneHTML() {
   return `<div class="milestone">
-      <span class="kicker">Nästa milstolpe</span>
+      <span class="kicker">${tx('Nästa milstolpe', 'Next milestone')}</span>
       ${milestoneTrackHTML('words')}
       ${milestoneTrackHTML('atoms')}
-      <p class="ms-note">Ett ord eller tecken räknas som lärt när du har svarat rätt på det igen efter minst ett dygn.</p>
+      <p class="ms-note">${tx('Ett ord eller tecken räknas som lärt när du har svarat rätt på det igen efter minst ett dygn.',
+        'A word or character counts as learned when you have answered it correctly again after at least a day.')}</p>
     </div>`;
 }
 
@@ -379,9 +397,9 @@ function sentencesPanel() {
   const n = sentenceCount();
   if (!n) return '';   // syns först när det finns godkända meningar
   return `<section class="panel">
-      <div class="head"><h2>Meningar</h2>
-        <button type="button" class="primary" id="sentences">Öva meningar (${n})</button></div>
-      <p class="small muted">Läs en mening i Bliss och välj ordet som saknas.${sentenceDrafts ? ' <b>Utkast visas</b> (granskningsläge).' : ''}</p>
+      <div class="head"><h2>${tx('Meningar', 'Sentences')}</h2>
+        <button type="button" class="primary" id="sentences">${tx('Öva meningar', 'Practise sentences')} (${n})</button></div>
+      <p class="small muted">${tx('Läs en mening i Bliss och välj ordet som saknas.', 'Read a sentence in Bliss and choose the missing word.')}${sentenceDrafts ? tx(' <b>Utkast visas</b> (granskningsläge).', ' <b>Drafts shown</b> (review mode).') : ''}</p>
     </section>`;
 }
 
@@ -406,117 +424,124 @@ function advance() {
 
 function progressBar() {
   const st = stats(), f = focusState(), m = sentenceState();
-  const left = m ? `Meningar · ${m.left} av ${m.total} kvar`
-    : f ? `Mina ord · ${f.left} av ${f.total} kvar` : `${st.due} att repetera · ${st.newLeft} nya kvar`;
+  const left = m ? tx(`Meningar · ${m.left} av ${m.total} kvar`, `Sentences · ${m.left} of ${m.total} left`)
+    : f ? tx(`Mina ord · ${f.left} av ${f.total} kvar`, `My words · ${f.left} of ${f.total} left`)
+      : tx(`${st.due} att repetera · ${st.newLeft} nya kvar`, `${st.due} to review · ${st.newLeft} new left`);
   return `<div class="progress"><span>${left}</span>
-    <span>${sess.right} rätt · ${sess.wrong} fel <button type="button" class="ghost" id="quit" style="padding:4px 10px;margin-left:8px">Avsluta</button></span></div>`;
+    <span>${sess.right} ${tx('rätt', 'right')} · ${sess.wrong} ${tx('fel', 'wrong')} <button type="button" class="ghost" id="quit" style="padding:4px 10px;margin-left:8px">${tx('Avsluta', 'Quit')}</button></span></div>`;
 }
 
 function introHTML(c) {
-  const kind = c.parts.length ? 'Nytt ord' : 'Nytt grundtecken';
-  const users = c.users.length ? `<p class="small muted" style="margin-top:8px">Ingår i ${c.users.length} andra ord.</p>` : '';
+  const kind = c.parts.length ? tx('Nytt ord', 'New word') : tx('Nytt grundtecken', 'New basic character');
+  const users = c.users.length ? `<p class="small muted" style="margin-top:8px">${tx(`Ingår i ${c.users.length} andra ord.`, `Part of ${c.users.length} other words.`)}</p>` : '';
   return `<div class="kicker">${kind}</div>
     <div class="stage">${symbolSVG(c, 9)}</div>
     <div class="word">${esc(c.word)}</div>
     ${c.syns.length > 1 ? `<div class="syns">${esc(c.syns.slice(1).join(', '))}</div>` : ''}
     <div style="margin-top:6px">${classChip(c)}</div>
-    ${c.raw.length ? `<p class="small muted" style="margin-top:12px">Byggs av:</p>${formulaHTML(c)}` : ''}
+    ${c.raw.length ? `<p class="small muted" style="margin-top:12px">${tx('Byggs av:', 'Built from:')}</p>${formulaHTML(c)}` : formulaHTML(c)}
     ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
     ${users}
-    <div class="actions"><span class="hint">Enter = fortsätt</span><button type="button" class="primary" data-act="next">Jag har tittat på den →</button></div>`;
+    <div class="actions"><span class="hint">${tx('Enter = fortsätt', 'Enter = continue')}</span><button type="button" class="primary" data-act="next">${tx('Jag har tittat på den →', 'Got it →')}</button></div>`;
 }
 
 /** "Markera alla delar …" – säger till när samma del förekommer flera gånger (arbete = aktivitet + aktivitet). */
 function partsCountText(c) {
   const distinct = new Set(c.parts).size, total = c.parts.length;
   if (total > distinct) {
-    return `Markera alla delar du ser i symbolen (${distinct} ${distinct === 1 ? 'del' : 'olika delar'} – samma del förekommer flera gånger i symbolen).`;
+    return tx(`Markera alla delar du ser i symbolen (${distinct} ${distinct === 1 ? 'del' : 'olika delar'} – samma del förekommer flera gånger i symbolen).`,
+      `Select all the parts you see in the symbol (${distinct} ${distinct === 1 ? 'part' : 'different parts'} – the same part appears more than once).`);
   }
-  return `Markera alla delar du ser i symbolen (${distinct} st).`;
+  return tx(`Markera alla delar du ser i symbolen (${distinct} st).`, `Select all the parts you see in the symbol (${distinct}).`);
 }
 
 function quizHTML() {
   const { c, mode } = step;
   if (mode === 'sym') {
-    return `<div class="kicker">${MODES.sym}</div><p class="prompt">Vad betyder symbolen?</p>
+    return `<div class="kicker">${MODES.sym}</div><p class="prompt">${tx('Vad betyder symbolen?', 'What does the symbol mean?')}</p>
       <div class="stage">${symbolSVG(c, 9)}</div>
       <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}"><span class="k">${i + 1}</span>${esc(o.word)}</button>`).join('')}</div>
-      <div class="hint">Tangent 1–4 väljer</div>`;
+      <div class="hint">${tx('Tangent 1–4 väljer', 'Keys 1–4 choose')}</div>`;
   }
   if (mode === 'word') {
-    return `<div class="kicker">${MODES.word}</div><p class="prompt">Vilken symbol betyder</p>
+    return `<div class="kicker">${MODES.word}</div><p class="prompt">${tx('Vilken symbol betyder', 'Which symbol means')}</p>
       <div class="word">${esc(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
-      <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}" aria-label="Alternativ ${i + 1}"><span class="k">${i + 1}</span>${symbolSVG(o, 4.5)}</button>`).join('')}</div>
-      <div class="hint">Tangent 1–4 väljer</div>`;
+      <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}" aria-label="${tx('Alternativ', 'Option')} ${i + 1}"><span class="k">${i + 1}</span>${symbolSVG(o, 4.5)}</button>`).join('')}</div>
+      <div class="hint">${tx('Tangent 1–4 väljer', 'Keys 1–4 choose')}</div>`;
   }
   const pal = step.palette.map((o, i) =>
     `<button type="button" class="chip pal${step.mode === 'parts' && step.sel.includes(o.id) ? ' on' : ''}" data-pal="${i}">${i < 9 ? `<span class="k">${i + 1}</span>` : ''}${symbolSVG(o, 3.4)}<span>${esc(o.word)}</span></button>`).join('');
   if (mode === 'parts') {
-    return `<div class="kicker">${MODES.parts}</div><p class="prompt">Vilka delar består <b>${esc(c.word)}</b> av?</p>
+    return `<div class="kicker">${MODES.parts}</div><p class="prompt">${tx(`Vilka delar består <b>${esc(c.word)}</b> av?`, `Which parts is <b>${esc(c.word)}</b> made of?`)}</p>
       <div class="stage">${symbolSVG(c, 9)}</div>
       <p class="small muted">${partsCountText(c)}</p>
       ${mergedNote(c)}
       <div class="palette">${pal}</div>
-      <div class="actions"><span class="hint">Siffror markerar · Enter kontrollerar</span><button type="button" class="primary" data-act="check">Kontrollera</button></div>`;
+      <div class="actions"><span class="hint">${tx('Siffror markerar · Enter kontrollerar', 'Numbers select · Enter checks')}</span><button type="button" class="primary" data-act="check">${tx('Kontrollera', 'Check')}</button></div>`;
   }
-  return `<div class="kicker">${MODES.build}</div><p class="prompt">Bygg symbolen för</p>
+  return `<div class="kicker">${MODES.build}</div><p class="prompt">${tx('Bygg symbolen för', 'Build the symbol for')}</p>
     <div class="word">${esc(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
-    <div class="strip" id="strip">${step.sel.map((id, i) => `<button type="button" class="chip" data-unsel="${i}" title="Ta bort">${symbolSVG(card(id), 3.4)}<span>${esc(card(id).word)}</span></button>`).join('')}</div>
-    <p class="small muted" style="margin-top:6px">${c.parts.length} delar. Klicka i raden ovan för att ta bort en del.</p>
+    <div class="strip" id="strip">${step.sel.map((id, i) => `<button type="button" class="chip" data-unsel="${i}" title="${tx('Ta bort', 'Remove')}">${symbolSVG(card(id), 3.4)}<span>${esc(card(id).word)}</span></button>`).join('')}</div>
+    <p class="small muted" style="margin-top:6px">${tx(`${c.parts.length} delar. Klicka i raden ovan för att ta bort en del.`, `${c.parts.length} parts. Click in the row above to remove a part.`)}</p>
     <div class="palette">${pal}</div>
-    <div class="actions"><span class="hint">Siffror lägger till · Backsteg tar bort · Enter kontrollerar</span><button type="button" class="ghost" data-act="clear">Rensa</button><button type="button" class="primary" data-act="check">Kontrollera</button></div>`;
+    <div class="actions"><span class="hint">${tx('Siffror lägger till · Backsteg tar bort · Enter kontrollerar', 'Numbers add · Backspace removes · Enter checks')}</span><button type="button" class="ghost" data-act="clear">${tx('Rensa', 'Clear')}</button><button type="button" class="primary" data-act="check">${tx('Kontrollera', 'Check')}</button></div>`;
 }
 
 /** Meningen i Bliss; luckan som streckad ruta (eller ifylld efter svaret). */
 function sentenceRow(m, filled = false, glossed = false) {
   return `<div class="sentence${glossed ? ' glossed' : ''}">${m.ord.map((w, i) => {
-    if (i === m.lucka && !filled) return '<span class="blank" aria-label="ordet som saknas">?</span>';
+    if (i === m.lucka && !filled) return `<span class="blank" aria-label="${tx('ordet som saknas', 'the missing word')}">?</span>`;
     const svg = wordSVG(`${m.nr}-${i}`, w.e, glossed ? 4.6 : 6.4);
-    return `<figure class="sw${i === m.lucka ? ' hit' : ''}">${svg}${glossed ? `<figcaption>${esc(w.sv)}</figcaption>` : ''}</figure>`;
+    return `<figure class="sw${i === m.lucka ? ' hit' : ''}">${svg}${glossed ? `<figcaption>${esc(tx(w.sv, w.en || w.sv))}</figcaption>` : ''}</figure>`;
   }).join('')}</div>`;
 }
 
 function sentenceHTML() {
   const { m } = step;
-  return `<div class="kicker">Färdigställ meningen</div><p class="prompt">Vilket ord saknas?</p>
+  return `<div class="kicker">${tx('Färdigställ meningen', 'Complete the sentence')}</div><p class="prompt">${tx('Vilket ord saknas?', 'Which word is missing?')}</p>
     ${sentenceRow(m)}
-    <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}" aria-label="Alternativ ${i + 1}"><span class="k">${i + 1}</span>${wordSVG(`${m.nr}-a${o.id}`, o.e, 4.5)}</button>`).join('')}</div>
-    <div class="hint">Tangent 1–4 väljer</div>`;
+    <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}" aria-label="${tx('Alternativ', 'Option')} ${i + 1}"><span class="k">${i + 1}</span>${wordSVG(`${m.nr}-a${o.id}`, o.e, 4.5)}</button>`).join('')}</div>
+    <div class="hint">${tx('Tangent 1–4 väljer', 'Keys 1–4 choose')}</div>`;
 }
 
 function sentenceFeedbackHTML(ok, note) {
   const { m } = step;
   return `<div class="feedback ${ok ? 'good' : 'wrong'}">
-    <h3>${ok ? 'Rätt!' : 'Inte riktigt'}</h3>
-    <p class="word" style="font-size:20px">${esc(m.sv)}</p>
+    <h3>${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</h3>
+    <p class="word" style="font-size:20px">${esc(tx(m.sv, m.en || m.sv))}</p>
     ${note ? `<p class="small" style="margin-top:4px">${note}</p>` : ''}
     ${sentenceRow(m, true, true)}
   </div>
-  <div class="actions result ${ok ? 'good' : 'wrong'}"><span class="verdict" aria-hidden="true">${ok ? 'Rätt!' : 'Inte riktigt'}</span>
-    <span class="hint">Enter = fortsätt</span><button type="button" class="primary" data-act="next">Fortsätt →</button></div>`;
+  <div class="actions result ${ok ? 'good' : 'wrong'}"><span class="verdict" aria-hidden="true">${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</span>
+    <span class="hint">${tx('Enter = fortsätt', 'Enter = continue')}</span><button type="button" class="primary" data-act="next">${tx('Fortsätt →', 'Continue →')}</button></div>`;
 }
 
 function renderStep() {
   if (!step && sess.sentences) {
-    app.innerHTML = `<section class="panel"><div class="kicker">Meningar – klart</div>
-      <p class="prompt">Du har färdigställt alla ${sentenceState()?.total ?? ''} meningar${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.</p>
-      <div class="actions"><button type="button" class="ghost" data-act="home">Till översikten</button><button type="button" class="primary" data-act="sentences">Öva meningarna igen</button></div></section>`;
+    const tot = sentenceState()?.total ?? '';
+    app.innerHTML = `<section class="panel"><div class="kicker">${tx('Meningar – klart', 'Sentences – done')}</div>
+      <p class="prompt">${tx(`Du har färdigställt alla ${tot} meningar${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.`,
+        `You have completed all ${tot} sentences${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
+      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="sentences">${tx('Öva meningarna igen', 'Practise the sentences again')}</button></div></section>`;
     return;
   }
   if (!step && sess.mine) {
-    app.innerHTML = `<section class="panel"><div class="kicker">Mina ord – klart</div>
-      <p class="prompt">Du har svarat rätt på alla ${focusState()?.total ?? ''} ord${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.</p>
-      <p class="muted">Orden finns kvar i den vanliga repetitionen och kommer tillbaka när det är dags.</p>
-      <div class="actions"><button type="button" class="ghost" data-act="home">Till översikten</button><button type="button" class="primary" data-act="focus">Öva mina ord igen</button></div></section>`;
+    const tot = focusState()?.total ?? '';
+    app.innerHTML = `<section class="panel"><div class="kicker">${tx('Mina ord – klart', 'My words – done')}</div>
+      <p class="prompt">${tx(`Du har svarat rätt på alla ${tot} ord${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.`,
+        `You have answered all ${tot} words correctly${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
+      <p class="muted">${tx('Orden finns kvar i den vanliga repetitionen och kommer tillbaka när det är dags.', 'The words stay in the regular review and come back when it is time.')}</p>
+      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="focus">${tx('Öva mina ord igen', 'Practise my words again')}</button></div></section>`;
     return;
   }
   if (!step) {
     const st = stats();
-    app.innerHTML = `<section class="panel"><div class="kicker">Klart</div>
-      <p class="prompt">${sess.right + sess.wrong ? `Du svarade rätt på ${sess.right} av ${sess.right + sess.wrong}` : 'Inget kvar att öva just nu'}${sess.fresh ? ` och lärde dig ${sess.fresh} nya symboler` : ''}.</p>
-      <p class="muted">${st.unlocked ? `${st.unlocked} sammansatta ord är upplåsta och väntar.` : ''}</p>
+    const n = sess.right + sess.wrong;
+    app.innerHTML = `<section class="panel"><div class="kicker">${tx('Klart', 'Done')}</div>
+      <p class="prompt">${n ? tx(`Du svarade rätt på ${sess.right} av ${n}`, `You answered ${sess.right} of ${n} correctly`) : tx('Inget kvar att öva just nu', 'Nothing left to practise right now')}${sess.fresh ? tx(` och lärde dig ${sess.fresh} nya symboler`, ` and learned ${sess.fresh} new symbols`) : ''}.</p>
+      <p class="muted">${st.unlocked ? tx(`${st.unlocked} sammansatta ord är upplåsta och väntar.`, `${st.unlocked} compound words are unlocked and waiting.`) : ''}</p>
       ${milestoneHTML()}
-      <div class="actions"><button type="button" class="ghost" data-act="home">Till översikten</button><button type="button" class="primary" data-act="more">Lär 5 nya till</button></div></section>`;
+      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="more">${tx('Lär 5 nya till', 'Learn 5 more')}</button></div></section>`;
     return;
   }
   const body = step.kind === 'intro' ? introHTML(step.c) : step.kind === 'sentence' ? sentenceHTML() : quizHTML();
@@ -526,15 +551,15 @@ function renderStep() {
 function feedbackHTML(ok, ms, note = '') {
   const { c } = step;
   return `<div class="feedback ${ok ? 'good' : 'wrong'}">
-    <h3>${ok ? 'Rätt!' : 'Inte riktigt'}</h3>
+    <h3>${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</h3>
     <div class="row" style="align-items:flex-end">${step.mode === 'sym' ? '' : symbolSVG(c, 5)}<div><div class="word" style="font-size:22px">${esc(c.word)}</div>${classChip(c)}</div></div>
     ${note ? `<p class="small" style="margin-top:6px">${note}</p>` : ''}
     ${formulaHTML(c, 2.8)}
     ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
-    <p class="small muted" style="margin-top:6px">Kommer igen ${fmtInterval(ms)}.</p>
+    <p class="small muted" style="margin-top:6px">${tx('Kommer igen', 'Comes back')} ${fmtInterval(ms)}.</p>
   </div>
-  <div class="actions result ${ok ? 'good' : 'wrong'}"><span class="verdict" aria-hidden="true">${ok ? 'Rätt!' : 'Inte riktigt'}</span>
-    <span class="hint">Enter = fortsätt</span><button type="button" class="primary" data-act="next">Fortsätt →</button></div>`;
+  <div class="actions result ${ok ? 'good' : 'wrong'}"><span class="verdict" aria-hidden="true">${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</span>
+    <span class="hint">${tx('Enter = fortsätt', 'Enter = continue')}</span><button type="button" class="primary" data-act="next">${tx('Fortsätt →', 'Continue →')}</button></div>`;
 }
 
 function finish(ok, note) {
@@ -551,10 +576,10 @@ function finish(ok, note) {
     card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
     for (const { track, n, rank } of checkMilestones().reverse()) {
       const m = milestoneState(track);
-      const what = n === m.total ? `alla ${n.toLocaleString('sv-SE')} ${MS_UNIT[track]}` : `${n.toLocaleString('sv-SE')} ${MS_UNIT[track]}`;
+      const what = `${n === m.total ? tx('alla ', 'all ') : ''}${fmtN(n)} ${MS_UNIT[track]}`;
       card$.querySelector('.feedback').insertAdjacentHTML('afterbegin',
         `<div class="ms-hit" role="status">${rank ? `<span class="ms-hit-sym">${symbolSVG(card(rank.id), 3.2)}</span>` : ''}
-          <span><b>Milstolpe nådd: ${what}!</b>${rank ? ` Du är nu <b>${esc(rank.name)}</b>.` : ''}${m.next ? ` Nästa: ${esc(m.rankNext?.name || '')} vid ${m.next.toLocaleString('sv-SE')}.` : ''}</span></div>`);
+          <span><b>${tx('Milstolpe nådd', 'Milestone reached')}: ${what}!</b>${rank ? tx(` Du är nu <b>${esc(rank.name)}</b>.`, ` You are now <b>${esc(rank.name)}</b>.`) : ''}${m.next ? tx(` Nästa: ${esc(m.rankNext?.name || '')} vid ${fmtN(m.next)}.`, ` Next: ${esc(m.rankNext?.name || '')} at ${fmtN(m.next)}.`) : ''}</span></div>`);
     }
   }
   card$.querySelector('[data-act="next"]').focus({ preventScroll: true });
@@ -569,7 +594,7 @@ function chooseOption(i) {
   btns[i].classList.add(ok ? 'ok' : 'bad');
   if (!ok) btns[step.answer].classList.add('miss');
   const chosen = step.kind === 'sentence' ? (card(step.options[i].id)?.word || '') : step.options[i].word;
-  finish(ok, ok ? '' : `Du valde <b>${esc(chosen)}</b>.`);
+  finish(ok, ok ? '' : tx(`Du valde <b>${esc(chosen)}</b>.`, `You chose <b>${esc(chosen)}</b>.`));
 }
 
 function togglePal(i) {
@@ -596,8 +621,8 @@ function checkStep() {
   });
   document.querySelectorAll('[data-unsel]').forEach((b) => { b.disabled = true; });
   let note = '';
-  if (!ok) note = 'Streckade rutor = delar du missade, röda = delar som inte ingår.';
-  else if (step.mode === 'build' && !order) note = 'Rätt delar! I BCI:s definition står de i ordningen nedan.';
+  if (!ok) note = tx('Streckade rutor = delar du missade, röda = delar som inte ingår.', 'Dashed boxes = parts you missed, red = parts that are not included.');
+  else if (step.mode === 'build' && !order) note = tx('Rätt delar! I BCI:s definition står de i ordningen nedan.', 'Right parts! In the BCI definition they come in the order below.');
   finish(ok, note);
 }
 
@@ -622,42 +647,43 @@ function list(rebuild = false) {
   }
   const dots = (c) => {
     const b = boxOf(c.id);
-    if (b < 0) return '<div class="dots small muted">ej påbörjad</div>';
-    return `<div class="dots" title="Låda ${b} av 7">${Array.from({ length: 7 }, (_, i) => `<i class="${i < b ? 'f' : ''}"></i>`).join('')}</div>`;
+    if (b < 0) return `<div class="dots small muted">${tx('ej påbörjad', 'not started')}</div>`;
+    return `<div class="dots" title="${tx(`Låda ${b} av 7`, `Box ${b} of 7`)}">${Array.from({ length: 7 }, (_, i) => `<i class="${i < b ? 'f' : ''}"></i>`).join('')}</div>`;
   };
-  const star = (c) => (isMine(c.id) ? '<span class="star" title="I Mina ord">★</span>' : '');
+  const star = (c) => (isMine(c.id) ? `<span class="star" title="${tx('I Mina ord', 'In My words')}">★</span>` : '');
   const html = items.map((c) => chip(c, 3.4).replace('</button>', `${star(c)}${dots(c)}</button>`)).join('');
   const box = document.getElementById('listgrid');
   if (box && !rebuild) { box.innerHTML = html || emptyList(q); return; }
   const tab = (k, label) => `<button type="button" data-tab="${k}" aria-pressed="${!q && listTab === k}">${label}</button>`;
   app.innerHTML = `<section class="panel">
-    <input class="search" id="q" type="search" placeholder="Sök bland alla ${deck.size} symboler (svenska eller engelska)" value="${esc(listQuery)}">
-    <div class="tabs">${tab('started', 'Påbörjade')}${tab('mine', `Mina ord (${mineCards().length})`)}</div>
+    <input class="search" id="q" type="search" placeholder="${tx(`Sök bland alla ${fmtN(deck.size)} symboler (svenska eller engelska)`, `Search all ${fmtN(deck.size)} symbols (English or Swedish)`)}" value="${esc(listQuery)}">
+    <div class="tabs">${tab('started', tx('Påbörjade', 'Started'))}${tab('mine', `${tx('Mina ord', 'My words')} (${mineCards().length})`)}</div>
     <p class="small muted" style="margin-bottom:10px" id="listnote">${listNote(q)}</p>
     <div class="grid" id="listgrid">${html || emptyList(q)}</div></section>`;
 }
 const listNote = (q) => (q ? ''
-  : listTab === 'mine' ? 'Ord du har valt att träna särskilt. Klicka på ett ord för att ta bort det.'
-  : 'Symboler du har börjat lära dig, senaste först. Klicka för detaljer – där kan du också lägga till ord i Mina ord.');
-const emptyList = (q) => `<p class="muted">${q ? 'Inga träffar.'
-  : listTab === 'mine' ? 'Inga ord valda än. Sök upp ett ord ovan, klicka på det och välj ☆ Lägg till i Mina ord.'
-  : 'Du har inte börjat än — gå till Översikt och tryck “Börja öva”.'}</p>`;
+  : listTab === 'mine' ? tx('Ord du har valt att träna särskilt. Klicka på ett ord för att ta bort det.', 'Words you have chosen to practise in particular. Click a word to remove it.')
+  : tx('Symboler du har börjat lära dig, senaste först. Klicka för detaljer – där kan du också lägga till ord i Mina ord.',
+    'Symbols you have started learning, most recent first. Click for details – there you can also add words to My words.'));
+const emptyList = (q) => `<p class="muted">${q ? tx('Inga träffar.', 'No matches.')
+  : listTab === 'mine' ? tx('Inga ord valda än. Sök upp ett ord ovan, klicka på det och välj ☆ Lägg till i Mina ord.', 'No words chosen yet. Look up a word above, click it and choose ☆ Add to My words.')
+  : tx('Du har inte börjat än — gå till Översikt och tryck “Börja öva”.', 'You have not started yet — go to Overview and press “Start practising”.')}</p>`;
 
 function showDetail(id) {
   const c = card(id);
   if (!c) return;
   const s = S.cards[c.id];
   const users = c.users.map(card).sort((a, b) => (boxOf(b.id) >= 0) - (boxOf(a.id) >= 0) || b.score - a.score);
-  dlg.innerHTML = `<button type="button" class="close" data-act="close" aria-label="Stäng">×</button>
+  dlg.innerHTML = `<button type="button" class="close" data-act="close" aria-label="${tx('Stäng', 'Close')}">×</button>
     <div class="stage">${symbolSVG(c, 8)}</div>
     <div class="word">${esc(c.word)}</div>
     ${c.syns.length > 1 ? `<div class="syns">${esc(c.syns.slice(1).join(', '))}</div>` : ''}
-    <div class="row" style="margin-top:6px">${classChip(c)}<span class="small muted">BCI-AV ${c.id} · ${esc(c.v.en.replace(/_/g, ' '))}</span></div>
-    <p style="margin-top:10px"><button type="button" class="ghost" data-mine="${c.id}" aria-pressed="${isMine(c.id)}">${isMine(c.id) ? '★ I Mina ord – ta bort' : '☆ Lägg till i Mina ord'}</button></p>
-    ${c.raw.length ? `<p class="small muted" style="margin-top:12px">Byggs av:</p>${formulaHTML(c)}` : '<p class="small muted" style="margin-top:12px">Grundtecken — har inga mindre delar.</p>'}
+    <div class="row" style="margin-top:6px">${classChip(c)}<span class="small muted">BCI-AV ${c.id} · ${lang() === 'en' ? `Swedish: ${esc(c.synsSv[0] || c.v.sv)}` : esc(c.v.en.replace(/_/g, ' '))}</span></div>
+    <p style="margin-top:10px"><button type="button" class="ghost" data-mine="${c.id}" aria-pressed="${isMine(c.id)}">${isMine(c.id) ? tx('★ I Mina ord – ta bort', '★ In My words – remove') : tx('☆ Lägg till i Mina ord', '☆ Add to My words')}</button></p>
+    ${c.raw.length ? `<p class="small muted" style="margin-top:12px">${tx('Byggs av:', 'Built from:')}</p>${formulaHTML(c)}` : `<p class="small muted" style="margin-top:12px">${tx('Grundtecken — har inga mindre delar.', 'Basic character — has no smaller parts.')}</p>`}
     ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
-    <p class="small" style="margin-top:10px">${s ? `Låda ${s.b} av 7 · ${s.n} svar, ${s.w} fel · ${s.d <= Date.now() ? 'att repetera nu' : 'nästa repetition ' + fmtInterval(s.d - Date.now())}` : 'Inte påbörjad än.'}</p>
-    ${users.length ? `<p class="small muted" style="margin-top:12px">Ingår i ${users.length} ord${users.length > 24 ? ' (visar 24)' : ''}:</p>
+    <p class="small" style="margin-top:10px">${s ? tx(`Låda ${s.b} av 7 · ${s.n} svar, ${s.w} fel · `, `Box ${s.b} of 7 · ${s.n} answers, ${s.w} wrong · `) + (s.d <= Date.now() ? tx('att repetera nu', 'to review now') : tx('nästa repetition ', 'next review ') + fmtInterval(s.d - Date.now())) : tx('Inte påbörjad än.', 'Not started yet.')}</p>
+    ${users.length ? `<p class="small muted" style="margin-top:12px">${tx(`Ingår i ${users.length} ord${users.length > 24 ? ' (visar 24)' : ''}:`, `Part of ${users.length} words${users.length > 24 ? ' (showing 24)' : ''}:`)}</p>
       <div class="formula">${users.slice(0, 24).map((u) => chip(u, 2.6)).join('')}</div>` : ''}`;
   if (!dlg.open) dlg.showModal();
   dlg.scrollTop = 0;
@@ -669,9 +695,106 @@ const CONTACT = 'john.sabom@gmail.com';   // felrapporter och förslag
 // Informationsbladet (scripts/build-informationsblad.py). Fast adress på GitHub Pages, så att länken
 // fungerar överallt – även i inbäddade vyer där nedladdningslänkar blockeras.
 const FLYER_URL = 'https://johbom.github.io/bliss-glosor/informationsblad/Bliss-glosor-informationsblad.pdf';
+/** Om-sidan på engelska (samma innehåll som den svenska). */
+function aboutEn(lic) {
+  return `<section class="panel prose">
+    <h2>About Bliss-glosor</h2>
+    <p>Bliss-glosor is a free vocabulary trainer for Blissymbolics. You learn the symbols and what they are built from:
+      first the basic characters, then the compound words – a word is unlocked when you know its parts.
+      The exercises are symbol → word, word → symbol, parts and build the symbol, and what you know is reviewed
+      at ever longer intervals (10 minutes, 1 day, 3, 7, 16, 35 and 90 days). Under <i>My words</i> you can choose words
+      to practise in particular. The app was made in Sweden; the English words and explanations are BCI's own.</p>
+    <p>Bliss-glosor is made by John Säbom. The symbols are drawn with BlissEngine by P-O Hedvall and Jonas Paulsson –
+      the drawing engine from WinBliss, the tool they created at AnyCom AB and that BCI has used to standardise
+      the Blissymbols. BlissEngine was created at Furuboda folkhögskola in a project funded by the Swedish Inheritance Fund (Allmänna arvsfonden).</p>
+
+    <aside class="promo" aria-labelledby="promo-title">
+      <div class="promo-kicker">Tip</div>
+      <h3 id="promo-title">Blisshuset – Sunderby folkhögskola</h3>
+      <p>The Blisshuset association is based at <a href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">Sunderby folkhögskola</a>, which also runs Blisskursen – a folk high school course.
+        Sunderby folkhögskola also runs the BlissmAiker project together with Furuboda folkhögskola and
+        the RISE research institute.</p>
+      <p>Blisshuset also offers products with Blissymbols – bracelets, chopping boards, pictures and much more.</p>
+      <a class="promo-link" href="https://blisshuset.com" target="_blank" rel="noopener">Visit blisshuset.com</a>
+    </aside>
+
+    <h3>Links</h3>
+    <div class="links">
+      <a class="link-card" href="https://tfhsensory.se" target="_blank" rel="noopener">
+        <b>TFH Sensory – Sensory experiences for everyone</b>
+        <span>Sensory products for care, school, elderly care and the home.</span>
+        <span class="link-url">tfhsensory.se</span>
+      </a>
+      <a class="link-card" href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">
+        <b>Sunderby folkhögskola</b>
+        <span>Home of the Blisshuset association. The school runs Blisskursen and the BlissmAiker project.</span>
+        <span class="link-url">sunderbyfolkhogskola.se</span>
+      </a>
+      <a class="link-card" href="https://furuboda.org" target="_blank" rel="noopener">
+        <b>Föreningen Furuboda</b>
+        <span>The organisation behind Furuboda folkhögskola, where BlissEngine was created.</span>
+        <span class="link-url">furuboda.org</span>
+      </a>
+    </div>
+
+    <h3>Install as an app</h3>
+    <ul>
+      <li><b>iPhone and iPad:</b> open the app's web address in Safari, tap the Share button and choose <i>Add to Home Screen</i>.</li>
+      <li><b>Android:</b> open the address in Chrome and choose <i>Install app</i> in the menu.</li>
+      <li><b>Computer:</b> in Chrome or Edge, click the install icon in the address bar.</li>
+    </ul>
+    <p>Once installed, the app also works without internet.</p>
+
+    <h3>Information sheet</h3>
+    <div class="flyer">
+      <div class="flyer-doc" aria-hidden="true"><span>PDF</span></div>
+      <div>
+        <p>Want to tell others about Bliss-glosor? The information sheet is an A4 page with a QR code to the app, a short
+          description of how it works and how to install it – to print, put up or pass on. The sheet is in Swedish.</p>
+        <a class="promo-link" href="${FLYER_URL}" target="_blank" rel="noopener">Download the information sheet (PDF, 47 kB, Swedish)</a>
+      </div>
+    </div>
+
+    <h3>Privacy</h3>
+    <p>The app collects no data, has no accounts, no statistics, no ads and no cookies, and
+      it fetches nothing from other services. What you practise is stored only on your own device, in the browser or
+      app you use – it is not visible to anyone else and does not follow you to another device. You delete it with
+      <i>Reset progress</i> under Overview, or by uninstalling the app.</p>
+
+    <h3>The parts of the symbols</h3>
+    <p>Which parts a symbol is made of comes from BCI's vocabulary BCI-AV and its derivations – for example
+      <i>amphibian</i> = animal + water + land. The parts are linked strictly according to BCI's own data. When BCI's text does not
+      unambiguously point to one symbol, the text is shown instead of a symbol, and BCI's notes such as
+      <i>half size</i> and <i>contraction</i> are shown below the part. The linking has not been reviewed by BCI –
+      if you find a mistake, we would love to hear about it.</p>
+
+    <h3>Mistakes and suggestions</h3>
+    <p>Have you found a mistake in a symbol, a derivation or a translation, or do you have a suggestion? Write to</p>
+    <p class="contact"><a href="mailto:${CONTACT}?subject=Bliss-glosor" id="contact-addr">${CONTACT}</a>
+      <button type="button" class="ghost" id="copy-contact">Copy the address</button></p>
+    <p class="small muted">Please say which word it concerns and what it should say.</p>
+
+    <h3>Sources and licences</h3>
+    <div class="lic">
+      ${lic('The Blissymbols, the BCI-AV vocabulary, glosses and derivations', '© Blissymbolics Communication International (BCI); Blissymbolics © C.K. Bliss', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/')}
+      ${lic('Swedish translations of the explanations', 'John Säbom, based on BCI material', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/')}
+      ${lic('The BlissEngine drawing engine', '© AnyCom AB – BlissEngine by P-O Hedvall and Jonas Paulsson – the drawing engine from WinBliss (1997–2007), brought to the web in 2026', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/')}
+      ${lic('Word frequencies', 'SUC 3.0 statistics, Språkbanken Text, University of Gothenburg', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/')}
+      ${lic('The Atkinson Hyperlegible typeface', '© 2020 Braille Institute of America', 'SIL Open Font License 1.1', 'https://openfontlicense.org')}
+      ${lic('The app’s own code', '© 2026 John Säbom', 'MIT', 'https://opensource.org/license/mit')}
+    </div>
+    <p style="margin-top:10px">You may use, copy and share the app freely. Anyone who builds on BCI's material must
+      credit the source and share the result under the same licence (CC BY-SA 4.0). BCI's own attribution:</p>
+    <blockquote>Parts herein © Blissymbolics Communication International (BCI), distributed under the Creative Commons BY-SA 4.0 licence.</blockquote>
+    <p class="small muted">Read more about Blissymbolics and the licences at
+      <a href="https://www.blissymbolics.org" target="_blank" rel="noopener">blissymbolics.org</a>.
+      Version ${APP_VERSION}.</p>
+  </section>`;
+}
 function about() {
   const lic = (what, who, name, url) => `<div><b>${what}</b><span class="who">${who}</span> ·
     <a href="${url}" target="_blank" rel="noopener">${name}</a></div>`;
+  if (lang() === 'en') { app.innerHTML = aboutEn(lic); return; }
   app.innerHTML = `<section class="panel prose">
     <h2>Om Bliss-glosor</h2>
     <p>Bliss-glosor är ett fritt och gratis glosprogram för Blissymbolik. Du lär dig symbolerna och vad de är byggda av:
@@ -767,6 +890,26 @@ function about() {
   </section>`;
 }
 
+// ---------------------------------------------------------------- språk
+const NAV = { home: ['Översikt', 'Overview'], list: ['Ordlista', 'Word list'], about: ['Om', 'About'] };
+/** Sidhuvud och dokumentspråk efter valt språk; knappen erbjuder alltid det andra språket. */
+function applyLang() {
+  document.documentElement.lang = lang();
+  document.querySelectorAll('header nav button').forEach((b) => { b.textContent = tx(...NAV[b.dataset.view]); });
+  const t = document.getElementById('lang-toggle');
+  t.textContent = tx('EN', 'SV');
+  t.lang = tx('en', 'sv');
+  t.setAttribute('aria-label', tx('Switch to English', 'Byt till svenska'));
+}
+function switchLang(l) {
+  setLang(l);
+  applyLang();
+  if (view !== 'session') return setView(view);
+  if (answered) return advance();   // svaret är redan visat – gå vidare till nästa kort på det nya språket
+  renderStep();
+}
+document.getElementById('lang-toggle').addEventListener('click', () => switchLang(lang() === 'en' ? 'sv' : 'en'));
+
 // ---------------------------------------------------------------- navigering & händelser
 function setView(v) {
   view = v;
@@ -790,7 +933,7 @@ app.addEventListener('click', (e) => {
   if (t.id === 'go-list') return setView('list');
   if (t.id === 'copy-contact') {
     // Urklipp kan nekas (vissa inbäddade vyer) – markera då adressen så att den kan kopieras för hand.
-    const done = () => { t.textContent = 'Kopierad'; setTimeout(() => { t.textContent = 'Kopiera adressen'; }, 2000); };
+    const done = () => { t.textContent = tx('Kopierad', 'Copied'); setTimeout(() => { t.textContent = tx('Kopiera adressen', 'Copy the address'); }, 2000); };
     const select = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById('contact-addr')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
     try { navigator.clipboard.writeText(CONTACT).then(done, select); } catch (_) { select(); }
     return;
@@ -799,8 +942,8 @@ app.addEventListener('click', (e) => {
   if (t.id === 'more' || t.dataset.act === 'more') { S.day.extra += 5; save(); return startSession(); }
   // Bekräftelse i sidan: confirm() fungerar inte i alla miljöer (t.ex. inbäddad som Artifact).
   if (t.id === 'reset') {
-    document.getElementById('resetbox').innerHTML = `<div class="confirm"><span>Nollställa alla framsteg? Det går inte att ångra.</span>
-      <button type="button" class="yes" id="reset-yes">Nollställ</button><button type="button" class="ghost" id="reset-no">Avbryt</button></div>`;
+    document.getElementById('resetbox').innerHTML = `<div class="confirm"><span>${tx('Nollställa alla framsteg? Det går inte att ångra.', 'Reset all progress? This cannot be undone.')}</span>
+      <button type="button" class="yes" id="reset-yes">${tx('Nollställ', 'Reset')}</button><button type="button" class="ghost" id="reset-no">${tx('Avbryt', 'Cancel')}</button></div>`;
     document.getElementById('reset-no').focus();
     return;
   }
@@ -819,6 +962,7 @@ app.addEventListener('click', (e) => {
 
 app.addEventListener('change', (e) => {
   const t = e.target;
+  if (t.name === 'lang') return switchLang(t.value);
   if (t.dataset.mode) {
     S.settings.modes[t.dataset.mode] = t.checked;
     if (!Object.values(S.settings.modes).some(Boolean)) { S.settings.modes[t.dataset.mode] = true; t.checked = true; }
@@ -870,6 +1014,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Backspace' && step.mode === 'build' && step.sel.length) { e.preventDefault(); step.sel.pop(); renderStep(); }
 });
 
+applyLang();
 setView('home');
 })();
 </script>
