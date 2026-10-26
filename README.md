@@ -3,6 +3,9 @@
 Fritt och gratis glosprogram för Blissymbolik: lär dig grundtecknen först och sedan
 de sammansatta orden – deras beståndsdelar, att bygga symboler och att repetera över tid.
 
+Av John Säbom. Symbolerna ritas med BlissEngine av P-O Hedvall, en port av WinBliss
+av P-O Hedvall och Jonas Paulsson (AnyCom AB).
+
 **Öppna appen:** https://johbom.github.io/bliss-glosor/
 
 Fungerar i webbläsaren på dator, surfplatta och mobil, och kan installeras som app
