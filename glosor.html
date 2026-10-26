@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Bliss-glosor</title>
 <meta name="claude:viewport-fit-sides" content="cover" />
 <!-- PWA: manifest, ikoner och service worker (glosor-sw.js). Raderna märkta data-pwa tas bort i Artifact-versionen. -->
@@ -45,9 +45,13 @@
 *{box-sizing:border-box;margin:0}
 body{font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
   background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.4}
+html{background:var(--bg)}
+/* iPhone: Safari tonar annars toppkanten med en suddig övergång (temafärgen används inte längre).
+   Ett fast fält i bakgrundsfärgen bakom statusraden ger en ren kant, och sidhuvudet börjar under det. */
+.statusbar{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:50}
 button{font:inherit;color:inherit;cursor:pointer}
 header,main{max-width:920px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-header{display:flex;align-items:center;gap:14px;padding-block:12px;flex-wrap:wrap}
+header{display:flex;align-items:center;gap:14px;padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-bottom:12px;flex-wrap:wrap}
 header h1{font-size:20px}
 header nav{margin-left:auto;display:flex;gap:4px}
 header nav button{background:none;border:0;padding:6px 12px;border-radius:8px;color:var(--dim)}
@@ -247,6 +251,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 </style>
 </head>
 <body>
+<div class="statusbar" aria-hidden="true"></div>
 <header>
   <h1>Bliss-glosor</h1>
   <nav>
