@@ -135,7 +135,8 @@ function defaults() {
     day: { date: today(), n: 0, extra: 0 },
     alt: false,
     mine: [],   // "Mina ord": BCI-id:n som användaren valt att träna särskilt
-    milestone: 0,   // högsta nådda milstolpe (antal lärda ord) – försvinner inte om ett ord glöms
+    milestone: 0,       // högsta nådda milstolpe, lärda ord – försvinner inte om ett ord glöms
+    milestoneAtoms: 0,  // högsta nådda milstolpe, lärda grundtecken
   };
 }
 function load() {
@@ -236,30 +237,39 @@ function stats() {
   };
 }
 
-// ---- milstolpar: antal lärda ord (klarat en repetition efter minst ett dygn) ----
-const MILESTONES = [5, 10, 25, 50, 75, 100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000];
-function learnedCount() {
+// ---- milstolpar: lärda ord och lärda grundtecken (klarat en repetition efter minst ett dygn) ----
+const TRACKS = {
+  words: { key: 'milestone', steps: [5, 10, 25, 50, 75, 100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000],
+    total: () => deck.size, atomsOnly: false },
+  atoms: { key: 'milestoneAtoms', steps: [10, 25, 50, 100, 150, 200, 300],
+    total: () => atomOrder.length, atomsOnly: true },
+};
+function learnedCount(atomsOnly = false) {
   let n = 0;
-  for (const id of introduced()) if (S.cards[id].b >= LEARNED_BOX) n++;
+  for (const id of introduced()) {
+    if (S.cards[id].b >= LEARNED_BOX && (!atomsOnly || !deck.get(id).parts.length)) n++;
+  }
   return n;
 }
-/** { learned, next, prev, reached, steps } – next = nästa milstolpe ovanför den högsta nådda (null när allt är lärt). */
-function milestoneState() {
-  const steps = [...MILESTONES.filter((m) => m < deck.size), deck.size];
-  const learned = learnedCount();
-  const best = Math.max(S.milestone || 0, ...steps.filter((m) => m <= learned), 0);
+const trackSteps = (t) => [...t.steps.filter((m) => m < t.total()), t.total()];
+/** { learned, next, prev, reached, steps, total } – next = nästa milstolpe ovanför den högsta nådda (null när allt är lärt). */
+function milestoneState(track = 'words') {
+  const t = TRACKS[track], steps = trackSteps(t);
+  const learned = learnedCount(t.atomsOnly);
+  const best = Math.max(S[t.key] || 0, ...steps.filter((m) => m <= learned), 0);
   const next = steps.find((m) => m > best) ?? null;
-  return { learned, next, prev: best, reached: steps.filter((m) => m <= best), steps, total: deck.size };
+  return { learned, next, prev: best, reached: steps.filter((m) => m <= best), steps, total: t.total() };
 }
-/** Anropas efter varje svar: returnerar milstolpen om en ny just nåddes, annars null. */
-function checkMilestone() {
-  const learned = learnedCount();
-  const steps = [...MILESTONES.filter((m) => m < deck.size), deck.size];
-  const hit = steps.filter((m) => m <= learned && m > (S.milestone || 0)).pop();
-  if (!hit) return null;
-  S.milestone = hit;
-  save();
-  return hit;
+/** Anropas efter varje svar: returnerar nyss nådda milstolpar, t.ex. [{ track: 'atoms', n: 25 }]. */
+function checkMilestones() {
+  const hits = [];
+  for (const [track, t] of Object.entries(TRACKS)) {
+    const learned = learnedCount(t.atomsOnly);
+    const hit = trackSteps(t).filter((m) => m <= learned && m > (S[t.key] || 0)).pop();
+    if (hit) { S[t.key] = hit; hits.push({ track, n: hit }); }
+  }
+  if (hits.length) save();
+  return hits;
 }
 
 function introduce(id, countToday = true) {
@@ -527,7 +537,7 @@ window.Glosor = {
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
-  milestoneState, checkMilestone,
+  milestoneState, checkMilestones,
   sentenceDrafts: SHOW_DRAFTS,
 };
 })();
