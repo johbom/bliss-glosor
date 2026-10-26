@@ -1,0 +1,20 @@
+{
+  "name": "Bliss-glosor",
+  "short_name": "Bliss-glosor",
+  "description": "Glosprogram för Blissymbolik: grundtecken först, sedan sammansatta ord, deras beståndsdelar och att bygga symboler, med repetition över tid.",
+  "lang": "sv",
+  "id": "./glosor.html",
+  "start_url": "./glosor.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ECEBE6",
+  "theme_color": "#28558C",
+  "categories": ["education"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
