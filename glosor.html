@@ -268,7 +268,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 const {
   S, save, resetProgress, stats, nextStep, grade, checkParts, fmtInterval, boxOf, card, deck,
   symbolSVG, chip, classChip, formulaHTML, mergedNote, esc, MODES, nextAtom,
-  isMine, mineCards, toggleMine, startFocus, endFocus, focusState,
+  isMine, mineCards, toggleMine, startFocus, endFocus, focusState, reviewCount, nextDue,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG, sentenceDrafts,
   milestoneState, checkMilestones, rankOf, lang, setLang,
 } = window.Glosor;
@@ -291,6 +291,7 @@ function home() {
   const modes = Object.entries(MODES).map(([k, label]) =>
     `<label><input type="checkbox" data-mode="${k}" ${S.settings.modes[k] ? 'checked' : ''}> ${label}</label>`).join('');
   const work = st.due + st.newLeft;
+  const learnt = reviewCount(), wait = nextDue();
   app.innerHTML = `
     <section class="panel">
       ${milestoneHTML()}
@@ -304,8 +305,12 @@ function home() {
       <div class="bar"><i style="width:${pct(st.atoms, st.atomTotal)}%"></i></div>
       <div class="small muted">${tx(`Sammansatta ord: ${st.compounds} av ${st.compoundTotal}`, `Compound words: ${st.compounds} of ${st.compoundTotal}`)}</div>
       <div class="bar"><i style="width:${pct(st.compounds, st.compoundTotal)}%"></i></div>
+      ${!work && learnt ? `<p class="small muted" style="margin-bottom:8px">${tx('Klart för i dag!', 'Done for today!')}${wait != null ? tx(` Nästa ord ska repeteras ${fmtInterval(wait)}.`, ` The next word is due ${fmtInterval(wait)}.`) : ''}
+        ${tx(`Du kan ändå repetera ${Math.min(20, learnt)} av dina ord nu – de svagaste först.`, `You can still review ${Math.min(20, learnt)} of your words now – the weakest first.`)}</p>` : ''}
       <div class="row">
-        <button type="button" class="primary" id="start" ${work ? '' : 'disabled'}>${work ? tx('Börja öva', 'Start practising') : tx('Klart för i dag', 'Done for today')}</button>
+        ${work ? `<button type="button" class="primary" id="start">${tx('Börja öva', 'Start practising')}</button>`
+          : `<button type="button" class="primary" id="review" ${learnt ? '' : 'disabled'}>${tx('Repetera det du lärt dig', 'Review what you have learned')}</button>`}
+        ${work && learnt ? `<button type="button" class="ghost" id="review">${tx('Repetera fritt', 'Free review')}</button>` : ''}
         ${work ? '' : `<button type="button" class="ghost" id="more">${tx('Lär 5 nya till', 'Learn 5 more')}</button>`}
         ${atom ? `<span class="small muted">${tx('Nästa grundtecken:', 'Next basic character:')}</span>${chip(atom, 2.6)}` : ''}
       </div>
@@ -407,9 +412,9 @@ function sentencesPanel() {
 /** kind: undefined = vanligt pass, 'mine' = Mina ord, 'sentences' = meningar. */
 function startSession(kind) {
   endModes();
-  if (kind === 'mine') startFocus();
+  if (kind === 'mine' || kind === 'review') startFocus(kind);
   if (kind === 'sentences') startSentences();
-  sess = { right: 0, wrong: 0, fresh: 0, mine: kind === 'mine', sentences: kind === 'sentences' };
+  sess = { right: 0, wrong: 0, fresh: 0, mine: kind === 'mine', review: kind === 'review', sentences: kind === 'sentences' };
   setView('session');
   advance();
 }
@@ -425,6 +430,7 @@ function advance() {
 function progressBar() {
   const st = stats(), f = focusState(), m = sentenceState();
   const left = m ? tx(`Meningar · ${m.left} av ${m.total} kvar`, `Sentences · ${m.left} of ${m.total} left`)
+    : f?.review ? tx(`Repetition · ${f.left} av ${f.total} kvar`, `Review · ${f.left} of ${f.total} left`)
     : f ? tx(`Mina ord · ${f.left} av ${f.total} kvar`, `My words · ${f.left} of ${f.total} left`)
       : tx(`${st.due} att repetera · ${st.newLeft} nya kvar`, `${st.due} to review · ${st.newLeft} new left`);
   return `<div class="progress"><span>${left}</span>
@@ -528,6 +534,17 @@ function renderStep() {
       <p class="prompt">${tx(`Du har färdigställt alla ${tot} meningar${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.`,
         `You have completed all ${tot} sentences${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
       <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="sentences">${tx('Öva meningarna igen', 'Practise the sentences again')}</button></div></section>`;
+    return;
+  }
+  if (!step && sess.review) {
+    const tot = focusState()?.total ?? '';
+    app.innerHTML = `<section class="panel"><div class="kicker">${tx('Repetition – klart', 'Review – done')}</div>
+      <p class="prompt">${tx(`Du har svarat rätt på alla ${tot} ord${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.`,
+        `You have answered all ${tot} words correctly${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
+      <p class="muted">${tx('Rätt svar i en fri repetition flyttar inte fram orden i schemat. Ord du svarade fel på kommer tillbaka snart i den vanliga repetitionen.',
+        'Correct answers in a free review do not move words forward in the schedule. Words you got wrong come back soon in the regular review.')}</p>
+      ${milestoneHTML()}
+      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="review">${tx('Repetera fler', 'Review more')}</button></div></section>`;
     return;
   }
   if (!step && sess.mine) {
@@ -710,7 +727,7 @@ function aboutEn(lic) {
       first the basic characters, then the compound words – a word is unlocked when you know its parts.
       The exercises are symbol → word, word → symbol, parts and build the symbol, and what you know is reviewed
       at ever longer intervals (10 minutes, 1 day, 3, 7, 16, 35 and 90 days). Under <i>My words</i> you can choose words
-      to practise in particular. The app was made in Sweden; the English words and explanations are BCI's own.</p>
+      to practise in particular, and with <i>Review</i> you can test yourself on words you have learned at any time. The app was made in Sweden; the English words and explanations are BCI's own.</p>
     <p>Bliss-glosor is made by John Säbom. The symbols are drawn with BlissEngine by P-O Hedvall and Jonas Paulsson –
       the drawing engine from WinBliss, the tool they created at AnyCom AB and that BCI has used to standardise
       the Blissymbols. BlissEngine was created at Furuboda folkhögskola in a project funded by the Swedish Inheritance Fund (Allmänna arvsfonden).</p>
@@ -808,7 +825,7 @@ function about() {
       först grundtecknen, sedan de sammansatta orden – ett ord låses upp när du kan dess delar.
       Övningarna är symbol → ord, ord → symbol, beståndsdelar och bygg symbolen, och det du kan repeteras
       med allt längre mellanrum (10 minuter, 1 dag, 3, 7, 16, 35 och 90 dagar). Under <i>Mina ord</i> kan du välja ord
-      att träna särskilt.</p>
+      att träna särskilt, och med <i>Repetera</i> kan du när som helst testa dig på ord du redan lärt dig.</p>
     <p>Bliss-glosor är gjort av John Säbom. Symbolerna ritas med BlissEngine av P-O Hedvall och Jonas Paulsson –
       ritmotorn ur WinBliss, verktyget de skapade på AnyCom AB och som BCI har använt för att standardisera
       Blissymbolerna. BlissEngine skapades på Furuboda folkhögskola inom ett projekt med stöd från Allmänna arvsfonden.</p>
@@ -936,6 +953,7 @@ app.addEventListener('click', (e) => {
   if (!t) return;
   if (t.id === 'start') return startSession();
   if (t.id === 'focus' || t.dataset.act === 'focus') return startSession('mine');
+  if (t.id === 'review' || t.dataset.act === 'review') return startSession('review');
   if (t.id === 'sentences' || t.dataset.act === 'sentences') return startSession('sentences');
   if (t.id === 'go-list') return setView('list');
   if (t.id === 'copy-contact') {
