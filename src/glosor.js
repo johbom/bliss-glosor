@@ -338,11 +338,17 @@ function toggleMine(id) {
  * Nästa nya kort: först ord ur Mina ord som inte påbörjats (oavsett om delarna
  * kan), sedan växelvis grundtecken och upplåsta sammansatta ord.
  */
+// Ovanliga sammansatta ord väntar: frekvensgränsen (SUC 3.0) sänks i takt med hur många ord man lärt sig,
+// så att t.ex. medborgare (63) inte kommer direkt bara för att det låses upp av person.
+const FREQ_STEPS = [[300, 100], [600, 50], [1000, 20]];
+const minFreq = () => (FREQ_STEPS.find(([n]) => introduced().length < n) || [0, 0])[1];
+
 function pickNew() {
   const chosen = mineCards().find((c) => !S.cards[c.id]);
   if (chosen) return chosen;
-  const comps = unlockedCompounds();
   const atom = nextAtom();
+  const all = unlockedCompounds();
+  const comps = atom ? all.filter((c) => c.freq >= minFreq()) : all;   // utan grundtecken kvar: ingen gräns
   if (comps.length && (S.alt || !atom)) { S.alt = false; return comps[0]; }
   if (atom) { S.alt = true; return atom; }
   return null;
