@@ -238,6 +238,28 @@ function stats() {
 }
 
 // ---- milstolpar: lärda ord och lärda grundtecken (klarat en repetition efter minst ett dygn) ----
+// Titlar: varje milstolpe har en titel som finns som Blissymbol i BCI-AV (id), i stigande rang.
+// Nyckeln 'all' är den sista milstolpen – hela ordförrådet resp. alla grundtecken.
+const RANKS = {
+  words: {
+    5: [12603, 'Baby'], 10: [13166, 'Barn'], 25: [17446, 'Elev'], 50: [17516, 'Tonåring'], 75: [23693, 'Resenär'],
+    100: [25059, 'Upptäcktsresande'], 150: [25045, 'Detektiv'], 200: [23652, 'Forskare'], 300: [29239, 'Expert'],
+    400: [17513, 'Lärare'], 500: [25746, 'Riddare'], 750: [23528, 'Hjälte'], 1000: [23713, 'Trollkarl'],
+    1500: [12590, 'Astronaut'], 2000: [23612, 'Filosof'], 3000: [23626, 'Drottning'], 4000: [23559, 'Kung'],
+    5000: [25381, 'Superman'], all: [24520, 'Universum'],
+  },
+  atoms: {
+    10: [12395, 'Myra'], 25: [15665, 'Mus'], 50: [12383, 'Katt'], 100: [12380, 'Hund'], 150: [14897, 'Häst'],
+    200: [12643, 'Björn'], 300: [15217, 'Lejon'], all: [26159, 'Drake'],
+  },
+};
+/** Titeln för en milstolpe: { id, name } eller null. */
+function rankOf(track, n) {
+  if (!n) return null;
+  const t = TRACKS[track], r = n === t.total() ? RANKS[track].all : RANKS[track][n];
+  return r ? { id: r[0], name: r[1] } : null;
+}
+
 const TRACKS = {
   words: { key: 'milestone', steps: [5, 10, 25, 50, 75, 100, 150, 200, 300, 400, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000],
     total: () => deck.size, atomsOnly: false },
@@ -258,7 +280,8 @@ function milestoneState(track = 'words') {
   const learned = learnedCount(t.atomsOnly);
   const best = Math.max(S[t.key] || 0, ...steps.filter((m) => m <= learned), 0);
   const next = steps.find((m) => m > best) ?? null;
-  return { learned, next, prev: best, reached: steps.filter((m) => m <= best), steps, total: t.total() };
+  return { learned, next, prev: best, reached: steps.filter((m) => m <= best), steps, total: t.total(),
+    rankNow: rankOf(track, best), rankNext: next ? rankOf(track, next) : null };
 }
 /** Anropas efter varje svar: returnerar nyss nådda milstolpar, t.ex. [{ track: 'atoms', n: 25 }]. */
 function checkMilestones() {
@@ -266,7 +289,7 @@ function checkMilestones() {
   for (const [track, t] of Object.entries(TRACKS)) {
     const learned = learnedCount(t.atomsOnly);
     const hit = trackSteps(t).filter((m) => m <= learned && m > (S[t.key] || 0)).pop();
-    if (hit) { S[t.key] = hit; hits.push({ track, n: hit }); }
+    if (hit) { S[t.key] = hit; hits.push({ track, n: hit, rank: rankOf(track, hit) }); }
   }
   if (hits.length) save();
   return hits;
@@ -537,7 +560,7 @@ window.Glosor = {
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
-  milestoneState, checkMilestones,
+  milestoneState, checkMilestones, rankOf,
   sentenceDrafts: SHOW_DRAFTS,
 };
 })();

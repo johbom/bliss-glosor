@@ -93,6 +93,17 @@ h2{font-size:17px;margin-bottom:12px}
 .promo-link:hover{filter:brightness(1.08)}
 .milestone{display:grid;gap:8px;padding:14px 16px;margin-bottom:16px;border-radius:12px;background:var(--accent-soft)}
 .ms-track{display:grid;gap:6px}
+.ms-ranks{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ms-rank{display:flex;align-items:center;gap:8px}
+.ms-lbl{font-size:12px;color:var(--dim);text-transform:uppercase;letter-spacing:.05em}
+.ms-arrow{color:var(--dim);font-size:18px}
+.rank{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border-radius:999px;padding:2px 12px 2px 6px}
+.rank .sym{color:var(--accent)}
+.rank-name{font-weight:700;font-size:15px}
+.ms-rank.next .rank{background:transparent;border:1px dashed var(--accent)}
+.ms-hit{display:flex;align-items:center;gap:10px}
+.ms-hit-sym{flex:none;background:var(--accent-ink);border-radius:8px;padding:2px 4px}
+.ms-hit-sym .sym{color:var(--accent)}
 .ms-track + .ms-track{padding-top:10px;border-top:1px solid var(--rule)}
 .ms-title{font-weight:700;font-size:15px}
 .ms-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
@@ -247,7 +258,7 @@ const {
   symbolSVG, chip, classChip, formulaHTML, mergedNote, esc, MODES, nextAtom,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG, sentenceDrafts,
-  milestoneState, checkMilestones,
+  milestoneState, checkMilestones, rankOf,
 } = window.Glosor;
 /** Avsluta Mina ord- och meningspass (vid byte av vy). */
 const endModes = () => { endFocus(); endSentences(); };
@@ -316,20 +327,32 @@ function minePanel() {
 /** Milstolpar: lärda ord och lärda grundtecken, var för sig med statusbar och märken. */
 const MS_UNIT = { words: 'lärda ord', atoms: 'lärda grundtecken' };
 const MS_TITLE = { words: 'Ord', atoms: 'Grundtecken' };
+/** En titel: Blissymbolen (ur BCI-AV) och namnet. */
+function rankHTML(r, unit = 3.4) {
+  if (!r) return '';
+  const c = card(r.id);
+  return `<span class="rank">${c ? symbolSVG(c, unit) : ''}<span class="rank-name">${esc(r.name)}</span></span>`;
+}
 function milestoneTrackHTML(track) {
   const m = milestoneState(track);
   const fmt = (n) => n.toLocaleString('sv-SE');
   if (!m.next) {
     return `<div class="ms-track"><div class="ms-top"><span class="ms-title">${MS_TITLE[track]}</span>
-      <span class="ms-count">Alla ${fmt(m.total)} ${MS_UNIT[track]} – grattis!</span></div></div>`;
+      <span class="ms-count">Alla ${fmt(m.total)} ${MS_UNIT[track]} – grattis!</span></div>
+      <div class="ms-ranks"><div class="ms-rank"><span class="ms-lbl">Du är</span>${rankHTML(m.rankNow)}</div></div></div>`;
   }
   const pct = Math.min(100, (100 * m.learned) / m.next);
   const i = m.steps.indexOf(m.next);
   const chips = m.steps.slice(Math.max(0, i - 3), i + 3)
-    .map((n) => `<span class="ms-chip${n <= m.prev ? ' done' : n === m.next ? ' next' : ''}">${n === m.total ? 'alla ' : ''}${fmt(n)}</span>`).join('');
+    .map((n) => `<span class="ms-chip${n <= m.prev ? ' done' : n === m.next ? ' next' : ''}" title="${esc(rankOf(track, n)?.name || '')}">${n === m.total ? 'alla ' : ''}${fmt(n)}</span>`).join('');
   return `<div class="ms-track">
       <div class="ms-top"><span class="ms-title">${MS_TITLE[track]}</span>
         <span class="ms-count"><b>${fmt(m.learned)}</b> av ${fmt(m.next)} ${MS_UNIT[track]}</span></div>
+      <div class="ms-ranks">
+        <div class="ms-rank"><span class="ms-lbl">Du är</span>${m.rankNow ? rankHTML(m.rankNow) : '<span class="rank-name muted">på väg</span>'}</div>
+        <span class="ms-arrow" aria-hidden="true">→</span>
+        <div class="ms-rank next"><span class="ms-lbl">Nästa vid ${fmt(m.next)}</span>${rankHTML(m.rankNext)}</div>
+      </div>
       <div class="ms-bar" role="progressbar" aria-label="${MS_TITLE[track]}: ${MS_UNIT[track]} mot nästa milstolpe" aria-valuemin="0" aria-valuemax="${m.next}" aria-valuenow="${m.learned}"><i style="width:${pct.toFixed(1)}%"></i></div>
       <div class="ms-chips">${chips}</div>
     </div>`;
@@ -517,11 +540,12 @@ function finish(ok, note) {
   } else {
     const ms = grade(step.c.id, ok);
     card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
-    for (const { track, n } of checkMilestones().reverse()) {
+    for (const { track, n, rank } of checkMilestones().reverse()) {
       const m = milestoneState(track);
       const what = n === m.total ? `alla ${n.toLocaleString('sv-SE')} ${MS_UNIT[track]}` : `${n.toLocaleString('sv-SE')} ${MS_UNIT[track]}`;
       card$.querySelector('.feedback').insertAdjacentHTML('afterbegin',
-        `<div class="ms-hit" role="status"><b>Milstolpe nådd: ${what}!</b>${m.next ? ` Nästa: ${m.next.toLocaleString('sv-SE')}.` : ''}</div>`);
+        `<div class="ms-hit" role="status">${rank ? `<span class="ms-hit-sym">${symbolSVG(card(rank.id), 3.2)}</span>` : ''}
+          <span><b>Milstolpe nådd: ${what}!</b>${rank ? ` Du är nu <b>${esc(rank.name)}</b>.` : ''}${m.next ? ` Nästa: ${esc(m.rankNext?.name || '')} vid ${m.next.toLocaleString('sv-SE')}.` : ''}</span></div>`);
     }
   }
   card$.querySelector('[data-act="next"]').focus({ preventScroll: true });
