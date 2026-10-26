@@ -58,13 +58,14 @@ function splitSyns(s) {
 }
 
 const deck = new Map();
-for (const [k, [raw, expl, isChar, freq, old, , notes]] of Object.entries(DERIV)) {
+for (const [k, [raw, expl, isChar, freq, old, , notes, merged]] of Object.entries(DERIV)) {
   const v = getById(+k);
   if (old || !v || !v.e?.length) continue;
   if (/_\((lower|upper)case\)|half_sized|\(OLD\)/i.test(v.en)) continue;
   const syns = splitSyns(v.sv).map((s) => s.replace(/\s*\(etc\)/, '').trim()).filter(Boolean);
   // notes: BCI:s anteckning per del ("halv storlek", "förkortning"), samma ordning som raw.
-  deck.set(v.id, { id: v.id, v, raw, notes: (notes || []).slice(), expl, isChar: !!isChar, freq, word: syns[0] || v.sv, syns, users: [] });
+  // merged: sammanslaget tecken (BCI: "Character (superimposed)") — delarna är sammanfogade till ett tecken.
+  deck.set(v.id, { id: v.id, v, raw, notes: (notes || []).slice(), merged: !!merged, expl, isChar: !!isChar, freq, word: syns[0] || v.sv, syns, users: [] });
 }
 // "ability_(half_sized)" är samma tecken som "ability" i halv storlek (BCI:s egen variant) —
 // räkna det som den delen, men visa att den står i halv storlek.
@@ -425,12 +426,18 @@ function formulaHTML(c, unit = 3.2) {
     if (typeof p === 'number' && deck.has(p)) return chip(deck.get(p), unit, '', note);
     return `<span class="chip txt" title="BCI:s text – ingen entydig symbol">${esc(label(p))}${note ? `<small class="note">${esc(note)}</small>` : ''}</span>`;
   });
-  return `<div class="formula">${parts.join('<span class="op">+</span>')}</div>`;
+  return `<div class="formula">${parts.join('<span class="op">+</span>')}</div>` + mergedNote(c);
+}
+
+/** Förklaring under formeln för sammanslagna tecken (BCI: superimposed, Fundamental Rules 5.1.4). */
+function mergedNote(c) {
+  if (!c.merged) return '';
+  return `<p class="merged-note">Sammanslaget tecken: delarna är sammanfogade till ett tecken och kan vara ritade i ändrad form.</p>`;
 }
 
 window.Glosor = {
   MODES, S, save, resetProgress, stats, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
-  isMine, mineCards, toggleMine, startFocus, endFocus, focusState,
+  isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote,
 };
 })();
