@@ -119,6 +119,14 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .chip{display:inline-flex;flex-direction:column;align-items:center;gap:2px;background:var(--panel-2);border:1px solid transparent;
   border-radius:10px;padding:6px 8px;font-size:13px;max-width:160px;text-align:center}
 .chip span{overflow-wrap:anywhere}
+.sentence{display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-start;gap:4px;padding:10px 0 4px}
+.sentence .sw{margin:0;display:flex;flex-direction:column;align-items:center}
+.sentence .sw figcaption{font-size:13px;color:var(--dim);margin-top:-4px}
+.sentence .sw.hit .sym{color:var(--accent)}
+.sentence .sw.hit figcaption{color:var(--accent);font-weight:700}
+.blank{display:inline-flex;align-items:center;justify-content:center;width:64px;height:118px;margin:8px 6px 0;
+  border:2px dashed var(--accent);border-radius:10px;color:var(--accent);font-size:28px;font-weight:700;background:var(--accent-soft)}
+.feedback .sentence{justify-content:flex-start;padding-bottom:0}
 .merged-note{font-size:13px;color:var(--dim);margin:2px 0 6px;padding-left:10px;border-left:3px solid var(--accent-soft)}
 .chip .note{font-size:11px;color:var(--accent);font-style:italic}
 .chip.txt{justify-content:center;min-height:64px;font-style:italic;color:var(--dim);cursor:default}
@@ -210,6 +218,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   window.BLISS_DATA = BLISS_DATA;
 </script>
 <script src="src/vendor/bliss-derivations.js"></script>
+<script src="src/vendor/bliss-meningar.js"></script>
 <script src="src/glosor.js"></script>
 <script>
 // Vanliga skript, inga ES-moduler: då fungerar sidan även när den öppnas direkt
@@ -219,7 +228,10 @@ const {
   S, save, resetProgress, stats, nextStep, grade, checkParts, fmtInterval, boxOf, card, deck,
   symbolSVG, chip, classChip, formulaHTML, mergedNote, esc, MODES, nextAtom,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState,
+  sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG, sentenceDrafts,
 } = window.Glosor;
+/** Avsluta Mina ord- och meningspass (vid byte av vy). */
+const endModes = () => { endFocus(); endSentences(); };
 
 const app = document.getElementById('app');
 const dlg = document.getElementById('detail');
@@ -253,6 +265,7 @@ function home() {
       </div>
     </section>
     ${minePanel()}
+    ${sentencesPanel()}
     <section class="panel settings">
       <h2>Inställningar</h2>
       <fieldset><legend>Övningar</legend>${modes}</fieldset>
@@ -280,16 +293,29 @@ function minePanel() {
     </section>`;
 }
 
+function sentencesPanel() {
+  const n = sentenceCount();
+  if (!n) return '';   // syns först när det finns godkända meningar
+  return `<section class="panel">
+      <div class="head"><h2>Meningar</h2>
+        <button type="button" class="primary" id="sentences">Öva meningar (${n})</button></div>
+      <p class="small muted">Läs en mening i Bliss och välj ordet som saknas.${sentenceDrafts ? ' <b>Utkast visas</b> (granskningsläge).' : ''}</p>
+    </section>`;
+}
+
 // ---------------------------------------------------------------- pass
-function startSession(mine = false) {
-  if (mine) startFocus(); else endFocus();
-  sess = { right: 0, wrong: 0, fresh: 0, mine };
+/** kind: undefined = vanligt pass, 'mine' = Mina ord, 'sentences' = meningar. */
+function startSession(kind) {
+  endModes();
+  if (kind === 'mine') startFocus();
+  if (kind === 'sentences') startSentences();
+  sess = { right: 0, wrong: 0, fresh: 0, mine: kind === 'mine', sentences: kind === 'sentences' };
   setView('session');
   advance();
 }
 
 function advance() {
-  step = nextStep();
+  step = sess.sentences ? nextSentence() : nextStep();
   answered = false;
   if (step?.kind === 'intro') sess.fresh++;
   renderStep();
@@ -297,8 +323,9 @@ function advance() {
 }
 
 function progressBar() {
-  const st = stats(), f = focusState();
-  const left = f ? `Mina ord · ${f.left} av ${f.total} kvar` : `${st.due} att repetera · ${st.newLeft} nya kvar`;
+  const st = stats(), f = focusState(), m = sentenceState();
+  const left = m ? `Meningar · ${m.left} av ${m.total} kvar`
+    : f ? `Mina ord · ${f.left} av ${f.total} kvar` : `${st.due} att repetera · ${st.newLeft} nya kvar`;
   return `<div class="progress"><span>${left}</span>
     <span>${sess.right} rätt · ${sess.wrong} fel <button type="button" class="ghost" id="quit" style="padding:4px 10px;margin-left:8px">Avsluta</button></span></div>`;
 }
@@ -349,7 +376,42 @@ function quizHTML() {
     <div class="actions"><span class="hint">Siffror lägger till · Backsteg tar bort · Enter kontrollerar</span><button type="button" class="ghost" data-act="clear">Rensa</button><button type="button" class="primary" data-act="check">Kontrollera</button></div>`;
 }
 
+/** Meningen i Bliss; luckan som streckad ruta (eller ifylld efter svaret). */
+function sentenceRow(m, filled = false, glossed = false) {
+  return `<div class="sentence${glossed ? ' glossed' : ''}">${m.ord.map((w, i) => {
+    if (i === m.lucka && !filled) return '<span class="blank" aria-label="ordet som saknas">?</span>';
+    const svg = wordSVG(`${m.nr}-${i}`, w.e, glossed ? 4.6 : 6.4);
+    return `<figure class="sw${i === m.lucka ? ' hit' : ''}">${svg}${glossed ? `<figcaption>${esc(w.sv)}</figcaption>` : ''}</figure>`;
+  }).join('')}</div>`;
+}
+
+function sentenceHTML() {
+  const { m } = step;
+  return `<div class="kicker">Färdigställ meningen</div><p class="prompt">Vilket ord saknas?</p>
+    ${sentenceRow(m)}
+    <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}" aria-label="Alternativ ${i + 1}"><span class="k">${i + 1}</span>${wordSVG(`${m.nr}-a${o.id}`, o.e, 4.5)}</button>`).join('')}</div>
+    <div class="hint">Tangent 1–4 väljer</div>`;
+}
+
+function sentenceFeedbackHTML(ok, note) {
+  const { m } = step;
+  return `<div class="feedback ${ok ? 'good' : 'wrong'}">
+    <h3>${ok ? 'Rätt!' : 'Inte riktigt'}</h3>
+    <p class="word" style="font-size:20px">${esc(m.sv)}</p>
+    ${note ? `<p class="small" style="margin-top:4px">${note}</p>` : ''}
+    ${sentenceRow(m, true, true)}
+  </div>
+  <div class="actions result ${ok ? 'good' : 'wrong'}"><span class="verdict" aria-hidden="true">${ok ? 'Rätt!' : 'Inte riktigt'}</span>
+    <span class="hint">Enter = fortsätt</span><button type="button" class="primary" data-act="next">Fortsätt →</button></div>`;
+}
+
 function renderStep() {
+  if (!step && sess.sentences) {
+    app.innerHTML = `<section class="panel"><div class="kicker">Meningar – klart</div>
+      <p class="prompt">Du har färdigställt alla ${sentenceState()?.total ?? ''} meningar${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.</p>
+      <div class="actions"><button type="button" class="ghost" data-act="home">Till översikten</button><button type="button" class="primary" data-act="sentences">Öva meningarna igen</button></div></section>`;
+    return;
+  }
   if (!step && sess.mine) {
     app.innerHTML = `<section class="panel"><div class="kicker">Mina ord – klart</div>
       <p class="prompt">Du har svarat rätt på alla ${focusState()?.total ?? ''} ord${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.</p>
@@ -365,7 +427,8 @@ function renderStep() {
       <div class="actions"><button type="button" class="ghost" data-act="home">Till översikten</button><button type="button" class="primary" data-act="more">Lär 5 nya till</button></div></section>`;
     return;
   }
-  app.innerHTML = progressBar() + `<section class="panel" id="card">${step.kind === 'intro' ? introHTML(step.c) : quizHTML()}</section>`;
+  const body = step.kind === 'intro' ? introHTML(step.c) : step.kind === 'sentence' ? sentenceHTML() : quizHTML();
+  app.innerHTML = progressBar() + `<section class="panel" id="card">${body}</section>`;
 }
 
 function feedbackHTML(ok, ms, note = '') {
@@ -385,10 +448,16 @@ function feedbackHTML(ok, ms, note = '') {
 function finish(ok, note) {
   answered = true;
   ok ? sess.right++ : sess.wrong++;
-  const ms = grade(step.c.id, ok);
   const card$ = document.getElementById('card');
   card$.querySelectorAll('.actions,.hint').forEach((n) => n.remove());
-  card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
+  if (step.kind === 'sentence') {
+    answerSentence(step.m.nr, ok);
+    card$.querySelector('.sentence').outerHTML = sentenceRow(step.m, true);   // luckan fylls i
+    card$.insertAdjacentHTML('beforeend', sentenceFeedbackHTML(ok, note));
+  } else {
+    const ms = grade(step.c.id, ok);
+    card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
+  }
   card$.querySelector('[data-act="next"]').focus({ preventScroll: true });
   document.querySelector('.progress').outerHTML = progressBar();
 }
@@ -400,7 +469,8 @@ function chooseOption(i) {
   const ok = i === step.answer;
   btns[i].classList.add(ok ? 'ok' : 'bad');
   if (!ok) btns[step.answer].classList.add('miss');
-  finish(ok, ok ? '' : `Du valde <b>${esc(step.options[i].word)}</b>.`);
+  const chosen = step.kind === 'sentence' ? (card(step.options[i].id)?.word || '') : step.options[i].word;
+  finish(ok, ok ? '' : `Du valde <b>${esc(chosen)}</b>.`);
 }
 
 function togglePal(i) {
@@ -588,14 +658,15 @@ function setView(v) {
 
 document.querySelector('header nav').addEventListener('click', (e) => {
   const b = e.target.closest('[data-view]');
-  if (b) { endFocus(); setView(b.dataset.view); }
+  if (b) { endModes(); setView(b.dataset.view); }
 });
 
 app.addEventListener('click', (e) => {
   const t = e.target.closest('button');
   if (!t) return;
   if (t.id === 'start') return startSession();
-  if (t.id === 'focus' || t.dataset.act === 'focus') return startSession(true);
+  if (t.id === 'focus' || t.dataset.act === 'focus') return startSession('mine');
+  if (t.id === 'sentences' || t.dataset.act === 'sentences') return startSession('sentences');
   if (t.id === 'go-list') return setView('list');
   if (t.id === 'copy-contact') {
     // Urklipp kan nekas (vissa inbäddade vyer) – markera då adressen så att den kan kopieras för hand.
@@ -615,7 +686,7 @@ app.addEventListener('click', (e) => {
   }
   if (t.id === 'reset-yes') { resetProgress(); home(); return; }
   if (t.id === 'reset-no') { home(); return; }
-  if (t.id === 'quit' || t.dataset.act === 'home') { endFocus(); return setView('home'); }
+  if (t.id === 'quit' || t.dataset.act === 'home') { endModes(); return setView('home'); }
   if (t.dataset.act === 'next') return advance();
   if (t.dataset.act === 'check') return checkStep();
   if (t.dataset.act === 'clear') { if (!answered) { step.sel = []; renderStep(); } return; }
