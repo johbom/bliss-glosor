@@ -91,6 +91,20 @@ h2{font-size:17px;margin-bottom:12px}
 .prose .promo h3{margin:2px 0 6px;font-size:18px}
 .promo-link{display:inline-block;margin-top:10px;padding:8px 16px;border-radius:10px;background:var(--accent);color:var(--accent-ink)!important;font-weight:700;text-decoration:none}
 .promo-link:hover{filter:brightness(1.08)}
+.milestone{display:grid;gap:8px;padding:14px 16px;margin-bottom:16px;border-radius:12px;background:var(--accent-soft)}
+.ms-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ms-count{font-size:15px;font-variant-numeric:tabular-nums}
+.ms-count b{font-size:22px}
+.ms-bar{height:14px;border-radius:7px;background:var(--panel);overflow:hidden;border:1px solid var(--rule)}
+.ms-bar i{display:block;height:100%;background:var(--accent);border-radius:7px;transition:width .4s ease}
+@media (prefers-reduced-motion: reduce){.ms-bar i{transition:none}}
+.ms-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ms-chip{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;padding:2px 9px;border-radius:999px;border:1px solid var(--rule);color:var(--dim);background:var(--panel)}
+.ms-chip.done{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ms-chip.next{border-color:var(--accent);color:var(--accent)}
+.ms-note{font-size:12px;color:var(--dim)}
+.ms-all{font-weight:700}
+.ms-hit{margin:-2px 0 10px;padding:10px 12px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-size:15px}
 .flyer{display:flex;gap:14px;align-items:flex-start}
 .flyer-doc{flex:none;width:52px;height:68px;border-radius:6px;background:var(--panel-2);border:1px solid var(--rule);
   position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px}
@@ -229,6 +243,7 @@ const {
   symbolSVG, chip, classChip, formulaHTML, mergedNote, esc, MODES, nextAtom,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG, sentenceDrafts,
+  milestoneState, checkMilestone,
 } = window.Glosor;
 /** Avsluta Mina ord- och meningspass (vid byte av vy). */
 const endModes = () => { endFocus(); endSentences(); };
@@ -248,6 +263,7 @@ function home() {
   const work = st.due + st.newLeft;
   app.innerHTML = `
     <section class="panel">
+      ${milestoneHTML()}
       <div class="stats">
         <div class="stat"><b>${st.due}</b><span>att repetera nu</span></div>
         <div class="stat"><b>${st.newLeft}</b><span>nya kvar i dag</span></div>
@@ -291,6 +307,27 @@ function minePanel() {
         : `<p class="small muted">Inga ord valda än. Öppna <button type="button" class="linklike" id="go-list">Ordlista</button>, sök upp ett ord,
            klicka på det och välj <b>☆ Lägg till i Mina ord</b>.</p>`}
     </section>`;
+}
+
+/** Milstolpar: nästa milstolpe med statusbar, nådda och kommande som små märken. */
+function milestoneHTML() {
+  const m = milestoneState();
+  const fmt = (n) => n.toLocaleString('sv-SE');
+  if (!m.next) {
+    return `<div class="milestone"><div class="ms-top"><span class="kicker">Milstolpar</span></div>
+      <p class="ms-all">Alla ${fmt(m.total)} ord är lärda – grattis!</p></div>`;
+  }
+  const pct = Math.min(100, (100 * m.learned) / m.next);
+  const i = m.steps.indexOf(m.next);
+  const shown = m.steps.slice(Math.max(0, i - 3), i + 3);
+  const chips = shown.map((n) => `<span class="ms-chip${n <= m.prev ? ' done' : n === m.next ? ' next' : ''}">${fmt(n)}</span>`).join('');
+  return `<div class="milestone">
+      <div class="ms-top"><span class="kicker">Nästa milstolpe</span>
+        <span class="ms-count"><b>${fmt(m.learned)}</b> av ${fmt(m.next)} lärda ord</span></div>
+      <div class="ms-bar" role="progressbar" aria-label="Lärda ord mot nästa milstolpe" aria-valuemin="0" aria-valuemax="${m.next}" aria-valuenow="${m.learned}"><i style="width:${pct.toFixed(1)}%"></i></div>
+      <div class="ms-chips" aria-label="Milstolpar">${chips}</div>
+      <p class="ms-note">Ett ord räknas som lärt när du har svarat rätt på det igen efter minst ett dygn.</p>
+    </div>`;
 }
 
 function sentencesPanel() {
@@ -433,6 +470,7 @@ function renderStep() {
     app.innerHTML = `<section class="panel"><div class="kicker">Klart</div>
       <p class="prompt">${sess.right + sess.wrong ? `Du svarade rätt på ${sess.right} av ${sess.right + sess.wrong}` : 'Inget kvar att öva just nu'}${sess.fresh ? ` och lärde dig ${sess.fresh} nya symboler` : ''}.</p>
       <p class="muted">${st.unlocked ? `${st.unlocked} sammansatta ord är upplåsta och väntar.` : ''}</p>
+      ${milestoneHTML()}
       <div class="actions"><button type="button" class="ghost" data-act="home">Till översikten</button><button type="button" class="primary" data-act="more">Lär 5 nya till</button></div></section>`;
     return;
   }
@@ -466,6 +504,12 @@ function finish(ok, note) {
   } else {
     const ms = grade(step.c.id, ok);
     card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
+    const hit = checkMilestone();
+    if (hit) {
+      const next = milestoneState().next;
+      card$.querySelector('.feedback').insertAdjacentHTML('afterbegin',
+        `<div class="ms-hit" role="status"><b>Milstolpe nådd: ${hit.toLocaleString('sv-SE')} lärda ord!</b>${next ? ` Nästa milstolpe: ${next.toLocaleString('sv-SE')}.` : ''}</div>`);
+    }
   }
   card$.querySelector('[data-act="next"]').focus({ preventScroll: true });
   document.querySelector('.progress').outerHTML = progressBar();
