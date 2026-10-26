@@ -1,0 +1,651 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Bliss-glosor</title>
+<meta name="claude:viewport-fit-sides" content="cover" />
+<!-- PWA: manifest, ikoner och service worker (glosor-sw.js). Raderna märkta data-pwa tas bort i Artifact-versionen. -->
+<link rel="manifest" href="glosor.webmanifest" data-pwa />
+<meta name="theme-color" content="#28558C" data-pwa />
+<meta name="mobile-web-app-capable" content="yes" data-pwa />
+<meta name="apple-mobile-web-app-capable" content="yes" data-pwa />
+<meta name="apple-mobile-web-app-title" content="Bliss-glosor" data-pwa />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" data-pwa />
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml" data-pwa />
+<style>
+/* Atkinson Hyperlegible (Braille Institute, SIL Open Font License 1.1 – se fonts/OFL.txt).
+   Ligger i appen i stället för att hämtas från Google Fonts: inga anrop till andra tjänster, och den fungerar offline. */
+@font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-400-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-400-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/atkinson-hyperlegible-700-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/atkinson-hyperlegible-700-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:"Atkinson Hyperlegible";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-400i-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+@font-face{font-family:"Atkinson Hyperlegible";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-400i-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+:root{
+  --ink:#1B1B1D; --dim:#6E6E73; --panel:#FFFFFF; --panel-2:#F4F3EF; --bg:#ECEBE6;
+  --accent:#28558C; --accent-ink:#FFFFFF; --accent-soft:#DCE6F2; --rule:#DAD7CE;
+  --ok:#2E7D46; --ok-soft:#DDF0E2; --bad:#B23A3A; --bad-soft:#F6DEDE; --staff:#D9D5CA;
+  --c-YELLOW:#E9C23B; --c-RED:#D9534F; --c-GREEN:#4CAF6A; --c-BLUE:#4A7FD0; --c-WHITE:#C8C6C0; --c-GRAY:#8E8E8E;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --ink:#ECECEE; --dim:#9A9AA2; --panel:#1F2023; --panel-2:#26282A; --bg:#17181B;
+  --accent:#7FA8DB; --accent-ink:#0E1621; --accent-soft:#223146; --rule:#33363B;
+  --ok:#6FBF8A; --ok-soft:#1E3326; --bad:#E07B7B; --bad-soft:#3A2224; --staff:#34373C;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --ink:#ECECEE; --dim:#9A9AA2; --panel:#1F2023; --panel-2:#26282A; --bg:#17181B;
+  --accent:#7FA8DB; --accent-ink:#0E1621; --accent-soft:#223146; --rule:#33363B;
+  --ok:#6FBF8A; --ok-soft:#1E3326; --bad:#E07B7B; --bad-soft:#3A2224; --staff:#34373C;
+  color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+body{font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:var(--bg);color:var(--ink);min-height:100vh;line-height:1.4}
+button{font:inherit;color:inherit;cursor:pointer}
+header,main,footer{max-width:920px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header{display:flex;align-items:center;gap:14px;padding-block:12px;flex-wrap:wrap}
+header h1{font-size:20px}
+header nav{margin-left:auto;display:flex;gap:4px}
+header nav button{background:none;border:0;padding:6px 12px;border-radius:8px;color:var(--dim)}
+header nav button[aria-current="true"]{background:var(--panel);color:var(--ink);font-weight:600}
+main{padding-block:0 24px}
+footer{padding-block:0 32px;font-size:12px;color:var(--dim)}
+footer a{color:inherit}
+.panel{background:var(--panel);border-radius:14px;padding:20px}
+.panel + .panel{margin-top:14px}
+h2{font-size:17px;margin-bottom:12px}
+.muted{color:var(--dim)}
+.small{font-size:13px}
+
+/* översikt */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:var(--panel-2);border-radius:10px;padding:12px 14px}
+.stat b{display:block;font-size:26px;font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--dim)}
+.bar{height:8px;background:var(--panel-2);border-radius:4px;overflow:hidden;margin:6px 0 14px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:12px 22px;font-size:17px;font-weight:600}
+.primary:disabled{opacity:.45;cursor:default}
+.ghost{background:none;border:1px solid var(--rule);border-radius:10px;padding:10px 16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.settings label{display:flex;gap:8px;align-items:center;padding:4px 0}
+.settings fieldset{border:0;padding:0;margin:0 0 12px}
+.settings legend{font-weight:600;margin-bottom:4px}
+.settings input[type=number]{width:64px;font:inherit;padding:4px 6px;border:1px solid var(--rule);border-radius:6px;background:var(--panel-2);color:var(--ink)}
+.danger{color:var(--bad);background:none;border:0;padding:0;text-decoration:underline}
+.linklike{color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;font:inherit}
+footer .linklike{color:inherit}
+.prose{max-width:68ch}
+.prose h2{font-size:20px;margin:0 0 8px}
+.prose h3{font-size:16px;margin:22px 0 6px}
+.prose p,.prose li{font-size:15px;line-height:1.55}
+.prose p + p{margin-top:8px}
+.prose ul,.prose ol{padding-left:20px;margin:6px 0 0}
+.prose a{color:var(--accent)}
+.prose blockquote{margin:8px 0;padding:8px 12px;border-left:3px solid var(--rule);color:var(--dim);font-size:14px}
+.lic{display:grid;gap:10px;margin-top:8px}
+.lic div{background:var(--panel-2);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.45}
+.lic b{display:block}
+.lic .who{color:var(--dim)}
+.contact{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.contact a{font-size:17px;font-weight:700;user-select:all}
+.contact .ghost{padding:6px 12px;font-size:14px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.head h2{margin:0}
+.star{color:var(--c-YELLOW);font-size:13px;line-height:1}
+.tabs{display:flex;gap:4px;margin-bottom:10px}
+.tabs button{background:none;border:1px solid var(--rule);border-radius:999px;padding:4px 12px;font-size:14px;color:var(--dim)}
+.tabs button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
+.confirm{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px;border-radius:10px;background:var(--bad-soft)}
+.confirm .ghost{padding:8px 14px}
+.confirm .yes{background:var(--bad);color:var(--panel);border:0;border-radius:10px;padding:8px 14px;font-weight:700}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* symboler */
+.sym{display:block;max-width:100%;height:auto;color:var(--ink)}
+.sym .staff{stroke:var(--staff);stroke-width:10}
+.sym .staff.earth{stroke-width:16}
+.stage{display:flex;justify-content:center;padding:8px 0 4px}
+.chip{display:inline-flex;flex-direction:column;align-items:center;gap:2px;background:var(--panel-2);border:1px solid transparent;
+  border-radius:10px;padding:6px 8px;font-size:13px;max-width:160px;text-align:center}
+.chip span{overflow-wrap:anywhere}
+.chip .note{font-size:11px;color:var(--accent);font-style:italic}
+.chip.txt{justify-content:center;min-height:64px;font-style:italic;color:var(--dim);cursor:default}
+.formula{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:10px 0}
+.op{font-size:22px;color:var(--dim);padding:0 2px}
+.cls{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--dim)}
+.cls::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c-WHITE)}
+.cls-YELLOW::before{background:var(--c-YELLOW)} .cls-RED::before{background:var(--c-RED)}
+.cls-GREEN::before{background:var(--c-GREEN)} .cls-BLUE::before{background:var(--c-BLUE)}
+.cls-GRAY::before{background:var(--c-GRAY)}
+
+/* pass */
+.progress{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:14px;color:var(--dim)}
+.kicker{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700}
+.prompt{font-size:20px;margin:4px 0 6px}
+.word{font-size:28px;font-weight:700}
+.syns{color:var(--dim);font-size:14px}
+.expl{font-size:14px;color:var(--dim);font-style:italic;margin-top:6px}
+.opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+.opt{position:relative;background:var(--panel-2);border:2px solid transparent;border-radius:12px;padding:14px;font-size:18px;
+  display:flex;justify-content:center;align-items:center;min-height:64px}
+.opt:hover:not(:disabled),.chip:hover:not(.txt){border-color:var(--accent)}
+.opt .k,.pal .k{position:absolute;top:6px;left:8px;font-size:11px;color:var(--dim)}
+.opt.ok,.pal.ok{background:var(--ok-soft);border-color:var(--ok)}
+.opt.bad,.pal.bad{background:var(--bad-soft);border-color:var(--bad)}
+.opt.miss,.pal.miss{border-color:var(--ok);border-style:dashed}
+.opt:disabled{cursor:default}
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:14px}
+.pal{position:relative;max-width:none;width:100%;padding:10px 6px 6px}
+.pal.on{border-color:var(--accent);background:var(--accent-soft)}
+.strip{min-height:96px;border:2px dashed var(--rule);border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px}
+.strip:empty::before{content:"Klicka på delarna nedan för att bygga symbolen";color:var(--dim);font-size:14px;padding:0 6px}
+.feedback{margin-top:16px;padding:14px;border-radius:12px;background:var(--panel-2)}
+.feedback.good{background:var(--ok-soft)} .feedback.wrong{background:var(--bad-soft)}
+.feedback h3{font-size:17px;margin-bottom:4px}
+.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+.hint{font-size:12px;color:var(--dim);text-align:right;margin-top:6px}
+
+/* ordlista */
+.search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--panel-2);color:var(--ink);margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.grid .chip{max-width:none;width:100%}
+.dots{display:flex;gap:2px;justify-content:center;margin-top:2px}
+.dots i{width:6px;height:6px;border-radius:50%;background:var(--rule)}
+.dots i.f{background:var(--accent)}
+dialog{margin:auto;border:0;border-radius:16px;padding:22px;max-width:min(640px,calc(100vw - 32px));width:100%;background:var(--panel);color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+.close{float:right;background:none;border:0;font-size:22px;line-height:1;color:var(--dim)}
+@media (max-width:520px){
+  .opts{grid-template-columns:1fr 1fr;gap:8px}
+  .word{font-size:24px}
+  .panel{padding:16px}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Bliss-glosor</h1>
+  <nav>
+    <button type="button" data-view="home" aria-current="true">Översikt</button>
+    <button type="button" data-view="list">Ordlista</button>
+    <button type="button" data-view="about">Om</button>
+  </nav>
+</header>
+<main id="app"></main>
+<footer>Blissymboler, glosor och härledningar ur BCI-AV, © Blissymbolics Communication International (BCI),
+  <a href="https://creativecommons.org/licenses/by-sa/4.0/deed.sv" target="_blank" rel="noopener">CC BY-SA 4.0</a>.
+  Symbolerna ritas med BlissEngine (port av WinBliss, AnyCom AB, CC BY 4.0).
+  <button type="button" class="linklike" data-view="about">Om appen, integritet och licenser</button></footer>
+<dialog id="detail"></dialog>
+
+<script src="src/vendor/bliss-shapes.js"></script>
+<script src="src/vendor/bliss-engine.js"></script>
+<script src="src/vendor/bliss-data.js"></script>
+<script>
+  // bliss-data.js deklarerar `const BLISS_DATA` i skript-scopet — src/glosor.js läser den från window.
+  window.BLISS_DATA = BLISS_DATA;
+</script>
+<script src="src/vendor/bliss-derivations.js"></script>
+<script src="src/glosor.js"></script>
+<script>
+// Vanliga skript, inga ES-moduler: då fungerar sidan även när den öppnas direkt
+// från disken (file://), där webbläsare blockerar moduler.
+(() => {
+const {
+  S, save, resetProgress, stats, nextStep, grade, checkParts, fmtInterval, boxOf, card, deck,
+  symbolSVG, chip, classChip, formulaHTML, esc, MODES, nextAtom,
+  isMine, mineCards, toggleMine, startFocus, endFocus, focusState,
+} = window.Glosor;
+
+const app = document.getElementById('app');
+const dlg = document.getElementById('detail');
+let view = 'home';
+let step = null, answered = false, sess = null;
+
+// ---------------------------------------------------------------- översikt
+function home() {
+  const st = stats();
+  const atom = nextAtom();
+  const pct = (a, b) => (b ? (100 * a / b).toFixed(1) : 0);
+  const modes = Object.entries(MODES).map(([k, label]) =>
+    `<label><input type="checkbox" data-mode="${k}" ${S.settings.modes[k] ? 'checked' : ''}> ${label}</label>`).join('');
+  const work = st.due + st.newLeft;
+  app.innerHTML = `
+    <section class="panel">
+      <div class="stats">
+        <div class="stat"><b>${st.due}</b><span>att repetera nu</span></div>
+        <div class="stat"><b>${st.newLeft}</b><span>nya kvar i dag</span></div>
+        <div class="stat"><b>${st.learned}</b><span>lärda (klarat en repetition efter ett dygn)</span></div>
+        <div class="stat"><b>${st.unlocked}</b><span>sammansatta ord upplåsta</span></div>
+      </div>
+      <div class="small muted">Grundtecken: ${st.atoms} av ${st.atomTotal}</div>
+      <div class="bar"><i style="width:${pct(st.atoms, st.atomTotal)}%"></i></div>
+      <div class="small muted">Sammansatta ord: ${st.compounds} av ${st.compoundTotal}</div>
+      <div class="bar"><i style="width:${pct(st.compounds, st.compoundTotal)}%"></i></div>
+      <div class="row">
+        <button type="button" class="primary" id="start" ${work ? '' : 'disabled'}>${work ? 'Börja öva' : 'Klart för i dag'}</button>
+        ${work ? '' : '<button type="button" class="ghost" id="more">Lär 5 nya till</button>'}
+        ${atom ? `<span class="small muted">Nästa grundtecken:</span>${chip(atom, 2.6)}` : ''}
+      </div>
+    </section>
+    ${minePanel()}
+    <section class="panel settings">
+      <h2>Inställningar</h2>
+      <fieldset><legend>Övningar</legend>${modes}</fieldset>
+      <fieldset><legend>Takt</legend>
+        <label>Nya symboler per dag <input type="number" id="npd" min="1" max="100" value="${S.settings.newPerDay}"></label>
+        <label><input type="checkbox" id="staff" ${S.settings.staff ? 'checked' : ''}> Visa himmels- och jordlinje</label>
+      </fieldset>
+      <p class="small muted">Grundtecknen kommer först, i ordningen <i>flest ord bygger på dem</i>. Ett sammansatt ord
+        låses upp när du har svarat rätt på alla dess delar. Rätt svar flyttar ordet till längre intervall
+        (10 min → 1 dag → 3 → 7 → 16 → 35 → 90 dagar), fel svar börjar om. Framstegen sparas i den här webbläsaren.</p>
+      <div style="margin-top:10px" id="resetbox"><button type="button" class="danger" id="reset">Nollställ framsteg</button></div>
+    </section>`;
+}
+
+function minePanel() {
+  const mine = mineCards();
+  return `<section class="panel">
+      <div class="head"><h2>Mina ord</h2>
+        <button type="button" class="primary" id="focus" ${mine.length ? '' : 'disabled'}>Öva mina ord${mine.length ? ` (${mine.length})` : ''}</button></div>
+      ${mine.length
+        ? `<p class="small muted">Ord du har valt att träna särskilt. De kommer också först bland nya ord i vanliga pass. Klicka på ett ord för att ta bort det.</p>
+           <div class="formula">${mine.map((c) => chip(c, 2.6)).join('')}</div>`
+        : `<p class="small muted">Inga ord valda än. Öppna <button type="button" class="linklike" id="go-list">Ordlista</button>, sök upp ett ord,
+           klicka på det och välj <b>☆ Lägg till i Mina ord</b>.</p>`}
+    </section>`;
+}
+
+// ---------------------------------------------------------------- pass
+function startSession(mine = false) {
+  if (mine) startFocus(); else endFocus();
+  sess = { right: 0, wrong: 0, fresh: 0, mine };
+  setView('session');
+  advance();
+}
+
+function advance() {
+  step = nextStep();
+  answered = false;
+  if (step?.kind === 'intro') sess.fresh++;
+  renderStep();
+}
+
+function progressBar() {
+  const st = stats(), f = focusState();
+  const left = f ? `Mina ord · ${f.left} av ${f.total} kvar` : `${st.due} att repetera · ${st.newLeft} nya kvar`;
+  return `<div class="progress"><span>${left}</span>
+    <span>${sess.right} rätt · ${sess.wrong} fel <button type="button" class="ghost" id="quit" style="padding:4px 10px;margin-left:8px">Avsluta</button></span></div>`;
+}
+
+function introHTML(c) {
+  const kind = c.parts.length ? 'Nytt ord' : 'Nytt grundtecken';
+  const users = c.users.length ? `<p class="small muted" style="margin-top:8px">Ingår i ${c.users.length} andra ord.</p>` : '';
+  return `<div class="kicker">${kind}</div>
+    <div class="stage">${symbolSVG(c, 9)}</div>
+    <div class="word">${esc(c.word)}</div>
+    ${c.syns.length > 1 ? `<div class="syns">${esc(c.syns.slice(1).join(', '))}</div>` : ''}
+    <div style="margin-top:6px">${classChip(c)}</div>
+    ${c.raw.length ? `<p class="small muted" style="margin-top:12px">Byggs av:</p>${formulaHTML(c)}` : ''}
+    ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
+    ${users}
+    <div class="actions"><button type="button" class="primary" data-act="next">Jag har tittat på den →</button></div>
+    <div class="hint">Enter = fortsätt</div>`;
+}
+
+function quizHTML() {
+  const { c, mode } = step;
+  if (mode === 'sym') {
+    return `<div class="kicker">${MODES.sym}</div><p class="prompt">Vad betyder symbolen?</p>
+      <div class="stage">${symbolSVG(c, 9)}</div>
+      <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}"><span class="k">${i + 1}</span>${esc(o.word)}</button>`).join('')}</div>
+      <div class="hint">Tangent 1–4 väljer</div>`;
+  }
+  if (mode === 'word') {
+    return `<div class="kicker">${MODES.word}</div><p class="prompt">Vilken symbol betyder</p>
+      <div class="word">${esc(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
+      <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}" aria-label="Alternativ ${i + 1}"><span class="k">${i + 1}</span>${symbolSVG(o, 4.5)}</button>`).join('')}</div>
+      <div class="hint">Tangent 1–4 väljer</div>`;
+  }
+  const pal = step.palette.map((o, i) =>
+    `<button type="button" class="chip pal${step.mode === 'parts' && step.sel.includes(o.id) ? ' on' : ''}" data-pal="${i}">${i < 9 ? `<span class="k">${i + 1}</span>` : ''}${symbolSVG(o, 3.4)}<span>${esc(o.word)}</span></button>`).join('');
+  if (mode === 'parts') {
+    return `<div class="kicker">${MODES.parts}</div><p class="prompt">Vilka delar består <b>${esc(c.word)}</b> av?</p>
+      <div class="stage">${symbolSVG(c, 9)}</div>
+      <p class="small muted">Markera alla delar du ser i symbolen (${new Set(c.parts).size} st).</p>
+      <div class="palette">${pal}</div>
+      <div class="actions"><button type="button" class="primary" data-act="check">Kontrollera</button></div>
+      <div class="hint">Siffror markerar · Enter kontrollerar</div>`;
+  }
+  return `<div class="kicker">${MODES.build}</div><p class="prompt">Bygg symbolen för</p>
+    <div class="word">${esc(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
+    <div class="strip" id="strip">${step.sel.map((id, i) => `<button type="button" class="chip" data-unsel="${i}" title="Ta bort">${symbolSVG(card(id), 3.4)}<span>${esc(card(id).word)}</span></button>`).join('')}</div>
+    <p class="small muted" style="margin-top:6px">${c.parts.length} delar. Klicka i raden ovan för att ta bort en del.</p>
+    <div class="palette">${pal}</div>
+    <div class="actions"><button type="button" class="ghost" data-act="clear">Rensa</button><button type="button" class="primary" data-act="check">Kontrollera</button></div>
+    <div class="hint">Siffror lägger till · Backsteg tar bort · Enter kontrollerar</div>`;
+}
+
+function renderStep() {
+  if (!step && sess.mine) {
+    app.innerHTML = `<section class="panel"><div class="kicker">Mina ord – klart</div>
+      <p class="prompt">Du har svarat rätt på alla ${focusState()?.total ?? ''} ord${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.</p>
+      <p class="muted">Orden finns kvar i den vanliga repetitionen och kommer tillbaka när det är dags.</p>
+      <div class="actions"><button type="button" class="ghost" data-act="home">Till översikten</button><button type="button" class="primary" data-act="focus">Öva mina ord igen</button></div></section>`;
+    return;
+  }
+  if (!step) {
+    const st = stats();
+    app.innerHTML = `<section class="panel"><div class="kicker">Klart</div>
+      <p class="prompt">${sess.right + sess.wrong ? `Du svarade rätt på ${sess.right} av ${sess.right + sess.wrong}` : 'Inget kvar att öva just nu'}${sess.fresh ? ` och lärde dig ${sess.fresh} nya symboler` : ''}.</p>
+      <p class="muted">${st.unlocked ? `${st.unlocked} sammansatta ord är upplåsta och väntar.` : ''}</p>
+      <div class="actions"><button type="button" class="ghost" data-act="home">Till översikten</button><button type="button" class="primary" data-act="more">Lär 5 nya till</button></div></section>`;
+    return;
+  }
+  app.innerHTML = progressBar() + `<section class="panel" id="card">${step.kind === 'intro' ? introHTML(step.c) : quizHTML()}</section>`;
+}
+
+function feedbackHTML(ok, ms, note = '') {
+  const { c } = step;
+  return `<div class="feedback ${ok ? 'good' : 'wrong'}">
+    <h3>${ok ? 'Rätt!' : 'Inte riktigt'}</h3>
+    <div class="row" style="align-items:flex-end">${step.mode === 'sym' ? '' : symbolSVG(c, 5)}<div><div class="word" style="font-size:22px">${esc(c.word)}</div>${classChip(c)}</div></div>
+    ${note ? `<p class="small" style="margin-top:6px">${note}</p>` : ''}
+    ${formulaHTML(c, 2.8)}
+    ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
+    <p class="small muted" style="margin-top:6px">Kommer igen ${fmtInterval(ms)}.</p>
+  </div>
+  <div class="actions"><button type="button" class="primary" data-act="next">Fortsätt →</button></div>
+  <div class="hint">Enter = fortsätt</div>`;
+}
+
+function finish(ok, note) {
+  answered = true;
+  ok ? sess.right++ : sess.wrong++;
+  const ms = grade(step.c.id, ok);
+  const card$ = document.getElementById('card');
+  card$.querySelectorAll('.actions,.hint').forEach((n) => n.remove());
+  card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
+  card$.querySelector('[data-act="next"]').focus({ preventScroll: true });
+  document.querySelector('.progress').outerHTML = progressBar();
+}
+
+function chooseOption(i) {
+  if (answered || !step.options || i >= step.options.length) return;
+  const btns = [...document.querySelectorAll('.opt')];
+  btns.forEach((b) => { b.disabled = true; });
+  const ok = i === step.answer;
+  btns[i].classList.add(ok ? 'ok' : 'bad');
+  if (!ok) btns[step.answer].classList.add('miss');
+  finish(ok, ok ? '' : `Du valde <b>${esc(step.options[i].word)}</b>.`);
+}
+
+function togglePal(i) {
+  if (answered || !step.palette || i >= step.palette.length) return;
+  const id = step.palette[i].id;
+  if (step.mode === 'parts') {
+    const k = step.sel.indexOf(id);
+    k < 0 ? step.sel.push(id) : step.sel.splice(k, 1);
+  } else step.sel.push(id);
+  renderStep();
+}
+
+function checkStep() {
+  if (answered) return;
+  if (!step.sel.length) return;
+  const { ok, order } = checkParts(step);
+  const want = new Set(step.c.parts);
+  document.querySelectorAll('.pal').forEach((b, i) => {
+    const id = step.palette[i].id, picked = step.sel.includes(id);
+    b.disabled = true;
+    if (picked) b.classList.add(want.has(id) ? 'ok' : 'bad');
+    else if (want.has(id)) b.classList.add('miss');
+  });
+  document.querySelectorAll('[data-unsel]').forEach((b) => { b.disabled = true; });
+  let note = '';
+  if (!ok) note = 'Streckade rutor = delar du missade, röda = delar som inte ingår.';
+  else if (step.mode === 'build' && !order) note = 'Rätt delar! I BCI:s definition står de i ordningen nedan.';
+  finish(ok, note);
+}
+
+// ---------------------------------------------------------------- ordlista
+let listQuery = '';
+let listTab = 'started';   // 'started' | 'mine'
+function list(rebuild = false) {
+  const q = listQuery.trim().toLowerCase();
+  let items;
+  if (q) {
+    const rank = (c) => {
+      const syns = c.syns.map((s) => s.toLowerCase());
+      return syns.includes(q) ? 0 : syns.some((s) => s.startsWith(q)) ? 1 : 2;
+    };
+    items = [...deck.values()].filter((c) => c.v.sv.toLowerCase().includes(q) || c.v.en.toLowerCase().includes(q))
+      .sort((a, b) => rank(a) - rank(b) || b.score - a.score)
+      .slice(0, 60);
+  } else if (listTab === 'mine') {
+    items = mineCards();
+  } else {
+    items = Object.keys(S.cards).map(card).filter(Boolean).sort((a, b) => S.cards[b.id].t - S.cards[a.id].t);
+  }
+  const dots = (c) => {
+    const b = boxOf(c.id);
+    if (b < 0) return '<div class="dots small muted">ej påbörjad</div>';
+    return `<div class="dots" title="Låda ${b} av 7">${Array.from({ length: 7 }, (_, i) => `<i class="${i < b ? 'f' : ''}"></i>`).join('')}</div>`;
+  };
+  const star = (c) => (isMine(c.id) ? '<span class="star" title="I Mina ord">★</span>' : '');
+  const html = items.map((c) => chip(c, 3.4).replace('</button>', `${star(c)}${dots(c)}</button>`)).join('');
+  const box = document.getElementById('listgrid');
+  if (box && !rebuild) { box.innerHTML = html || emptyList(q); return; }
+  const tab = (k, label) => `<button type="button" data-tab="${k}" aria-pressed="${!q && listTab === k}">${label}</button>`;
+  app.innerHTML = `<section class="panel">
+    <input class="search" id="q" type="search" placeholder="Sök bland alla ${deck.size} symboler (svenska eller engelska)" value="${esc(listQuery)}">
+    <div class="tabs">${tab('started', 'Påbörjade')}${tab('mine', `Mina ord (${mineCards().length})`)}</div>
+    <p class="small muted" style="margin-bottom:10px" id="listnote">${listNote(q)}</p>
+    <div class="grid" id="listgrid">${html || emptyList(q)}</div></section>`;
+}
+const listNote = (q) => (q ? ''
+  : listTab === 'mine' ? 'Ord du har valt att träna särskilt. Klicka på ett ord för att ta bort det.'
+  : 'Symboler du har börjat lära dig, senaste först. Klicka för detaljer – där kan du också lägga till ord i Mina ord.');
+const emptyList = (q) => `<p class="muted">${q ? 'Inga träffar.'
+  : listTab === 'mine' ? 'Inga ord valda än. Sök upp ett ord ovan, klicka på det och välj ☆ Lägg till i Mina ord.'
+  : 'Du har inte börjat än — gå till Översikt och tryck “Börja öva”.'}</p>`;
+
+function showDetail(id) {
+  const c = card(id);
+  if (!c) return;
+  const s = S.cards[c.id];
+  const users = c.users.map(card).sort((a, b) => (boxOf(b.id) >= 0) - (boxOf(a.id) >= 0) || b.score - a.score);
+  dlg.innerHTML = `<button type="button" class="close" data-act="close" aria-label="Stäng">×</button>
+    <div class="stage">${symbolSVG(c, 8)}</div>
+    <div class="word">${esc(c.word)}</div>
+    ${c.syns.length > 1 ? `<div class="syns">${esc(c.syns.slice(1).join(', '))}</div>` : ''}
+    <div class="row" style="margin-top:6px">${classChip(c)}<span class="small muted">BCI-AV ${c.id} · ${esc(c.v.en.replace(/_/g, ' '))}</span></div>
+    <p style="margin-top:10px"><button type="button" class="ghost" data-mine="${c.id}" aria-pressed="${isMine(c.id)}">${isMine(c.id) ? '★ I Mina ord – ta bort' : '☆ Lägg till i Mina ord'}</button></p>
+    ${c.raw.length ? `<p class="small muted" style="margin-top:12px">Byggs av:</p>${formulaHTML(c)}` : '<p class="small muted" style="margin-top:12px">Grundtecken — har inga mindre delar.</p>'}
+    ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
+    <p class="small" style="margin-top:10px">${s ? `Låda ${s.b} av 7 · ${s.n} svar, ${s.w} fel · ${s.d <= Date.now() ? 'att repetera nu' : 'nästa repetition ' + fmtInterval(s.d - Date.now())}` : 'Inte påbörjad än.'}</p>
+    ${users.length ? `<p class="small muted" style="margin-top:12px">Ingår i ${users.length} ord${users.length > 24 ? ' (visar 24)' : ''}:</p>
+      <div class="formula">${users.slice(0, 24).map((u) => chip(u, 2.6)).join('')}</div>` : ''}`;
+  if (!dlg.open) dlg.showModal();
+  dlg.scrollTop = 0;
+}
+
+// ---------------------------------------------------------------- om
+const APP_VERSION = '1.0 · BCI-AV 2026-07-25';
+const CONTACT = 'john.sabom@gmail.com';   // felrapporter och förslag
+function about() {
+  const lic = (what, who, name, url) => `<div><b>${what}</b><span class="who">${who}</span> ·
+    <a href="${url}" target="_blank" rel="noopener">${name}</a></div>`;
+  app.innerHTML = `<section class="panel prose">
+    <h2>Om Bliss-glosor</h2>
+    <p>Bliss-glosor är ett fritt och gratis glosprogram för Blissymbolik. Du lär dig symbolerna och vad de är byggda av:
+      först grundtecknen, sedan de sammansatta orden – ett ord låses upp när du kan dess delar.
+      Övningarna är symbol → ord, ord → symbol, beståndsdelar och bygg symbolen, och det du kan repeteras
+      med allt längre mellanrum (10 minuter, 1 dag, 3, 7, 16, 35 och 90 dagar). Under <i>Mina ord</i> kan du välja ord
+      att träna särskilt.</p>
+
+    <h3>Installera som app</h3>
+    <ul>
+      <li><b>iPhone och iPad:</b> öppna appens webbadress i Safari, tryck på Dela-knappen och välj <i>Lägg till på hemskärmen</i>.</li>
+      <li><b>Android:</b> öppna adressen i Chrome och välj <i>Installera app</i> i menyn.</li>
+      <li><b>Dator:</b> i Chrome eller Edge, klicka på installationsikonen i adressfältet.</li>
+    </ul>
+    <p>Installerad fungerar appen också utan internet.</p>
+
+    <h3>Integritet</h3>
+    <p>Appen samlar inte in några uppgifter, har inga konton, ingen statistik, ingen reklam och inga cookies, och
+      den hämtar ingenting från andra tjänster. Det du övat sparas bara på din egen enhet, i den webbläsare eller
+      app du använder – det syns inte för någon annan och följer inte med till en annan enhet. Du tar bort det med
+      <i>Nollställ framsteg</i> under Översikt, eller genom att avinstallera appen.</p>
+
+    <h3>Symbolernas delar</h3>
+    <p>Vilka delar en symbol består av kommer ur BCI:s ordförråd BCI-AV och dess härledningar – till exempel
+      <i>amfibie</i> = djur + vatten + mark. Delarna kopplas strikt efter BCI:s egna uppgifter. När BCI:s text inte
+      entydigt pekar ut en symbol visas texten i stället för en symbol, och BCI:s anteckningar som
+      <i>halv storlek</i> och <i>förkortning</i> visas under delen. Förklaringarna är översatta till svenska av
+      projektet. Kopplingen och översättningarna är inte granskade av BCI – hittar du ett fel vill vi gärna veta det.</p>
+
+    <h3>Fel och förslag</h3>
+    <p>Har du hittat ett fel i en symbol, en härledning eller en översättning, eller har du ett förslag? Skriv till</p>
+    <p class="contact"><a href="mailto:${CONTACT}?subject=Bliss-glosor" id="contact-addr">${CONTACT}</a>
+      <button type="button" class="ghost" id="copy-contact">Kopiera adressen</button></p>
+    <p class="small muted">Skriv gärna vilket ord det gäller och vad som borde stå.</p>
+
+    <h3>Källor och licenser</h3>
+    <div class="lic">
+      ${lic('Blissymbolerna, ordförrådet BCI-AV, glosor och härledningar', '© Blissymbolics Communication International (BCI); Blissymbolics © C.K. Bliss', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/deed.sv')}
+      ${lic('Svenska översättningar av förklaringarna', 'Bliss-glosors upphovspersoner, byggt på BCI:s material', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/deed.sv')}
+      ${lic('Ritmotorn (BlissEngine, port av WinBliss)', '© AnyCom AB / P-O Hedvall', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/deed.sv')}
+      ${lic('Ordfrekvenser', 'SUC 3.0-statistik, Språkbanken Text, Göteborgs universitet', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/deed.sv')}
+      ${lic('Typsnittet Atkinson Hyperlegible', '© 2020 Braille Institute of America', 'SIL Open Font License 1.1', 'https://openfontlicense.org')}
+      ${lic('Glosprogrammets egen kod', 'Bliss-glosors upphovspersoner', 'MIT', 'https://opensource.org/license/mit')}
+    </div>
+    <p style="margin-top:10px">Du får använda, kopiera och sprida appen fritt. Den som bygger vidare på BCI:s material ska
+      ange källan och dela resultatet under samma licens (CC BY-SA 4.0). BCI:s egen källhänvisning:</p>
+    <blockquote>Parts herein © Blissymbolics Communication International (BCI), distributed under the Creative Commons BY-SA 4.0 licence.</blockquote>
+    <p class="small muted">Läs mer om Blissymbolik och licenserna på
+      <a href="https://www.blissymbolics.org/index.php/sv/licensiering" target="_blank" rel="noopener">blissymbolics.org</a>.
+      Version ${APP_VERSION}.</p>
+  </section>`;
+}
+
+// ---------------------------------------------------------------- navigering & händelser
+function setView(v) {
+  view = v;
+  document.querySelectorAll('header nav button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.view === v)));
+  if (v === 'home') home();
+  if (v === 'list') list();
+  if (v === 'about') { about(); window.scrollTo(0, 0); }
+}
+
+document.querySelector('footer').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-view]');
+  if (b) { endFocus(); setView(b.dataset.view); }
+});
+document.querySelector('header nav').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-view]');
+  if (b) { endFocus(); setView(b.dataset.view); }
+});
+
+app.addEventListener('click', (e) => {
+  const t = e.target.closest('button');
+  if (!t) return;
+  if (t.id === 'start') return startSession();
+  if (t.id === 'focus' || t.dataset.act === 'focus') return startSession(true);
+  if (t.id === 'go-list') return setView('list');
+  if (t.id === 'copy-contact') {
+    // Urklipp kan nekas (vissa inbäddade vyer) – markera då adressen så att den kan kopieras för hand.
+    const done = () => { t.textContent = 'Kopierad'; setTimeout(() => { t.textContent = 'Kopiera adressen'; }, 2000); };
+    const select = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById('contact-addr')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
+    try { navigator.clipboard.writeText(CONTACT).then(done, select); } catch (_) { select(); }
+    return;
+  }
+  if (t.dataset.tab) { listTab = t.dataset.tab; listQuery = ''; return list(true); }
+  if (t.id === 'more' || t.dataset.act === 'more') { S.day.extra += 5; save(); return startSession(); }
+  // Bekräftelse i sidan: confirm() fungerar inte i alla miljöer (t.ex. inbäddad som Artifact).
+  if (t.id === 'reset') {
+    document.getElementById('resetbox').innerHTML = `<div class="confirm"><span>Nollställa alla framsteg? Det går inte att ångra.</span>
+      <button type="button" class="yes" id="reset-yes">Nollställ</button><button type="button" class="ghost" id="reset-no">Avbryt</button></div>`;
+    document.getElementById('reset-no').focus();
+    return;
+  }
+  if (t.id === 'reset-yes') { resetProgress(); home(); return; }
+  if (t.id === 'reset-no') { home(); return; }
+  if (t.id === 'quit' || t.dataset.act === 'home') { endFocus(); return setView('home'); }
+  if (t.dataset.act === 'next') return advance();
+  if (t.dataset.act === 'check') return checkStep();
+  if (t.dataset.act === 'clear') { if (!answered) { step.sel = []; renderStep(); } return; }
+  if (t.dataset.opt != null) return chooseOption(+t.dataset.opt);
+  if (t.dataset.pal != null) return togglePal(+t.dataset.pal);
+  if (t.dataset.unsel != null) { if (!answered) { step.sel.splice(+t.dataset.unsel, 1); renderStep(); } return; }
+  // Delar/ord-chips öppnar detaljer — men inte mitt i en fråga (det skulle avslöja svaret).
+  if (t.dataset.detail != null && (view !== 'session' || answered || step?.kind === 'intro' || !step)) showDetail(t.dataset.detail);
+});
+
+app.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.dataset.mode) {
+    S.settings.modes[t.dataset.mode] = t.checked;
+    if (!Object.values(S.settings.modes).some(Boolean)) { S.settings.modes[t.dataset.mode] = true; t.checked = true; }
+  }
+  if (t.id === 'npd') S.settings.newPerDay = Math.max(1, Math.min(100, parseInt(t.value, 10) || 10));
+  if (t.id === 'staff') S.settings.staff = t.checked;
+  save();
+  if (t.id === 'npd') home();
+});
+
+app.addEventListener('input', (e) => {
+  if (e.target.id === 'q') {
+    listQuery = e.target.value;
+    document.getElementById('listnote').textContent = listNote(listQuery.trim());
+    document.querySelectorAll('[data-tab]').forEach((b) => b.setAttribute('aria-pressed', String(!listQuery.trim() && b.dataset.tab === listTab)));
+    list();
+  }
+});
+
+dlg.addEventListener('click', (e) => {
+  if (e.target === dlg || e.target.closest('[data-act="close"]')) return dlg.close();
+  const m = e.target.closest('[data-mine]');
+  if (m) {
+    toggleMine(m.dataset.mine);
+    showDetail(m.dataset.mine);
+    if (view === 'home') home();
+    if (view === 'list') list(true);
+    return;
+  }
+  const t = e.target.closest('[data-detail]');
+  if (t) showDetail(t.dataset.detail);
+});
+
+document.addEventListener('keydown', (e) => {
+  if (view !== 'session' || dlg.open || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.target.matches('input,textarea')) return;
+  if (e.key === 'Enter') {
+    const btn = document.querySelector('#card .actions .primary, .panel .actions .primary');
+    if (btn) { e.preventDefault(); btn.click(); }
+    return;
+  }
+  if (e.key === 'Escape') return setView('home');
+  if (!step || answered) return;
+  if (/^[1-9]$/.test(e.key)) {
+    const i = +e.key - 1;
+    if (step.options) chooseOption(i);
+    else if (step.palette) togglePal(i);
+  }
+  if (e.key === 'Backspace' && step.mode === 'build' && step.sel.length) { e.preventDefault(); step.sel.pop(); renderStep(); }
+});
+
+setView('home');
+})();
+</script>
+<script data-pwa>
+  // PWA: service workern fungerar bara över http(s) — inte från file:// — och tyst fel är okej.
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener('load', () => { navigator.serviceWorker.register('glosor-sw.js').catch(() => {}); });
+  }
+</script>
+</body>
+</html>
