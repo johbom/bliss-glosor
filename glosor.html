@@ -52,6 +52,12 @@ header nav button{background:none;border:0;padding:6px 12px;border-radius:8px;co
 header nav button[aria-current="true"]{background:var(--panel);color:var(--ink);font-weight:600}
 .lang-toggle{background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:4px 11px;font-size:13px;font-weight:700;color:var(--accent)}
 .lang-toggle:hover{border-color:var(--accent)}
+/* Smal skärm: rubrik och språkknapp på första raden, menyn på en egen rad under – samma på båda språken. */
+@media (max-width:520px){
+  header{gap:8px 14px}
+  .lang-toggle{order:1;margin-left:auto}
+  header nav{order:2;flex-basis:100%;margin-left:0}
+}
 main{padding-block:0 40px}
 .panel{background:var(--panel);border-radius:14px;padding:20px}
 .panel + .panel{margin-top:14px}
