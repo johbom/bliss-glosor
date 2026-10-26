@@ -581,7 +581,9 @@ function nextSentence() {
   const nr = sfocus.queue.find((x) => x !== sfocus.last) ?? sfocus.queue[0];
   sfocus.last = nr;
   const m = SENTENCES.find((x) => x.nr === nr);
-  const opts = shuffle(m.alt.map((a, i) => ({ ...a, ok: i === 0 })));
+  // Rätt ord + tre slumpvis valda ur meningens pool av felaktiga alternativ – varierar varje gång.
+  const wrong = shuffle(m.alt.slice(1)).slice(0, 3);
+  const opts = shuffle([{ ...m.alt[0], ok: true }, ...wrong.map((a) => ({ ...a, ok: false }))]);
   return { kind: 'sentence', m, options: opts, answer: opts.findIndex((o) => o.ok) };
 }
 function answerSentence(nr, ok) {
