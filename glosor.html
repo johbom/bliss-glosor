@@ -92,9 +92,12 @@ h2{font-size:17px;margin-bottom:12px}
 .promo-link{display:inline-block;margin-top:10px;padding:8px 16px;border-radius:10px;background:var(--accent);color:var(--accent-ink)!important;font-weight:700;text-decoration:none}
 .promo-link:hover{filter:brightness(1.08)}
 .milestone{display:grid;gap:8px;padding:14px 16px;margin-bottom:16px;border-radius:12px;background:var(--accent-soft)}
+.ms-track{display:grid;gap:6px}
+.ms-track + .ms-track{padding-top:10px;border-top:1px solid var(--rule)}
+.ms-title{font-weight:700;font-size:15px}
 .ms-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .ms-count{font-size:15px;font-variant-numeric:tabular-nums}
-.ms-count b{font-size:22px}
+.ms-count b{font-size:20px}
 .ms-bar{height:14px;border-radius:7px;background:var(--panel);overflow:hidden;border:1px solid var(--rule)}
 .ms-bar i{display:block;height:100%;background:var(--accent);border-radius:7px;transition:width .4s ease}
 @media (prefers-reduced-motion: reduce){.ms-bar i{transition:none}}
@@ -104,6 +107,7 @@ h2{font-size:17px;margin-bottom:12px}
 .ms-chip.next{border-color:var(--accent);color:var(--accent)}
 .ms-note{font-size:12px;color:var(--dim)}
 .ms-all{font-weight:700}
+.ms-hit + .ms-hit{margin-top:-4px}
 .ms-hit{margin:-2px 0 10px;padding:10px 12px;border-radius:10px;background:var(--accent);color:var(--accent-ink);font-size:15px}
 .flyer{display:flex;gap:14px;align-items:flex-start}
 .flyer-doc{flex:none;width:52px;height:68px;border-radius:6px;background:var(--panel-2);border:1px solid var(--rule);
@@ -243,7 +247,7 @@ const {
   symbolSVG, chip, classChip, formulaHTML, mergedNote, esc, MODES, nextAtom,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState,
   sentenceCount, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG, sentenceDrafts,
-  milestoneState, checkMilestone,
+  milestoneState, checkMilestones,
 } = window.Glosor;
 /** Avsluta Mina ord- och meningspass (vid byte av vy). */
 const endModes = () => { endFocus(); endSentences(); };
@@ -309,24 +313,33 @@ function minePanel() {
     </section>`;
 }
 
-/** Milstolpar: nästa milstolpe med statusbar, nådda och kommande som små märken. */
-function milestoneHTML() {
-  const m = milestoneState();
+/** Milstolpar: lärda ord och lärda grundtecken, var för sig med statusbar och märken. */
+const MS_UNIT = { words: 'lärda ord', atoms: 'lärda grundtecken' };
+const MS_TITLE = { words: 'Ord', atoms: 'Grundtecken' };
+function milestoneTrackHTML(track) {
+  const m = milestoneState(track);
   const fmt = (n) => n.toLocaleString('sv-SE');
   if (!m.next) {
-    return `<div class="milestone"><div class="ms-top"><span class="kicker">Milstolpar</span></div>
-      <p class="ms-all">Alla ${fmt(m.total)} ord är lärda – grattis!</p></div>`;
+    return `<div class="ms-track"><div class="ms-top"><span class="ms-title">${MS_TITLE[track]}</span>
+      <span class="ms-count">Alla ${fmt(m.total)} ${MS_UNIT[track]} – grattis!</span></div></div>`;
   }
   const pct = Math.min(100, (100 * m.learned) / m.next);
   const i = m.steps.indexOf(m.next);
-  const shown = m.steps.slice(Math.max(0, i - 3), i + 3);
-  const chips = shown.map((n) => `<span class="ms-chip${n <= m.prev ? ' done' : n === m.next ? ' next' : ''}">${fmt(n)}</span>`).join('');
+  const chips = m.steps.slice(Math.max(0, i - 3), i + 3)
+    .map((n) => `<span class="ms-chip${n <= m.prev ? ' done' : n === m.next ? ' next' : ''}">${n === m.total ? 'alla ' : ''}${fmt(n)}</span>`).join('');
+  return `<div class="ms-track">
+      <div class="ms-top"><span class="ms-title">${MS_TITLE[track]}</span>
+        <span class="ms-count"><b>${fmt(m.learned)}</b> av ${fmt(m.next)} ${MS_UNIT[track]}</span></div>
+      <div class="ms-bar" role="progressbar" aria-label="${MS_TITLE[track]}: ${MS_UNIT[track]} mot nästa milstolpe" aria-valuemin="0" aria-valuemax="${m.next}" aria-valuenow="${m.learned}"><i style="width:${pct.toFixed(1)}%"></i></div>
+      <div class="ms-chips">${chips}</div>
+    </div>`;
+}
+function milestoneHTML() {
   return `<div class="milestone">
-      <div class="ms-top"><span class="kicker">Nästa milstolpe</span>
-        <span class="ms-count"><b>${fmt(m.learned)}</b> av ${fmt(m.next)} lärda ord</span></div>
-      <div class="ms-bar" role="progressbar" aria-label="Lärda ord mot nästa milstolpe" aria-valuemin="0" aria-valuemax="${m.next}" aria-valuenow="${m.learned}"><i style="width:${pct.toFixed(1)}%"></i></div>
-      <div class="ms-chips" aria-label="Milstolpar">${chips}</div>
-      <p class="ms-note">Ett ord räknas som lärt när du har svarat rätt på det igen efter minst ett dygn.</p>
+      <span class="kicker">Nästa milstolpe</span>
+      ${milestoneTrackHTML('words')}
+      ${milestoneTrackHTML('atoms')}
+      <p class="ms-note">Ett ord eller tecken räknas som lärt när du har svarat rätt på det igen efter minst ett dygn.</p>
     </div>`;
 }
 
@@ -504,11 +517,11 @@ function finish(ok, note) {
   } else {
     const ms = grade(step.c.id, ok);
     card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
-    const hit = checkMilestone();
-    if (hit) {
-      const next = milestoneState().next;
+    for (const { track, n } of checkMilestones().reverse()) {
+      const m = milestoneState(track);
+      const what = n === m.total ? `alla ${n.toLocaleString('sv-SE')} ${MS_UNIT[track]}` : `${n.toLocaleString('sv-SE')} ${MS_UNIT[track]}`;
       card$.querySelector('.feedback').insertAdjacentHTML('afterbegin',
-        `<div class="ms-hit" role="status"><b>Milstolpe nådd: ${hit.toLocaleString('sv-SE')} lärda ord!</b>${next ? ` Nästa milstolpe: ${next.toLocaleString('sv-SE')}.` : ''}</div>`);
+        `<div class="ms-hit" role="status"><b>Milstolpe nådd: ${what}!</b>${m.next ? ` Nästa: ${m.next.toLocaleString('sv-SE')}.` : ''}</div>`);
     }
   }
   card$.querySelector('[data-act="next"]').focus({ preventScroll: true });
