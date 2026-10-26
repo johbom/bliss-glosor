@@ -83,6 +83,9 @@ for (const c of deck.values()) {
   });
   c.parts = c.raw.filter((p) => typeof p === 'number' && deck.has(p));
   c.complete = c.raw.length >= 2 && c.parts.length === c.raw.length;
+  // Delar som bara finns som BCI-text ("referenslinje", "reference dot") – se unlockedCompounds().
+  c.hasTextPart = c.parts.length < c.raw.length;
+  c.shapes = new Set(c.v.e.filter((e) => /^[A-Y]$/.test(e[0])).map((e) => e[0] + e[1]));
 }
 for (const c of deck.values()) for (const p of new Set(c.parts)) deck.get(p).users.push(c.id);
 
@@ -116,6 +119,8 @@ for (const c of deck.values()) {
     : Math.log1p(reach) * 3 + Math.log1p(c.freq) * 0.5;
 }
 const atomOrder = [...deck.values()].filter((c) => !c.parts.length).sort((a, b) => b.score - a.score);
+// Former (familj + storlek) som minst ett grundtecken är ritat med – de går att lära sig.
+const ATOM_SHAPES = new Set(atomOrder.flatMap((c) => [...c.shapes]));
 const compoundCount = deck.size - atomOrder.length;
 
 const card = (id) => deck.get(+id) || null;
@@ -165,11 +170,27 @@ function dueIds(now = Date.now()) {
   return introduced().filter((id) => S.cards[id].d <= now).sort((a, b) => S.cards[a].d - S.cards[b].d);
 }
 
+/**
+ * Sammansatta ord som kan introduceras: alla kopplade delar är kända. Har ordet dessutom en
+ * del som bara finns som BCI-text ("under (marknivå)" = mark + "reference dot") kan appen inte
+ * veta vilket tecken texten avser – i stället väntar ordet tills varje form i dess ritning finns
+ * i något tecken du redan kan (här pricken i punkt). Former som inget grundtecken har räknas inte.
+ */
 function unlockedCompounds() {
+  let known = null;
+  const knownShapes = () => {
+    if (!known) {
+      known = new Set();
+      for (const id of introduced()) if (S.cards[id].b >= UNLOCK_BOX) for (const code of deck.get(id).shapes) known.add(code);
+    }
+    return known;
+  };
   const out = [];
   for (const c of deck.values()) {
     if (!c.parts.length || S.cards[c.id]) continue;
-    if (c.parts.every((p) => boxOf(p) >= UNLOCK_BOX)) out.push(c);
+    if (!c.parts.every((p) => boxOf(p) >= UNLOCK_BOX)) continue;
+    if (c.hasTextPart && ![...c.shapes].every((code) => !ATOM_SHAPES.has(code) || knownShapes().has(code))) continue;
+    out.push(c);
   }
   return out.sort((a, b) => b.score - a.score);
 }
