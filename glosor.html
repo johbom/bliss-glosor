@@ -344,6 +344,15 @@ function introHTML(c) {
     <div class="actions"><span class="hint">Enter = fortsätt</span><button type="button" class="primary" data-act="next">Jag har tittat på den →</button></div>`;
 }
 
+/** "Markera alla delar …" – säger till när samma del förekommer flera gånger (arbete = aktivitet + aktivitet). */
+function partsCountText(c) {
+  const distinct = new Set(c.parts).size, total = c.parts.length;
+  if (total > distinct) {
+    return `Markera alla delar du ser i symbolen (${distinct} ${distinct === 1 ? 'del' : 'olika delar'} – samma del förekommer flera gånger i symbolen).`;
+  }
+  return `Markera alla delar du ser i symbolen (${distinct} st).`;
+}
+
 function quizHTML() {
   const { c, mode } = step;
   if (mode === 'sym') {
@@ -363,7 +372,7 @@ function quizHTML() {
   if (mode === 'parts') {
     return `<div class="kicker">${MODES.parts}</div><p class="prompt">Vilka delar består <b>${esc(c.word)}</b> av?</p>
       <div class="stage">${symbolSVG(c, 9)}</div>
-      <p class="small muted">Markera alla delar du ser i symbolen (${new Set(c.parts).size} st).</p>
+      <p class="small muted">${partsCountText(c)}</p>
       ${mergedNote(c)}
       <div class="palette">${pal}</div>
       <div class="actions"><span class="hint">Siffror markerar · Enter kontrollerar</span><button type="button" class="primary" data-act="check">Kontrollera</button></div>`;
@@ -491,6 +500,7 @@ function checkStep() {
   document.querySelectorAll('.pal').forEach((b, i) => {
     const id = step.palette[i].id, picked = step.sel.includes(id);
     b.disabled = true;
+    b.classList.remove('on');   // annars döljer markeringen "vald" färgen för rätt/fel
     if (picked) b.classList.add(want.has(id) ? 'ok' : 'bad');
     else if (want.has(id)) b.classList.add('miss');
   });
