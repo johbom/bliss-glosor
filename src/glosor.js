@@ -288,7 +288,13 @@ function distractors(c, n) {
 function palette(c, size = 8) {
   const correct = [...new Set(c.parts)];
   const score = new Map();
-  const bump = (id, s) => { if (id !== c.id && !correct.includes(id)) score.set(id, (score.get(id) || 0) + s); };
+  // Indikatorer (t.ex. handlingsindikatorn, en "^" i kvarts storlek) liknar vanliga tecken i liten
+  // storlek – som lockbete bara när symbolen själv innehåller en indikator.
+  const isInd = (id) => /^indicator_\(/.test(deck.get(id)?.v.en || '');
+  const indOk = correct.some(isInd);
+  const bump = (id, s) => {
+    if (id !== c.id && !correct.includes(id) && (indOk || !isInd(id))) score.set(id, (score.get(id) || 0) + s);
+  };
   for (const p of correct) {
     for (const u of deck.get(p).users.slice(0, 400)) for (const q of deck.get(u).parts) bump(q, boxOf(q) >= 0 ? 0.5 : 0.2);
   }
