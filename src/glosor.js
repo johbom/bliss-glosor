@@ -462,9 +462,10 @@ function pickMode(c) {
   let m = [];
   if (on.sym) m.push('sym');
   if (on.word) m.push('word');
-  // Delövningen bara när det finns minst två olika delar att välja – par = person + person blir annars bara "person".
-  if (c.complete && on.parts && new Set(c.parts).size > 1) m.push('parts', 'parts');
-  if (c.complete && !c.isChar && on.build) m.push('build', 'build');
+  // Del- och byggövningarna bara när det finns minst två olika delar – par = person + person blir annars bara "person".
+  const several = new Set(c.parts).size > 1;
+  if (c.complete && several && on.parts) m.push('parts', 'parts');
+  if (c.complete && several && !c.isChar && on.build) m.push('build', 'build');
   if (!m.length) m = ['sym'];
   if (S.cards[c.id].b === 0) {
     const easy = m.filter((x) => x === 'sym' || x === 'parts');
