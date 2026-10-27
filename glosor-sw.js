@@ -12,11 +12,21 @@
  * Alla hämtningar går förbi webbläsarens vanliga HTTP-cache (cache: 'reload' /
  * 'no-cache') — annars kan "färsk kopia" bli samma gamla fil igen.
  */
-const VERSION = 'glosor-v25';
+const VERSION = 'glosor-v26';
 const SHELL = [
   'glosor.html',
+  'glosor.css',
   'glosor.webmanifest',
   'src/glosor.js',
+  'src/glosor-poesi.js',
+  'src/ui/app.js',
+  'src/ui/milstolpar.js',
+  'src/ui/detalj.js',
+  'src/ui/hem.js',
+  'src/ui/ova.js',
+  'src/ui/ordlista.js',
+  'src/ui/poesi.js',
+  'src/ui/om.js',
   'src/vendor/bliss-shapes.js',
   'src/vendor/bliss-engine.js',
   'src/vendor/bliss-data.js',
