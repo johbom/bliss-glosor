@@ -10,7 +10,7 @@
  *   render()      ritar vyn (setView)
  *   top           true: sidan börjar överst när vyn visas
  *   click(t, e)   klick på en knapp i #app; returnerar true när klicket är omhändertaget.
- *                 Alla vyers click anropas, oavsett vilken vy som visas – knappar på översikten
+ *                 Alla vyers click anropas, oavsett vilken vy som visas – knappar på startsidan
  *                 kan starta andra vyer. Kontrollera UI.view() om knappen bara finns i den egna vyn.
  *   change(t), input(t), key(e)   bara för vyn som visas
  *   relang()      efter språkbyte (annars ritas vyn om)
@@ -41,7 +41,7 @@ function setView(v) {
 }
 
 // ---------------------------------------------------------------- språk
-const NAV = { home: ['Översikt', 'Overview'], list: ['Ordlista', 'Word list'], settings: ['Inställningar', 'Settings'], about: ['Om', 'About'] };
+const NAV = { home: ['Start', 'Home'], list: ['Ordlista', 'Word list'], settings: ['Inställningar', 'Settings'], about: ['Om', 'About'] };
 /** Sidhuvud och dokumentspråk efter valt språk; knappen erbjuder alltid det andra språket. */
 const APP_NAME = ['Bliss-glosor', 'Bliss Vocabulary'];
 function applyLang() {

@@ -1,5 +1,5 @@
 /**
- * Milstolpar: lärda ord och lärda grundtecken, med titlar ur BCI-AV. Visas på översikten och
+ * Milstolpar: lärda ord och lärda grundtecken, med titlar ur BCI-AV. Visas på startsidan och
  * när ett pass är klart.
  */
 (() => {

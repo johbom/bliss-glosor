@@ -136,7 +136,7 @@ function renderStep() {
     app.innerHTML = `<section class="panel"><div class="kicker">${tx('Meningar – klart', 'Sentences – done')}</div>
       <p class="prompt">${tx(`Du har färdigställt alla ${tot} meningar${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.`,
         `You have completed all ${tot} sentences${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
-      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="sentences">${tx('Öva meningarna igen', 'Practise the sentences again')}</button></div></section>`;
+      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till start', 'Back home')}</button><button type="button" class="primary" data-act="sentences">${tx('Öva meningarna igen', 'Practise the sentences again')}</button></div></section>`;
     return;
   }
   if (!step && sess.review) {
@@ -146,7 +146,7 @@ function renderStep() {
         `You have answered all ${tot} words correctly${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
       <p class="muted">${tx('Fri repetition flyttar inte orden i schemat.', 'Free review does not move words in the schedule.')}</p>
       ${milestoneHTML()}
-      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="review">${tx('Repetera fler', 'Review more')}</button></div></section>`;
+      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till start', 'Back home')}</button><button type="button" class="primary" data-act="review">${tx('Repetera fler', 'Review more')}</button></div></section>`;
     return;
   }
   if (!step && sess.mine) {
@@ -154,7 +154,7 @@ function renderStep() {
     app.innerHTML = `<section class="panel"><div class="kicker">${tx('Mina ord – klart', 'My words – done')}</div>
       <p class="prompt">${tx(`Du har svarat rätt på alla ${tot} ord${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.`,
         `You have answered all ${tot} words correctly${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
-      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="focus">${tx('Öva mina ord igen', 'Practise my words again')}</button></div></section>`;
+      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till start', 'Back home')}</button><button type="button" class="primary" data-act="focus">${tx('Öva mina ord igen', 'Practise my words again')}</button></div></section>`;
     return;
   }
   if (!step) {
@@ -164,7 +164,7 @@ function renderStep() {
       <p class="prompt">${n ? tx(`Du svarade rätt på ${sess.right} av ${n}`, `You answered ${sess.right} of ${n} correctly`) : tx('Inget kvar att öva just nu', 'Nothing left to practise right now')}${sess.fresh ? tx(` och lärde dig ${sess.fresh} nya symboler`, ` and learned ${sess.fresh} new symbols`) : ''}.</p>
       <p class="muted">${st.unlocked ? tx(`${st.unlocked} sammansatta ord är upplåsta och väntar.`, `${st.unlocked} compound words are unlocked and waiting.`) : ''}</p>
       ${milestoneHTML()}
-      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="more">${tx('Lär 5 nya till', 'Learn 5 more')}</button></div></section>`;
+      <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till start', 'Back home')}</button><button type="button" class="primary" data-act="more">${tx('Lär 5 nya till', 'Learn 5 more')}</button></div></section>`;
     return;
   }
   const body = step.kind === 'intro' ? introHTML(step.c) : step.kind === 'sentence' ? sentenceHTML() : quizHTML();

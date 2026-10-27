@@ -1,5 +1,5 @@
 /**
- * Översikten: dagens pass, Mina ord, meningar, kylskåpspoesi, milstolpar och statistik.
+ * Startsidan: dagens pass, Mina ord, meningar, kylskåpspoesi, milstolpar och statistik.
  * Inställningarna har en egen flik (installningar.js).
  */
 (() => {
@@ -9,7 +9,7 @@ const {
 } = window.Glosor;
 const { tx, app, setView, register, milestoneHTML } = window.GlosorUI;
 
-// ---------------------------------------------------------------- översikt
+// ---------------------------------------------------------------- start
 function home() {
   const st = stats();
   const atom = nextAtom();

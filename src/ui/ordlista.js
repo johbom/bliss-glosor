@@ -47,7 +47,7 @@ const listNote = (q) => (q ? ''
   : tx('Senaste först. Klicka för detaljer.', 'Most recent first. Click for details.'));
 const emptyList = (q) => `<p class="muted">${q ? tx('Inga träffar.', 'No matches.')
   : listTab === 'mine' ? tx('Inga ord än. Sök upp ett ord och välj ☆.', 'No words yet. Look up a word and choose ☆.')
-  : tx('Inget påbörjat än – tryck Börja öva på Översikt.', 'Nothing started yet – press Start practising on Overview.')}</p>`;
+  : tx('Inget påbörjat än – tryck Börja öva på Start.', 'Nothing started yet – press Start practising on Home.')}</p>`;
 
 register('list', {
   render: () => list(),
