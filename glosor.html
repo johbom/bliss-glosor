@@ -215,7 +215,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .pal{position:relative;max-width:none;width:100%;padding:10px 6px 6px}
 .pal.on{border-color:var(--accent);background:var(--accent-soft)}
 .strip{min-height:96px;border:2px dashed var(--rule);border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px}
-.strip:empty::before{content:"Klicka på delarna nedan för att bygga symbolen";color:var(--dim);font-size:14px;padding:0 6px}
+.strip:empty::before{content:attr(data-empty);color:var(--dim);font-size:14px;padding:0 6px}
 .feedback{margin-top:16px;padding:14px;border-radius:12px;background:var(--panel-2)}
 .feedback.good{background:var(--ok-soft)} .feedback.wrong{background:var(--bad-soft)}
 .feedback h3{font-size:17px;margin-bottom:4px}
@@ -358,8 +358,7 @@ function home() {
   app.innerHTML = `
     <section class="panel">
       ${work ? `<p class="small muted" style="margin-bottom:8px">${tx(`${st.due} att repetera nu · ${st.newLeft} nya kvar i dag`, `${st.due} to review now · ${st.newLeft} new left today`)}</p>` : ''}
-      ${!work && learnt ? `<p class="small muted" style="margin-bottom:8px">${tx('Klart för i dag!', 'Done for today!')}${wait != null ? tx(` Nästa ord ska repeteras ${fmtInterval(wait)}.`, ` The next word is due ${fmtInterval(wait)}.`) : ''}
-        ${tx(`Du kan ändå repetera ${Math.min(20, learnt)} av dina ord nu – de svagaste först.`, `You can still review ${Math.min(20, learnt)} of your words now – the weakest first.`)}</p>` : ''}
+      ${!work && learnt ? `<p class="small muted" style="margin-bottom:8px">${tx('Klart för i dag!', 'Done for today!')}${wait != null ? tx(` Nästa repetition ${fmtInterval(wait)}.`, ` Next review ${fmtInterval(wait)}.`) : ''}</p>` : ''}
       <div class="row">
         ${work ? `<button type="button" class="primary" id="start">${tx('Börja öva', 'Start practising')}</button>`
           : `<button type="button" class="primary" id="review" ${learnt ? '' : 'disabled'}>${tx('Repetera det du lärt dig', 'Review what you have learned')}</button>`}
@@ -376,7 +375,7 @@ function home() {
       <div class="stats">
         <div class="stat"><b>${st.due}</b><span>${tx('att repetera nu', 'to review now')}</span></div>
         <div class="stat"><b>${st.newLeft}</b><span>${tx('nya kvar i dag', 'new left today')}</span></div>
-        <div class="stat"><b>${st.learned}</b><span>${tx('lärda (klarat en repetition efter ett dygn)', 'learned (passed a review after a day)')}</span></div>
+        <div class="stat"><b>${st.learned}</b><span>${tx('lärda', 'learned')}</span></div>
         <div class="stat"><b>${st.unlocked}</b><span>${tx('sammansatta ord upplåsta', 'compound words unlocked')}</span></div>
       </div>
       <div class="small muted">${tx(`Grundtecken: ${st.atoms} av ${st.atomTotal}`, `Basic characters: ${st.atoms} of ${st.atomTotal}`)}</div>
@@ -396,8 +395,8 @@ function home() {
         <label><input type="checkbox" id="staff" ${S.settings.staff ? 'checked' : ''}> ${tx('Visa himmels- och jordlinje', 'Show sky and earth lines')}</label>
       </fieldset>
       <fieldset class="backup"><legend>${tx('Säkerhetskopia', 'Backup')}</legend>
-        <p class="small muted">${tx('Framstegen finns bara på den här enheten. På iPhone försvinner de om appen tas bort från hemskärmen. Spara en säkerhetskopia då och då – den kan läsas in igen här eller på en annan enhet.',
-          'Your progress is stored only on this device. On iPhone it is deleted if the app is removed from the home screen. Save a backup now and then – it can be loaded again here or on another device.')}</p>
+        <p class="small muted">${tx('Framstegen finns bara på den här enheten (på iPhone raderas de med appen). Spara en kopia då och då.',
+          'Progress is stored only on this device (on iPhone it is deleted with the app). Save a copy now and then.')}</p>
         <div class="row">
           <button type="button" class="ghost" id="backup-save">${tx('Spara säkerhetskopia', 'Save backup')}</button>
           <button type="button" class="ghost" id="backup-load">${tx('Läs in säkerhetskopia', 'Load backup')}</button>
@@ -405,12 +404,8 @@ function home() {
         </div>
         <div class="backup-msg small" id="backupmsg" role="status"></div>
       </fieldset>
-      <p class="small muted">${tx(`Grundtecknen kommer först, i ordningen <i>flest ord bygger på dem</i>. Ett sammansatt ord
-        låses upp när du har svarat rätt på alla dess delar. Rätt svar flyttar ordet till längre intervall
-        (10 min → 1 dag → 3 → 7 → 16 → 35 → 90 dagar), fel svar börjar om. Framstegen sparas i den här webbläsaren.`,
-        `Basic characters come first, starting with <i>those most words are built from</i>. A compound word is
-        unlocked when you have answered all its parts correctly. A correct answer moves the word to a longer interval
-        (10 min → 1 day → 3 → 7 → 16 → 35 → 90 days); a wrong answer starts it over. Progress is saved in this browser.`)}</p>
+      <p class="small muted">${tx('Grundtecknen kommer först. Ett sammansatt ord låses upp när du kan dess delar. Rätt svar ger längre intervall (10 min → 1 dag → … → 90 dagar), fel svar börjar om.',
+        'Basic characters come first. A compound word unlocks when you know its parts. Right answers give longer intervals (10 min → 1 day → … → 90 days); a wrong answer starts over.')}</p>
       <div style="margin-top:10px" id="resetbox"><button type="button" class="danger" id="reset">${tx('Nollställ framsteg', 'Reset progress')}</button></div>
     </section>`;
 }
@@ -421,12 +416,10 @@ function minePanel() {
       <div class="head"><h2>${tx('Mina ord', 'My words')}</h2>
         <button type="button" class="primary" id="focus" ${mine.length ? '' : 'disabled'}>${tx('Öva mina ord', 'Practise my words')}${mine.length ? ` (${mine.length})` : ''}</button></div>
       ${mine.length
-        ? `<p class="small muted">${tx('Ord du har valt att träna särskilt. De kommer också först bland nya ord i vanliga pass. Klicka på ett ord för att ta bort det.',
-            'Words you have chosen to practise in particular. They also come first among new words in regular sessions. Click a word to remove it.')}</p>
+        ? `<p class="small muted">${tx('Ord du valt att träna extra. Klicka på ett ord för att ta bort det.', 'Words you chose to practise extra. Click a word to remove it.')}</p>
            <div class="formula">${mine.map((c) => chip(c, 2.6)).join('')}</div>`
-        : `<p class="small muted">${tx(`Inga ord valda än. Öppna <button type="button" class="linklike" id="go-list">Ordlista</button>, sök upp ett ord,
-           klicka på det och välj <b>☆ Lägg till i Mina ord</b>.`, `No words chosen yet. Open the <button type="button" class="linklike" id="go-list">Word list</button>, look up a word,
-           click it and choose <b>☆ Add to My words</b>.`)}</p>`}
+        : `<p class="small muted">${tx('Inga ord än. Välj ☆ på ett ord i <button type="button" class="linklike" id="go-list">Ordlista</button>.',
+           'No words yet. Choose ☆ on a word in the <button type="button" class="linklike" id="go-list">Word list</button>.')}</p>`}
     </section>`;
 }
 
@@ -470,8 +463,7 @@ function milestoneHTML() {
       <span class="kicker">${tx('Nästa milstolpe', 'Next milestone')}</span>
       ${milestoneTrackHTML('words')}
       ${milestoneTrackHTML('atoms')}
-      <p class="ms-note">${tx('Ett ord eller tecken räknas som lärt när du har svarat rätt på det igen efter minst ett dygn.',
-        'A word or character counts as learned when you have answered it correctly again after at least a day.')}</p>
+      <p class="ms-note">${tx('Lärt = rätt igen efter minst ett dygn.', 'Learned = right again after at least a day.')}</p>
     </div>`;
 }
 
@@ -479,13 +471,12 @@ function sentencesPanel() {
   const n = sentenceCount(), total = sentenceTotal();
   if (!total) return '';   // syns först när det finns godkända meningar
   const more = n < total
-    ? tx(` ${n} av ${total} meningar är upplåsta – en mening låses upp när du har mött något av orden i den.`,
-      ` ${n} of ${total} sentences are unlocked – a sentence unlocks when you have met one of its words.`)
+    ? tx(` ${n} av ${total} upplåsta.`, ` ${n} of ${total} unlocked.`)
     : '';
   return `<section class="panel">
       <div class="head"><h2>${tx('Meningar', 'Sentences')}</h2>
         <button type="button" class="primary" id="sentences" ${n ? '' : 'disabled'}>${tx('Öva meningar', 'Practise sentences')}${n ? ` (${n})` : ''}</button></div>
-      <p class="small muted">${tx('Läs en mening i Bliss och välj ordet som saknas.', 'Read a sentence in Bliss and choose the missing word.')}${more}${sentenceDrafts ? tx(' <b>Utkast visas</b> (granskningsläge).', ' <b>Drafts shown</b> (review mode).') : ''}</p>
+      <p class="small muted">${tx('Välj ordet som saknas.', 'Choose the missing word.')}${more}${sentenceDrafts ? tx(' <b>Utkast visas</b> (granskningsläge).', ' <b>Drafts shown</b> (review mode).') : ''}</p>
     </section>`;
 }
 
@@ -504,8 +495,7 @@ function poemPanel() {
   return `<section class="panel">
       <div class="head"><h2>${tx('Kylskåpspoesi', 'Fridge poetry')}</h2>
         <button type="button" class="primary" id="poem-open">${tx('Öppna kylskåpet', 'Open the fridge')}</button></div>
-      <p class="small muted">${tx('Lek med ordmagneter i Bliss. Orden föreslås så att de oftast kan följa på varandra – men dikten får gärna bli knasig.',
-        'Play with Bliss word magnets. The words offered can usually follow each other – but the poem is welcome to get silly.')}</p>
+      <p class="small muted">${tx('Bygg fria dikter med ordmagneter.', 'Build free poems with word magnets.')}</p>
     </section>`;
 }
 
@@ -521,9 +511,8 @@ function poesi() {
       <div class="head"><h2>${tx('Kylskåpspoesi', 'Fridge poetry')}</h2>
         <button type="button" class="ghost" data-act="home">${tx('← Översikt', '← Overview')}</button></div>
       <p class="small muted" style="margin-bottom:12px">${poem.done
-        ? tx('Läs din dikt! Tryck på ett ord för att se hur symbolen är byggd.', 'Read your poem! Tap a word to see how the symbol is built.')
-        : tx('Dra en magnet upp till dikten – eller tryck på den. Dra en magnet ur dikten för att ta bort den.',
-          'Drag a magnet up to the poem – or tap it. Drag a magnet out of the poem to remove it.')}</p>
+        ? tx('Tryck på ett ord för att se symbolen.', 'Tap a word to see the symbol.')
+        : tx('Dra eller tryck på en magnet. Dra ut den för att ta bort.', 'Drag or tap a magnet. Drag it out to remove it.')}</p>
       <div class="fridge${poem.done ? ' done' : ''}">
         <div class="poem" id="poem">${words || `<p class="poem-empty">${tx('Dra hit ditt första ord', 'Drag your first word here')}</p>`}</div>
         ${poem.done ? '' : `<div class="pile" id="pile">${opts}</div>`}
@@ -722,14 +711,13 @@ function partsCountText(c) {
   const distinct = new Set(c.parts).size, total = c.parts.length;
   if (c.optInd) {
     const n = `${distinct - c.optInd.length}–${distinct}`;
-    return tx(`Markera alla delar du ser i symbolen (${n} st – operatorn får du ta med eller hoppa över).`,
-      `Select all the parts you see in the symbol (${n} – you may include or skip the indicator).`);
+    return tx(`Markera delarna (${n} st, operatorn valfri).`, `Select the parts (${n}, indicator optional).`);
   }
   if (total > distinct) {
-    return tx(`Markera alla delar du ser i symbolen (${distinct} ${distinct === 1 ? 'del' : 'olika delar'} – samma del förekommer flera gånger i symbolen).`,
-      `Select all the parts you see in the symbol (${distinct} ${distinct === 1 ? 'part' : 'different parts'} – the same part appears more than once).`);
+    return tx(`Markera delarna (${distinct} ${distinct === 1 ? 'del' : 'olika'} – någon finns flera gånger).`,
+      `Select the parts (${distinct} ${distinct === 1 ? 'part' : 'different'} – one appears more than once).`);
   }
-  return tx(`Markera alla delar du ser i symbolen (${distinct} st).`, `Select all the parts you see in the symbol (${distinct}).`);
+  return tx(`Markera delarna (${distinct} st).`, `Select the parts (${distinct}).`);
 }
 
 function quizHTML() {
@@ -758,8 +746,8 @@ function quizHTML() {
   }
   return `<div class="kicker">${MODES.build}</div><p class="prompt">${tx('Bygg symbolen för', 'Build the symbol for')}</p>
     <div class="word">${esc(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
-    <div class="strip" id="strip">${step.sel.map((id, i) => `<button type="button" class="chip" data-unsel="${i}" title="${tx('Ta bort', 'Remove')}">${symbolSVG(card(id), 3.4)}<span>${esc(card(id).word)}</span></button>`).join('')}</div>
-    <p class="small muted" style="margin-top:6px">${c.optInd ? tx(`${c.parts.length} delar (operatorn får utelämnas).`, `${c.parts.length} parts (the indicator may be left out).`) : tx(`${c.parts.length} delar.`, `${c.parts.length} parts.`)} ${tx('Klicka i raden ovan för att ta bort en del.', 'Click in the row above to remove a part.')}</p>
+    <div class="strip" id="strip" data-empty="${tx('Välj delar nedan', 'Choose parts below')}">${step.sel.map((id, i) => `<button type="button" class="chip" data-unsel="${i}" title="${tx('Ta bort', 'Remove')}">${symbolSVG(card(id), 3.4)}<span>${esc(card(id).word)}</span></button>`).join('')}</div>
+    <p class="small muted" style="margin-top:6px">${c.optInd ? tx(`${c.parts.length} delar (operatorn valfri).`, `${c.parts.length} parts (indicator optional).`) : tx(`${c.parts.length} delar.`, `${c.parts.length} parts.`)}</p>
     <div class="palette">${pal}</div>
     <div class="actions"><span class="hint">${tx('Siffror lägger till · Backsteg tar bort · Enter kontrollerar', 'Numbers add · Backspace removes · Enter checks')}</span><button type="button" class="ghost" data-act="clear">${tx('Rensa', 'Clear')}</button><button type="button" class="primary" data-act="check">${tx('Kontrollera', 'Check')}</button></div>`;
 }
@@ -807,8 +795,7 @@ function renderStep() {
     app.innerHTML = `<section class="panel"><div class="kicker">${tx('Repetition – klart', 'Review – done')}</div>
       <p class="prompt">${tx(`Du har svarat rätt på alla ${tot} ord${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.`,
         `You have answered all ${tot} words correctly${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
-      <p class="muted">${tx('Rätt svar i en fri repetition flyttar inte fram orden i schemat. Ord du svarade fel på kommer tillbaka snart i den vanliga repetitionen.',
-        'Correct answers in a free review do not move words forward in the schedule. Words you got wrong come back soon in the regular review.')}</p>
+      <p class="muted">${tx('Fri repetition flyttar inte orden i schemat.', 'Free review does not move words in the schedule.')}</p>
       ${milestoneHTML()}
       <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="review">${tx('Repetera fler', 'Review more')}</button></div></section>`;
     return;
@@ -818,7 +805,6 @@ function renderStep() {
     app.innerHTML = `<section class="panel"><div class="kicker">${tx('Mina ord – klart', 'My words – done')}</div>
       <p class="prompt">${tx(`Du har svarat rätt på alla ${tot} ord${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.`,
         `You have answered all ${tot} words correctly${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
-      <p class="muted">${tx('Orden finns kvar i den vanliga repetitionen och kommer tillbaka när det är dags.', 'The words stay in the regular review and come back when it is time.')}</p>
       <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till översikten', 'Back to overview')}</button><button type="button" class="primary" data-act="focus">${tx('Öva mina ord igen', 'Practise my words again')}</button></div></section>`;
     return;
   }
@@ -910,9 +896,9 @@ function checkStep() {
   });
   document.querySelectorAll('[data-unsel]').forEach((b) => { b.disabled = true; });
   let note = '';
-  if (!ok) note = tx('Streckade rutor = delar du missade, röda = delar som inte ingår.', 'Dashed boxes = parts you missed, red = parts that are not included.');
-  else if (step.mode === 'build' && !order) note = tx('Rätt delar! I BCI:s definition står de i ordningen nedan.', 'Right parts! In the BCI definition they come in the order below.');
-  if (ok && skipped) note = (note ? note + ' ' : '') + tx('BCI skriver också ut operatorn – den enda som hela ordet har.', 'BCI also lists the indicator – the single one the whole word has.');
+  if (!ok) note = tx('Streckat = missad del, rött = ingår inte.', 'Dashed = missed part, red = not included.');
+  else if (step.mode === 'build' && !order) note = tx('Rätt delar! BCI:s ordning:', 'Right parts! BCI order:');
+  if (ok && skipped) note = (note ? note + ' ' : '') + tx('BCI tar även med operatorn.', 'BCI also includes the indicator.');
   finish(ok, note);
 }
 
@@ -946,18 +932,17 @@ function list(rebuild = false) {
   if (box && !rebuild) { box.innerHTML = html || emptyList(q); return; }
   const tab = (k, label) => `<button type="button" data-tab="${k}" aria-pressed="${!q && listTab === k}">${label}</button>`;
   app.innerHTML = `<section class="panel">
-    <input class="search" id="q" type="search" placeholder="${tx(`Sök bland alla ${fmtN(deck.size)} symboler (svenska eller engelska)`, `Search all ${fmtN(deck.size)} symbols (English or Swedish)`)}" value="${esc(listQuery)}">
+    <input class="search" id="q" type="search" placeholder="${tx(`Sök bland ${fmtN(deck.size)} symboler`, `Search ${fmtN(deck.size)} symbols`)}" value="${esc(listQuery)}">
     <div class="tabs">${tab('started', tx('Påbörjade', 'Started'))}${tab('mine', `${tx('Mina ord', 'My words')} (${mineCards().length})`)}</div>
     <p class="small muted" style="margin-bottom:10px" id="listnote">${listNote(q)}</p>
     <div class="grid" id="listgrid">${html || emptyList(q)}</div></section>`;
 }
 const listNote = (q) => (q ? ''
-  : listTab === 'mine' ? tx('Ord du har valt att träna särskilt. Klicka på ett ord för att ta bort det.', 'Words you have chosen to practise in particular. Click a word to remove it.')
-  : tx('Symboler du har börjat lära dig, senaste först. Klicka för detaljer – där kan du också lägga till ord i Mina ord.',
-    'Symbols you have started learning, most recent first. Click for details – there you can also add words to My words.'));
+  : listTab === 'mine' ? tx('Klicka på ett ord för att ta bort det.', 'Click a word to remove it.')
+  : tx('Senaste först. Klicka för detaljer.', 'Most recent first. Click for details.'));
 const emptyList = (q) => `<p class="muted">${q ? tx('Inga träffar.', 'No matches.')
-  : listTab === 'mine' ? tx('Inga ord valda än. Sök upp ett ord ovan, klicka på det och välj ☆ Lägg till i Mina ord.', 'No words chosen yet. Look up a word above, click it and choose ☆ Add to My words.')
-  : tx('Du har inte börjat än — gå till Översikt och tryck “Börja öva”.', 'You have not started yet — go to Overview and press “Start practising”.')}</p>`;
+  : listTab === 'mine' ? tx('Inga ord än. Sök upp ett ord och välj ☆.', 'No words yet. Look up a word and choose ☆.')
+  : tx('Inget påbörjat än – tryck Börja öva på Översikt.', 'Nothing started yet – press Start practising on Overview.')}</p>`;
 
 function showDetail(id) {
   const c = card(id);
