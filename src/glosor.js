@@ -253,6 +253,26 @@ const className = (c) => (CLASS[c.v.c] ? L(...CLASS[c.v.c]) : '');
 
 // ---------------------------------------------------------------- framsteg
 
+// ---- dagar i rad
+const dayStr = (offset = 0) => { const d = new Date(); d.setDate(d.getDate() + offset); return d.toLocaleDateString('sv-SE'); };
+/** Sparningar från före räknaren: dagarna då nya ord introducerades (kortens t) är säkra övningsdagar. */
+function seedStreak(cards) {
+  const days = new Set(Object.values(cards || {}).map((c) => c && c.t && new Date(c.t).toLocaleDateString('sv-SE')));
+  let off = days.has(dayStr()) ? 0 : -1, n = 0;
+  const last = days.has(dayStr(off)) ? dayStr(off) : null;
+  while (days.has(dayStr(off))) { n++; off--; }
+  return { last, n };
+}
+/** Anropas vid varje svar: första svaret en ny dag förlänger raden (eller börjar om efter ett uppehåll). */
+function practiced() {
+  const t = today();
+  if (S.streak.last === t) return;
+  S.streak.n = S.streak.last === dayStr(-1) ? S.streak.n + 1 : 1;
+  S.streak.last = t;
+}
+/** Dagar i rad just nu – raden lever kvar i dag även om man ännu inte övat (då räknas t.o.m. i går). */
+const streak = () => (S.streak.last === today() || S.streak.last === dayStr(-1) ? S.streak.n : 0);
+
 function defaults() {
   return {
     cards: {},
@@ -262,12 +282,14 @@ function defaults() {
     mine: [],   // "Mina ord": BCI-id:n som användaren valt att träna särskilt
     milestone: 0,       // högsta nådda milstolpe, lärda ord – försvinner inte om ett ord glöms
     milestoneAtoms: 0,  // högsta nådda milstolpe, lärda grundtecken
+    streak: { last: null, n: 0 },   // dagar i rad med minst ett svar: senaste övningsdagen och antal
   };
 }
 /** Sparat läge kompletterat med standardvärden (nya inställningar i senare versioner). */
 function normalize(s) {
   const d = defaults();
-  return { ...d, ...s, settings: { ...d.settings, ...s.settings, modes: { ...d.settings.modes, ...s.settings?.modes } } };
+  return { ...d, ...s, settings: { ...d.settings, ...s.settings, modes: { ...d.settings.modes, ...s.settings?.modes } },
+    streak: s.streak || seedStreak(s.cards) };
 }
 function load() {
   try {
@@ -485,6 +507,7 @@ function grade(id, ok) {
     if (k >= 0) { focus.queue.splice(k, 1); if (!ok) focus.queue.push(+id); }
   }
   s.n++;
+  practiced();
   // Fri repetition före utsatt tid: rätt svar flyttar inte fram ordet (då skulle intervallen tappa
   // sin mening), men ett fel räknas som vanligt så att ordet kommer tillbaka snart.
   if (focus?.review && ok && s.d > now) { save(); return s.d - now; }
@@ -766,6 +789,8 @@ function nextSentence() {
 function answerSentence(nr, ok) {
   const k = sfocus.queue.indexOf(nr);
   if (k >= 0) { sfocus.queue.splice(k, 1); if (!ok) sfocus.queue.push(nr); }
+  practiced();
+  save();
 }
 /** Ett ord i en mening (elementlista ur bygget) ritat i meningens gemensamma ram. */
 const SENTENCE_FRAME = [-60, 2060];
@@ -774,7 +799,7 @@ function wordSVG(key, e, unit, cls = '') {
 }
 
 window.Glosor = {
-  MODES, S, save, resetProgress, stats, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
+  MODES, S, save, resetProgress, stats, streak, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
   exportBackup, readBackup, importBackup,
