@@ -263,15 +263,19 @@ function seedStreak(cards) {
   while (days.has(dayStr(off))) { n++; off--; }
   return { last, n };
 }
+/** Rekordet är aldrig lägre än raden (sparningar från innan rekordet fanns saknar det). */
+const bestOf = (st) => ({ ...st, best: Math.max(st.best || 0, st.n || 0) });
 /** Anropas vid varje svar: första svaret en ny dag förlänger raden (eller börjar om efter ett uppehåll). */
 function practiced() {
   const t = today();
   if (S.streak.last === t) return;
   S.streak.n = S.streak.last === dayStr(-1) ? S.streak.n + 1 : 1;
   S.streak.last = t;
+  S.streak.best = Math.max(S.streak.best || 0, S.streak.n);
 }
 /** Dagar i rad just nu – raden lever kvar i dag även om man ännu inte övat (då räknas t.o.m. i går). */
 const streak = () => (S.streak.last === today() || S.streak.last === dayStr(-1) ? S.streak.n : 0);
+const bestStreak = () => S.streak.best || 0;
 
 function defaults() {
   return {
@@ -282,14 +286,14 @@ function defaults() {
     mine: [],   // "Mina ord": BCI-id:n som användaren valt att träna särskilt
     milestone: 0,       // högsta nådda milstolpe, lärda ord – försvinner inte om ett ord glöms
     milestoneAtoms: 0,  // högsta nådda milstolpe, lärda grundtecken
-    streak: { last: null, n: 0 },   // dagar i rad med minst ett svar: senaste övningsdagen och antal
+    streak: { last: null, n: 0, best: 0 },   // dagar i rad med minst ett svar: senaste övningsdagen, antal, rekord
   };
 }
 /** Sparat läge kompletterat med standardvärden (nya inställningar i senare versioner). */
 function normalize(s) {
   const d = defaults();
   return { ...d, ...s, settings: { ...d.settings, ...s.settings, modes: { ...d.settings.modes, ...s.settings?.modes } },
-    streak: s.streak || seedStreak(s.cards) };
+    streak: bestOf(s.streak || seedStreak(s.cards)) };
 }
 function load() {
   try {
@@ -799,7 +803,7 @@ function wordSVG(key, e, unit, cls = '') {
 }
 
 window.Glosor = {
-  MODES, S, save, resetProgress, stats, streak, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
+  MODES, S, save, resetProgress, stats, streak, bestStreak, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
   exportBackup, readBackup, importBackup,
