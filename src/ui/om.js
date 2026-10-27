@@ -2,12 +2,17 @@
  * Om-sidan, på svenska och engelska.
  */
 (() => {
-const { lang } = window.Glosor;
+const { lang, esc } = window.Glosor;
 const { tx, app, register } = window.GlosorUI;
 
 // ---------------------------------------------------------------- om
 const APP_VERSION = '1.0 · BCI-AV 2026-07-25';
 const CONTACT = 'john.s@tfhuk.com';   // felrapporter och förslag
+// Feedbackformulärets mottagare. Tomt: formuläret öppnar användarens mejlapp, ifylld till CONTACT.
+// Med en formulärtjänst (t.ex. 'https://formspree.io/f/…') skickas svaren direkt – ändra då också
+// integritetstexten (FEEDBACK_VIA).
+const FEEDBACK_URL = '';
+const FEEDBACK_VIA = 'Formspree';
 // Informationsbladet (scripts/build-informationsblad.py). Fast adress på GitHub Pages, så att länken
 // fungerar överallt – även i inbäddade vyer där nedladdningslänkar blockeras.
 const FLYER_URL = 'https://johbom.github.io/bliss-glosor/informationsblad/Bliss-glosor-informationsblad.pdf';
@@ -86,17 +91,14 @@ function aboutEn(lic) {
 
     <h3>Privacy</h3>
     <p>No data collection, accounts, statistics, ads or cookies. Your progress is stored only on your device –
-      use <i>Backup</i> under Overview to move it.</p>
+      use <i>Backup</i> under Overview to move it.${FEEDBACK_URL ? ` What you write in the feedback form is sent via ${FEEDBACK_VIA}.` : ''}</p>
 
     <h3>The parts of the symbols</h3>
     <p>The parts come from BCI's vocabulary BCI-AV, for example <i>amphibian</i> = animal + water + land. Where BCI's text
       is ambiguous, the text is shown instead of a symbol. The linking has not been reviewed by BCI.</p>
 
     <h3>Mistakes and suggestions</h3>
-    <p>Found a mistake or have a suggestion? Write to</p>
-    <p class="contact"><a href="mailto:${CONTACT}?subject=Bliss-glosor" id="contact-addr">${CONTACT}</a>
-      <button type="button" class="ghost" id="copy-contact">Copy the address</button></p>
-    <p class="small muted">Say which word it concerns.</p>
+    ${feedbackHTML()}
 
     <h3>Sources and licences</h3>
     <div class="lic">
@@ -175,17 +177,14 @@ function about() {
 
     <h3>Integritet</h3>
     <p>Inga uppgifter samlas in – inga konton, ingen statistik, ingen reklam, inga cookies. Framstegen sparas bara på din enhet;
-      flytta dem med <i>Säkerhetskopia</i> under Översikt.</p>
+      flytta dem med <i>Säkerhetskopia</i> under Översikt.${FEEDBACK_URL ? ` Det du skriver i feedbackformuläret skickas via ${FEEDBACK_VIA}.` : ''}</p>
 
     <h3>Symbolernas delar</h3>
     <p>Delarna kommer ur BCI:s ordförråd BCI-AV, till exempel <i>amfibie</i> = djur + vatten + mark. Där BCI:s text är
       tvetydig visas texten i stället för en symbol. Kopplingen och de svenska översättningarna är inte granskade av BCI.</p>
 
     <h3>Fel och förslag</h3>
-    <p>Hittat ett fel eller har ett förslag? Skriv till</p>
-    <p class="contact"><a href="mailto:${CONTACT}?subject=Bliss-glosor" id="contact-addr">${CONTACT}</a>
-      <button type="button" class="ghost" id="copy-contact">Kopiera adressen</button></p>
-    <p class="small muted">Ange vilket ord det gäller.</p>
+    ${feedbackHTML()}
 
     <h3>Källor och licenser</h3>
     <div class="lic">
@@ -201,6 +200,54 @@ function about() {
     <p class="small muted">Mer på <a href="https://www.blissymbolics.org/index.php/sv/licensiering" target="_blank" rel="noopener">blissymbolics.org</a>.
       Version ${APP_VERSION}.</p>
   </section>`;
+}
+
+// ---------------------------------------------------------------- feedback
+// Det som skrivits ligger kvar vid språkbyte och byte av vy (inte sparat mellan starter).
+const draft = { word: '', msg: '', reply: '' };
+function feedbackHTML() {
+  const opt = `<span class="muted">${tx('(valfritt)', '(optional)')}</span>`;
+  return `<div class="fb">
+      <label>${tx('Vilket ord gäller det?', 'Which word is it about?')} ${opt}<input id="fb-word" value="${esc(draft.word)}" autocomplete="off"></label>
+      <label>${tx('Fel eller förslag', 'Mistake or suggestion')}<textarea id="fb-msg" rows="4">${esc(draft.msg)}</textarea></label>
+      ${FEEDBACK_URL ? `<label>${tx('Din e-post, om du vill ha svar', 'Your email, if you want a reply')} ${opt}<input id="fb-reply" type="email" value="${esc(draft.reply)}" autocomplete="email"></label>` : ''}
+      <div class="row"><button type="button" class="primary" id="fb-send">${tx('Skicka', 'Send')}</button>
+        ${FEEDBACK_URL ? '' : `<span class="small muted">${tx('Öppnar din mejlapp.', 'Opens your email app.')}</span>`}</div>
+      <div class="fb-status small" id="fb-status" role="status"></div>
+    </div>
+    <p class="small muted">${tx('Eller mejla', 'Or email')} <a href="mailto:${CONTACT}?subject=Bliss-glosor">${CONTACT}</a>.</p>`;
+}
+function fbStatus(text, kind = '') {
+  const box = document.getElementById('fb-status');
+  box.className = `fb-status small ${kind}`;
+  box.textContent = text;
+}
+async function sendFeedback(btn) {
+  const msg = draft.msg.trim();
+  if (!msg) { fbStatus(tx('Skriv något först.', 'Write something first.'), 'bad'); document.getElementById('fb-msg').focus(); return; }
+  const about = `Bliss-glosor ${APP_VERSION} · ${lang()}`;
+  if (!FEEDBACK_URL) {
+    const body = `${msg}${draft.word.trim() ? `\n\n${tx('Ord', 'Word')}: ${draft.word.trim()}` : ''}\n\n– ${about}`;
+    location.href = `mailto:${CONTACT}?subject=${encodeURIComponent('Bliss-glosor')}&body=${encodeURIComponent(body)}`;
+    return;
+  }
+  btn.disabled = true;
+  fbStatus(tx('Skickar …', 'Sending …'));
+  try {
+    const res = await fetch(FEEDBACK_URL, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ord: draft.word.trim(), meddelande: msg, email: draft.reply.trim() || undefined, app: about }),
+    });
+    if (!res.ok) throw new Error(res.status);
+    Object.assign(draft, { word: '', msg: '', reply: '' });
+    for (const id of ['fb-word', 'fb-msg', 'fb-reply']) { const el = document.getElementById(id); if (el) el.value = ''; }
+    fbStatus(tx('Tack! Meddelandet är skickat.', 'Thank you! Your message has been sent.'), 'good');
+  } catch (_) {
+    fbStatus(tx('Det gick inte att skicka. Försök igen när du har nät.', 'It could not be sent. Try again when you are online.'), 'bad');
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 /** Dela-menyn där den finns (mobil), annars kopiera länken. */
@@ -226,12 +273,13 @@ register('about', {
   top: true,
   click(t) {
     if (t.id === 'share-app') return shareApp(t), true;
-    if (t.id !== 'copy-contact') return false;
-    // Urklipp kan nekas (vissa inbäddade vyer) – markera då adressen så att den kan kopieras för hand.
-    const done = () => { t.textContent = tx('Kopierad', 'Copied'); setTimeout(() => { t.textContent = tx('Kopiera adressen', 'Copy the address'); }, 2000); };
-    const select = () => { const r = document.createRange(); r.selectNodeContents(document.getElementById('contact-addr')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
-    try { navigator.clipboard.writeText(CONTACT).then(done, select); } catch (_) { select(); }
-    return true;
+    if (t.id === 'fb-send') return sendFeedback(t), true;
+    return false;
+  },
+  input(t) {
+    if (t.id === 'fb-word') draft.word = t.value;
+    if (t.id === 'fb-msg') draft.msg = t.value;
+    if (t.id === 'fb-reply') draft.reply = t.value;
   },
 });
 })();
