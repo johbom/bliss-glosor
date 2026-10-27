@@ -11,9 +11,25 @@ const CONTACT = 'john.s@tfhuk.com';   // felrapporter och förslag
 // Informationsbladet (scripts/build-informationsblad.py). Fast adress på GitHub Pages, så att länken
 // fungerar överallt – även i inbäddade vyer där nedladdningslänkar blockeras.
 const FLYER_URL = 'https://johbom.github.io/bliss-glosor/informationsblad/Bliss-glosor-informationsblad.pdf';
+// QR-koden till appen – genererad av scripts/build-qr.py (samma adress som på informationsbladet).
+const QR = { url: 'https://johbom.github.io/bliss-glosor/', size: 37, d: 'M4 4h7v1h-7zM12 4h3v1h-3zM17 4h1v1h-1zM22 4h1v1h-1zM26 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM13 5h5v1h-5zM20 5h1v1h-1zM26 5h1v1h-1zM32 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h2v1h-2zM16 6h3v1h-3zM21 6h1v1h-1zM26 6h1v1h-1zM28 6h3v1h-3zM32 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM13 7h5v1h-5zM19 7h1v1h-1zM21 7h3v1h-3zM26 7h1v1h-1zM28 7h3v1h-3zM32 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM26 8h1v1h-1zM28 8h3v1h-3zM32 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM17 9h2v1h-2zM20 9h3v1h-3zM26 9h1v1h-1zM32 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h7v1h-7zM13 11h2v1h-2zM18 11h2v1h-2zM22 11h2v1h-2zM4 12h1v1h-1zM6 12h1v1h-1zM10 12h2v1h-2zM13 12h1v1h-1zM16 12h4v1h-4zM22 12h3v1h-3zM27 12h1v1h-1zM30 12h1v1h-1zM32 12h1v1h-1zM6 13h2v1h-2zM12 13h2v1h-2zM15 13h3v1h-3zM19 13h3v1h-3zM23 13h2v1h-2zM26 13h2v1h-2zM31 13h2v1h-2zM4 14h2v1h-2zM8 14h1v1h-1zM10 14h2v1h-2zM13 14h4v1h-4zM19 14h1v1h-1zM23 14h1v1h-1zM27 14h1v1h-1zM29 14h2v1h-2zM32 14h1v1h-1zM5 15h1v1h-1zM8 15h1v1h-1zM12 15h6v1h-6zM19 15h2v1h-2zM22 15h1v1h-1zM24 15h3v1h-3zM29 15h1v1h-1zM4 16h3v1h-3zM10 16h2v1h-2zM14 16h2v1h-2zM17 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM26 16h2v1h-2zM32 16h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM8 17h1v1h-1zM11 17h1v1h-1zM15 17h2v1h-2zM19 17h2v1h-2zM23 17h2v1h-2zM26 17h2v1h-2zM31 17h2v1h-2zM4 18h3v1h-3zM9 18h3v1h-3zM13 18h1v1h-1zM15 18h1v1h-1zM17 18h4v1h-4zM22 18h3v1h-3zM27 18h2v1h-2zM32 18h1v1h-1zM5 19h2v1h-2zM9 19h1v1h-1zM11 19h3v1h-3zM16 19h1v1h-1zM18 19h1v1h-1zM20 19h1v1h-1zM25 19h1v1h-1zM28 19h1v1h-1zM6 20h2v1h-2zM10 20h4v1h-4zM16 20h3v1h-3zM20 20h1v1h-1zM24 20h4v1h-4zM32 20h1v1h-1zM6 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h9v1h-9zM23 21h2v1h-2zM26 21h2v1h-2zM30 21h3v1h-3zM4 22h2v1h-2zM7 22h1v1h-1zM10 22h3v1h-3zM19 22h1v1h-1zM21 22h1v1h-1zM23 22h2v1h-2zM29 22h1v1h-1zM32 22h1v1h-1zM6 23h1v1h-1zM9 23h1v1h-1zM12 23h2v1h-2zM17 23h1v1h-1zM19 23h2v1h-2zM24 23h1v1h-1zM26 23h3v1h-3zM4 24h3v1h-3zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h1v1h-1zM15 24h1v1h-1zM17 24h1v1h-1zM19 24h2v1h-2zM23 24h7v1h-7zM31 24h1v1h-1zM12 25h5v1h-5zM19 25h3v1h-3zM23 25h2v1h-2zM28 25h3v1h-3zM32 25h1v1h-1zM4 26h7v1h-7zM12 26h4v1h-4zM17 26h3v1h-3zM21 26h2v1h-2zM24 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM32 26h1v1h-1zM4 27h1v1h-1zM10 27h1v1h-1zM14 27h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM22 27h3v1h-3zM28 27h1v1h-1zM32 27h1v1h-1zM4 28h1v1h-1zM6 28h3v1h-3zM10 28h1v1h-1zM13 28h1v1h-1zM16 28h3v1h-3zM20 28h1v1h-1zM23 28h7v1h-7zM32 28h1v1h-1zM4 29h1v1h-1zM6 29h3v1h-3zM10 29h1v1h-1zM14 29h1v1h-1zM18 29h2v1h-2zM22 29h2v1h-2zM25 29h1v1h-1zM28 29h3v1h-3zM32 29h1v1h-1zM4 30h1v1h-1zM6 30h3v1h-3zM10 30h1v1h-1zM12 30h2v1h-2zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM22 30h2v1h-2zM25 30h1v1h-1zM28 30h1v1h-1zM31 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM15 31h3v1h-3zM19 31h1v1h-1zM22 31h1v1h-1zM24 31h2v1h-2zM28 31h2v1h-2zM4 32h7v1h-7zM12 32h2v1h-2zM15 32h1v1h-1zM17 32h1v1h-1zM19 32h1v1h-1zM24 32h1v1h-1zM27 32h1v1h-1zM29 32h1v1h-1zM32 32h1v1h-1z' };
+/** Överst på Om-sidan: QR-kod och en knapp som delar länken till appen. */
+function shareHTML() {
+  const short = QR.url.replace(/^https:\/\//, '').replace(/\/$/, '');
+  return `<div class="share">
+      <svg class="qr" viewBox="0 0 ${QR.size} ${QR.size}" role="img" aria-label="${tx('QR-kod till Bliss-glosor', 'QR code for Bliss Vocabulary')}"><rect width="100%" height="100%" fill="#fff"/><path d="${QR.d}" fill="#000"/></svg>
+      <div>
+        <p class="share-title">${tx('Dela appen', 'Share the app')}</p>
+        <p class="small muted">${tx('Skanna koden med mobilkameran.', 'Scan the code with a phone camera.')}</p>
+        <p class="share-url">${short}</p>
+        <button type="button" class="primary" id="share-app">${tx('Dela länken', 'Share the link')}</button>
+      </div>
+    </div>`;
+}
 /** Om-sidan på engelska (samma innehåll som den svenska). */
 function aboutEn(lic) {
   return `<section class="panel prose">
+    ${shareHTML()}
     <h2>About Bliss Vocabulary</h2>
     <p>Bliss Vocabulary (Bliss-glosor in Swedish) is a free vocabulary trainer for Blissymbolics. You learn the basic characters first,
       then the words built from them, and review them at ever longer intervals. The English words and explanations are BCI's own.</p>
@@ -102,6 +118,7 @@ function about() {
     <a href="${url}" target="_blank" rel="noopener">${name}</a></div>`;
   if (lang() === 'en') { app.innerHTML = aboutEn(lic); return; }
   app.innerHTML = `<section class="panel prose">
+    ${shareHTML()}
     <h2>Om Bliss-glosor</h2>
     <p>Bliss-glosor är ett gratis glosprogram för Blissymbolik. Du lär dig först grundtecknen, sedan orden som byggs av dem,
       och repeterar dem med allt längre mellanrum.</p>
@@ -186,10 +203,29 @@ function about() {
   </section>`;
 }
 
+/** Dela-menyn där den finns (mobil), annars kopiera länken. */
+async function shareApp(t) {
+  const title = tx('Bliss-glosor', 'Bliss Vocabulary');
+  try {
+    if (navigator.share) return await navigator.share({ title, url: QR.url });
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;   // användaren stängde dela-menyn
+  }
+  const label = t.textContent;
+  try {
+    await navigator.clipboard.writeText(QR.url);
+    t.textContent = tx('Länken är kopierad', 'Link copied');
+  } catch (_) {
+    t.textContent = QR.url;   // urklipp nekat: visa adressen så att den kan skrivas av
+  }
+  setTimeout(() => { t.textContent = label; }, 2500);
+}
+
 register('about', {
   render: about,
   top: true,
   click(t) {
+    if (t.id === 'share-app') return shareApp(t), true;
     if (t.id !== 'copy-contact') return false;
     // Urklipp kan nekas (vissa inbäddade vyer) – markera då adressen så att den kan kopieras för hand.
     const done = () => { t.textContent = tx('Kopierad', 'Copied'); setTimeout(() => { t.textContent = tx('Kopiera adressen', 'Copy the address'); }, 2000); };

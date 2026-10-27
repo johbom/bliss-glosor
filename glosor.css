@@ -123,6 +123,12 @@ h2{font-size:17px;margin-bottom:12px}
 .link-card:hover{border-color:var(--accent)}
 .link-card span{font-size:14px;color:var(--dim)}
 .link-card .link-url{color:var(--accent);font-weight:700;font-size:13px}
+.share{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:0 0 22px;padding:16px;border-radius:14px;background:var(--panel-2);border:1px solid var(--rule)}
+/* QR-koden alltid svart på vitt (även i mörkt läge), annars kan kameran inte läsa den. */
+.share .qr{flex:none;width:148px;height:148px;border-radius:8px;background:#fff;display:block}
+.share p{margin:0}
+.share-title{font-weight:700;font-size:17px}
+.share-url{margin:6px 0 10px!important;font-weight:700;color:var(--accent);word-break:break-all}
 .flyer{display:flex;gap:14px;align-items:flex-start}
 .flyer-doc{flex:none;width:52px;height:68px;border-radius:6px;background:var(--panel-2);border:1px solid var(--rule);
   position:relative;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px}
