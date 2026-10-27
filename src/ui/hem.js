@@ -4,8 +4,7 @@
  */
 (() => {
 const {
-  stats, fmtInterval, chip, nextAtom, mineCards, reviewCount, nextDue, sentenceCount, sentenceTotal,
-  sentenceDrafts,
+  stats, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts,
 } = window.Glosor;
 const { tx, app, setView, register, milestoneHTML } = window.GlosorUI;
 
@@ -15,11 +14,11 @@ function home() {
   const atom = nextAtom();
   const pct = (a, b) => (b ? (100 * a / b).toFixed(1) : 0);
   const work = st.due + st.newLeft;
-  const learnt = reviewCount(), wait = nextDue();
+  const learnt = reviewCount();
   app.innerHTML = `
     <section class="panel">
+      <div class="head"><h2>${tx('Glosor', 'Vocabulary')}</h2></div>
       ${work ? `<p class="small muted" style="margin-bottom:8px">${tx(`${st.due} att repetera nu · ${st.newLeft} nya kvar i dag`, `${st.due} to review now · ${st.newLeft} new left today`)}</p>` : ''}
-      ${!work && learnt ? `<p class="small muted" style="margin-bottom:8px">${tx('Klart för i dag!', 'Done for today!')}${wait != null ? tx(` Nästa repetition ${fmtInterval(wait)}.`, ` Next review ${fmtInterval(wait)}.`) : ''}</p>` : ''}
       <div class="row">
         ${work ? `<button type="button" class="primary" id="start">${tx('Börja öva', 'Start practising')}</button>`
           : `<button type="button" class="primary" id="review" ${learnt ? '' : 'disabled'}>${tx('Repetera det du lärt dig', 'Review what you have learned')}</button>`}
