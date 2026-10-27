@@ -93,8 +93,11 @@ for (const [k, [raw, expl, isChar, freq, old, , notes, merged, en]] of Object.en
   };
   // Ord, synonymer, förklaring och anteckningar följer valt språk.
   Object.defineProperties(c, {
-    word: { get: () => (LANG === 'en' ? c.synsEn[0] : c.synsSv[0]) || c.v.sv },
+    word: { get: () => (LANG === 'en' ? c.headEn[0] : c.headSv[0]) || c.v.sv },
+    wordSv: { get: () => c.headSv[0] || c.v.sv },
     syns: { get: () => (LANG === 'en' ? c.synsEn : c.synsSv) },
+    // Övriga synonymer, utan den som visas som huvudord.
+    others: { get: () => { const [, i] = LANG === 'en' ? c.headEn : c.headSv; return c.syns.filter((_, j) => j !== i); } },
     expl: { get: () => (LANG === 'en' ? c.explEn : c.explSv) },
     notes: { get: () => (LANG === 'en' ? c.notesEn : c.notesSv) },
   });
@@ -121,6 +124,46 @@ for (const c of deck.values()) {
   c.shapes = new Set(c.v.e.filter((e) => /^[A-Y]$/.test(e[0])).map((e) => e[0] + e[1]));
 }
 for (const c of deck.values()) for (const p of new Set(c.parts)) deck.get(p).users.push(c.id);
+
+// Huvudord: BCI:s glosor ger ibland flera symboler samma första ord ("man, make" = husband,
+// "man, karl …" = man). Då behåller ett kort ordet (det som är del i de andra, annars ett
+// grundtecken, annars det vanligaste) och de övriga visas med en egen BCI-synonym ("make")
+// eller BCI:s egen kvalificering ("jag (fem.)"). Inget nytt ord hittas på.
+const VARIANT_Q = /\((fem\.?|mask\.?|plur\.?|(fem|mask)\.? plur\.?|obestämd plur\.?|opersonligt|könsneutral|\d+|(feminine|masculine)[^)]*)\)$/i;
+const OBJ_FORMS = new Set(['mig', 'dig', 'sig', 'oss', 'er', 'dem', 'honom', 'henne', 'me', 'him', 'her', 'hers',
+  'us', 'them', 'myself', 'yourself', 'himself', 'herself', 'oneself', 'ourselves', 'yourselves', 'themselves']);
+function pickHeads(key, head) {
+  const norm = (s) => s.toLowerCase().trim();
+  const qual = (c) => (c[key][c[key].length - 1] || '').match(/[\s_-]\([^()]*\)$/)?.[0].slice(1) || '';
+  const bare = (c) => c[key][0].replace(/\s*\([^()]*\)$/, '');
+  const firsts = new Map();
+  for (const c of deck.values()) {
+    c[head] = [c[key][0] || '', 0];
+    const w = norm(c[key][0] || '');
+    if (!firsts.has(w)) firsts.set(w, []);
+    firsts.get(w).push(c);
+  }
+  const taken = new Set(firsts.keys());
+  for (const cs of firsts.values()) {
+    if (cs.length < 2) continue;
+    const rank = (c) => [VARIANT_Q.test(c[key].join(', ')) ? 1 : 0, cs.some((o) => o.parts.includes(c.id)) ? 0 : 1, c.isChar ? 0 : 1, -c.freq];
+    const [keep, ...rest] = [...cs].sort((a, b) => {
+      const x = rank(a), y = rank(b), i = x.findIndex((v, k) => v !== y[k]);
+      return i < 0 ? 0 : x[i] - y[i];
+    });
+    const kq = qual(keep);
+    if (kq && (VARIANT_Q.test(kq) || rest.some(qual))) keep[head] = [`${bare(keep)} ${kq}`, 0];
+    for (const c of rest) {
+      const q = qual(c);
+      if (q && VARIANT_Q.test(q)) { c[head] = [`${bare(c)} ${q}`, 0]; continue; }
+      const i = c[key].findIndex((s, j) => j > 0 && !/[()]/.test(s) && !OBJ_FORMS.has(norm(s)) && !taken.has(norm(s))
+        && !cs.some((o) => o !== c && o[key].some((t) => norm(t) === norm(s))));
+      if (i > 0) { taken.add(norm(c[key][i])); c[head] = [c[key][i], i]; } else if (q) c[head] = [`${bare(c)} ${q}`, 0];
+    }
+  }
+}
+pickHeads('synsSv', 'headSv');
+pickHeads('synsEn', 'headEn');
 
 // Nivå (0 = grundtecken) och hur många ord som bygger på kortet, direkt eller indirekt.
 const levelMemo = new Map();
@@ -658,7 +701,7 @@ function chip(c, unit = 3.2, extra = '', note = '') {
 function formulaHTML(c, unit = 3.2) {
   if (!c.raw.length) return bareFormHTML(c, unit);
   const label = (p, i) => (typeof p === 'number'
-    ? (LANG === 'en' ? enSyns(getById(p)?.en || '')[0] : getById(p)?.sv.split(',')[0]) || p
+    ? deck.get(p)?.word || (LANG === 'en' ? enSyns(getById(p)?.en || '')[0] : getById(p)?.sv.split(',')[0]) || p
     : (LANG === 'en' && c.textEn[i]) || String(p).replace(/_/g, ' '));
   const parts = c.raw.map((p, i) => {
     const note = c.notes[i] || '';
