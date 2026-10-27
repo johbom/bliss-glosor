@@ -41,7 +41,7 @@ function setView(v) {
 }
 
 // ---------------------------------------------------------------- språk
-const NAV = { home: ['Översikt', 'Overview'], list: ['Ordlista', 'Word list'], about: ['Om', 'About'] };
+const NAV = { home: ['Översikt', 'Overview'], list: ['Ordlista', 'Word list'], settings: ['Inställningar', 'Settings'], about: ['Om', 'About'] };
 /** Sidhuvud och dokumentspråk efter valt språk; knappen erbjuder alltid det andra språket. */
 const APP_NAME = ['Bliss-glosor', 'Bliss Vocabulary'];
 function applyLang() {

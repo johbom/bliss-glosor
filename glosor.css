@@ -44,7 +44,13 @@ header nav button[aria-current="true"]{background:var(--panel);color:var(--ink);
 @media (max-width:520px){
   header{gap:8px 14px}
   .lang-toggle{order:1;margin-left:auto}
-  header nav{order:2;flex-basis:100%;margin-left:0}
+  header nav{order:2;flex-basis:100%;margin-left:0;justify-content:space-between}
+  header nav button{padding:6px 8px}
+}
+/* De minsta telefonerna (320 px): fyra flikar ska ändå rymmas på en rad. */
+@media (max-width:374px){
+  header nav{gap:0}
+  header nav button{padding:6px 5px;font-size:14px}
 }
 main{padding-block:0 40px}
 .panel{background:var(--panel);border-radius:14px;padding:20px}
@@ -135,14 +141,9 @@ h2{font-size:17px;margin-bottom:12px}
 .flyer-doc::before{content:"";position:absolute;top:0;left:0;right:0;height:18px;background:var(--accent);border-radius:6px 6px 0 0}
 .flyer-doc span{font-size:11px;font-weight:700;color:var(--accent)}
 .flyer p{margin:0}
-.fb{display:grid;gap:12px;max-width:520px;margin:4px 0 10px}
-.fb label{display:grid;gap:4px;font-size:15px;font-weight:700}
-.fb label .muted{font-weight:400}
-.fb input,.fb textarea{font:inherit;font-weight:400;padding:9px 11px;border:1px solid var(--rule);border-radius:10px;background:var(--panel-2);color:var(--ink);width:100%;box-sizing:border-box}
-.fb textarea{resize:vertical;min-height:96px}
-.fb-status:empty{display:none}
-.fb-status.good{color:var(--ok)}
-.fb-status.bad{color:var(--bad)}
+.contact{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.contact a{font-size:17px;font-weight:700;user-select:all}
+.contact .ghost{padding:6px 12px;font-size:14px}
 .head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .head h2{margin:0}
 .star{color:var(--c-YELLOW);font-size:13px;line-height:1}
