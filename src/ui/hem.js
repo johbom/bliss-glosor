@@ -1,10 +1,10 @@
 /**
- * Startsidan: dagens pass, Mina ord, meningar, kylskåpspoesi, milstolpar och statistik.
+ * Startsidan: dagens pass, Mina ord, meningar, kylskåpspoesi, milstolpar och statistik (med dagar i rad).
  * Inställningarna har en egen flik (installningar.js).
  */
 (() => {
 const {
-  stats, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts,
+  stats, streak, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts,
 } = window.Glosor;
 const { tx, app, setView, register, milestoneHTML } = window.GlosorUI;
 
@@ -15,6 +15,7 @@ function home() {
   const pct = (a, b) => (b ? (100 * a / b).toFixed(1) : 0);
   const work = st.due + st.newLeft;
   const learnt = reviewCount();
+  const days = streak();
   app.innerHTML = `
     <section class="panel">
       <div class="head"><h2>${tx('Glosor', 'Vocabulary')}</h2></div>
@@ -33,6 +34,7 @@ function home() {
     <section class="panel">
       ${milestoneHTML()}
       <div class="stats">
+        <div class="stat"><b>${days}</b><span>${days === 1 ? tx('dag i rad', 'day in a row') : tx('dagar i rad', 'days in a row')}</span></div>
         <div class="stat"><b>${st.due}</b><span>${tx('att repetera nu', 'to review now')}</span></div>
         <div class="stat"><b>${st.newLeft}</b><span>${tx('nya kvar i dag', 'new left today')}</span></div>
         <div class="stat"><b>${st.learned}</b><span>${tx('lärda', 'learned')}</span></div>
