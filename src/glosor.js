@@ -722,15 +722,15 @@ function bareFormHTML(c, unit = 2.8) {
 /** Förklaring under formeln för sammanslagna tecken (BCI: superimposed, Fundamental Rules 5.1.4). */
 function mergedNote(c) {
   if (!c.merged) return '';
-  return `<p class="merged-note">${L('Sammanslaget tecken: delarna är sammanfogade till ett tecken och kan vara ritade i ändrad form.',
-    'Composite character: the parts are merged into one character and may be drawn in a changed form.')}</p>`;
+  return `<p class="merged-note">${L('Sammanslaget tecken – delarna kan vara ritade i ändrad form.',
+    'Composite character – the parts may be drawn in a changed form.')}</p>`;
 }
 
 /** Förklaring när delar har egna operatorer (bli = gå + vara + operator): bara en operator syns i ordet. */
 function opNote(c) {
   if (!c.opDropped) return '';
-  return `<p class="merged-note">${L('Delarnas egna operatorer tas bort när de sätts ihop – hela ordet får en enda operator.',
-    'The parts lose their own indicators when they are combined – the whole word gets a single indicator.')}</p>`;
+  return `<p class="merged-note">${L('Delarnas operatorer ersätts av en enda för hela ordet.',
+    'The parts’ indicators are replaced by one for the whole word.')}</p>`;
 }
 
 // ---------------------------------------------------------------- meningar
