@@ -85,5 +85,8 @@ document.addEventListener('keydown', (e) => {
 window.GlosorUI = { tx, fmtN, endModes, app, dlg, views, view: () => current, register, setView, applyLang, switchLang };
 
 // Start när alla vyer har registrerat sig (skripten i slutet av <body> körs före DOMContentLoaded).
-document.addEventListener('DOMContentLoaded', () => { applyLang(); setView('home'); });
+// Har dokumentet redan laddats (sidan infogad i efterhand): starta direkt efter de övriga skripten.
+const start = () => { applyLang(); setView('home'); };
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+else setTimeout(start);
 })();
