@@ -479,7 +479,7 @@ function introHTML(c) {
   return `<div class="kicker">${kind}</div>
     <div class="stage">${symbolSVG(c, 9)}</div>
     <div class="word">${esc(c.word)}</div>
-    ${c.syns.length > 1 ? `<div class="syns">${esc(c.syns.slice(1).join(', '))}</div>` : ''}
+    ${c.others.length ? `<div class="syns">${esc(c.others.join(', '))}</div>` : ''}
     <div style="margin-top:6px">${classChip(c)}</div>
     ${c.raw.length ? `<p class="small muted" style="margin-top:12px">${tx('Byggs av:', 'Built from:')}</p>${formulaHTML(c)}` : formulaHTML(c)}
     ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
@@ -737,8 +737,8 @@ function showDetail(id) {
   dlg.innerHTML = `<button type="button" class="close" data-act="close" aria-label="${tx('Stäng', 'Close')}">×</button>
     <div class="stage">${symbolSVG(c, 8)}</div>
     <div class="word">${esc(c.word)}</div>
-    ${c.syns.length > 1 ? `<div class="syns">${esc(c.syns.slice(1).join(', '))}</div>` : ''}
-    <div class="row" style="margin-top:6px">${classChip(c)}<span class="small muted">BCI-AV ${c.id} · ${lang() === 'en' ? `Swedish: ${esc(c.synsSv[0] || c.v.sv)}` : esc(c.v.en.replace(/_/g, ' '))}</span></div>
+    ${c.others.length ? `<div class="syns">${esc(c.others.join(', '))}</div>` : ''}
+    <div class="row" style="margin-top:6px">${classChip(c)}<span class="small muted">BCI-AV ${c.id} · ${lang() === 'en' ? `Swedish: ${esc(c.wordSv)}` : esc(c.v.en.replace(/_/g, ' '))}</span></div>
     <p style="margin-top:10px"><button type="button" class="ghost" data-mine="${c.id}" aria-pressed="${isMine(c.id)}">${isMine(c.id) ? tx('★ I Mina ord – ta bort', '★ In My words – remove') : tx('☆ Lägg till i Mina ord', '☆ Add to My words')}</button></p>
     ${c.raw.length ? `<p class="small muted" style="margin-top:12px">${tx('Byggs av:', 'Built from:')}</p>${formulaHTML(c)}` : `<p class="small muted" style="margin-top:12px">${tx('Grundtecken — har inga mindre delar.', 'Basic character — has no smaller parts.')}</p>`}
     ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
