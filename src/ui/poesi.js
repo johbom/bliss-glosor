@@ -28,7 +28,7 @@ function poesi() {
   app.innerHTML = `
     <section class="panel">
       <div class="head"><h2>${tx('Kylskåpspoesi', 'Fridge poetry')}</h2>
-        <button type="button" class="ghost" data-act="home">${tx('← Översikt', '← Overview')}</button></div>
+        <button type="button" class="ghost" data-act="home">${tx('← Start', '← Home')}</button></div>
       <p class="small muted" style="margin-bottom:12px">${poem.done
         ? tx('Tryck på ett ord för att se symbolen.', 'Tap a word to see the symbol.')
         : tx('Dra eller tryck på en magnet. Dra ut den för att ta bort.', 'Drag or tap a magnet. Drag it out to remove it.')}</p>

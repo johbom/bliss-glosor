@@ -35,7 +35,7 @@ dlg.addEventListener('click', (e) => {
   if (m) {
     toggleMine(m.dataset.mine);
     showDetail(m.dataset.mine);
-    window.GlosorUI.views[window.GlosorUI.view()].refresh?.();   // översikten och ordlistan visar Mina ord
+    window.GlosorUI.views[window.GlosorUI.view()].refresh?.();   // startsidan och ordlistan visar Mina ord
     return;
   }
   const t = e.target.closest('[data-detail]');
