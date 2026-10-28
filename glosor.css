@@ -297,8 +297,17 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -2px 6px rgba(0,0,0,.08),0 2px 5px rgba(0,0,0,.14)}
 :root .fridge.modern::after{right:9px;top:16px;bottom:16px;height:auto;width:6px;border-radius:3px;
   background:linear-gradient(90deg,#4A4E52,#8A8F94 45%,#3E4246);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+:root .fridge.italian{border-radius:34px;
+  background:linear-gradient(90deg,rgba(255,255,255,0) 0%,rgba(255,255,255,.2) 12%,rgba(255,255,255,.04) 21%,rgba(255,255,255,0) 35%),
+    linear-gradient(180deg,rgba(255,255,255,.3) 0,rgba(255,255,255,0) 34px),
+    linear-gradient(165deg,#E2202F 0%,#C0121F 55%,#8C0B16 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.45),inset 0 -4px 10px rgba(60,0,0,.25),0 2px 6px rgba(0,0,0,.2)}
+:root .fridge.italian::after{right:8px;top:36px;width:13px;height:150px;border-radius:7px;
+  background:linear-gradient(90deg,#9EA4A9,#FFFFFF 45%,#8E949A);box-shadow:0 2px 4px rgba(0,0,0,.35)}
 :root .fridge.retro .pile,:root .fridge.modern .pile{border-top-color:rgba(0,0,0,.08)}
+:root .fridge.italian .pile{border-top-color:rgba(255,255,255,.2)}
 .fridge.retro .poem-empty,.fridge.modern .poem-empty{color:#5F6864}
+.fridge.italian .poem-empty{color:#FFE3E5}
 @media (prefers-reduced-motion: reduce){.magnet,.magnet.fresh,.magnet.settle{animation:none;transition:none}}
 
 @media (max-width:520px){
