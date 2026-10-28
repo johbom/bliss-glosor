@@ -18,8 +18,8 @@ function newOpts(chosenId = null) {
     .map((o) => (o.kept && old.has(o.id) ? { ...old.get(o.id), kept: true, fresh: false } : { ...o, ...jitter(), fresh: true }));
 }
 
-// Kylskåpet: retro (mint, krom) eller modernt (borstat stål). S.settings.fridge finns först när man valt.
-const FRIDGES = { retro: ['Retro', 'Retro'], modern: ['Modernt', 'Modern'] };
+// Kylskåpet: retro (mint, krom), modernt (borstat stål) eller italian (blankt rött, krom). S.settings.fridge finns först när man valt.
+const FRIDGES = { retro: ['Retro', 'Retro'], modern: ['Modernt', 'Modern'], italian: ['Italian', 'Italian'] };
 const fridgeStyle = () => (FRIDGES[S.settings.fridge] ? S.settings.fridge : 'modern');
 
 const magnetHTML = (c, m, attrs, i = 0) =>
@@ -268,39 +268,52 @@ function gradient(ctx, x0, y0, x1, y1, stops) {
   stops.forEach(([at, color]) => g.addColorStop(at, color));
   return g;
 }
-/** Samma kylskåp som på skärmen (glosor.css, .fridge.retro / .fridge.modern), i bildens skala. */
+/** Samma kylskåp som på skärmen (glosor.css, .fridge.retro/.modern/.italian), i bildens skala. */
+const FRIDGE_ART = {
+  retro: { wall: ['#F6EFE2', '#EADFCB'], door: ['#D3EEE2', '#BCE3D2', '#A6D6C1'], radius: 56 },
+  modern: { wall: ['#F4F5F6', '#E3E6E9'], door: ['#E8EAEC', '#D1D5D9', '#BEC3C8'], radius: 16 },
+  italian: { wall: ['#F7F1E8', '#ECE2D3'], door: ['#E2202F', '#C0121F', '#8C0B16'], radius: 64 },
+};
 function drawFridge(ctx, style, x, y, w, h, W, H) {
-  const retro = style === 'retro';
-  ctx.fillStyle = retro ? gradient(ctx, 0, 0, 0, H, [[0, '#F6EFE2'], [1, '#EADFCB']]) : gradient(ctx, 0, 0, 0, H, [[0, '#F4F5F6'], [1, '#E3E6E9']]);
+  const art = FRIDGE_ART[style];
+  ctx.fillStyle = gradient(ctx, 0, 0, 0, H, [[0, art.wall[0]], [1, art.wall[1]]]);
   ctx.fillRect(0, 0, W, H);
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,.22)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
-  roundRect(ctx, x, y, w, h, retro ? 56 : 16);
-  ctx.fillStyle = retro
-    ? gradient(ctx, x, y, x + w * 0.2, y + h, [[0, '#D3EEE2'], [0.55, '#BCE3D2'], [1, '#A6D6C1']])
-    : gradient(ctx, x, y, x + w * 0.3, y + h, [[0, '#E8EAEC'], [0.55, '#D1D5D9'], [1, '#BEC3C8']]);
+  roundRect(ctx, x, y, w, h, art.radius);
+  ctx.fillStyle = gradient(ctx, x, y, x + w * 0.25, y + h, [[0, art.door[0]], [0.55, art.door[1]], [1, art.door[2]]]);
   ctx.fill();
   ctx.restore();
-  if (!retro) {   // borstat stål
-    ctx.save();
-    roundRect(ctx, x, y, w, h, 16);
-    ctx.clip();
+  ctx.save();
+  roundRect(ctx, x, y, w, h, art.radius);
+  ctx.clip();
+  if (style === 'modern') {   // borstat stål
     for (let i = x; i < x + w; i += 3) {
       ctx.fillStyle = `rgba(255,255,255,${(0.05 + 0.12 * Math.abs(Math.sin(i * 12.9898))).toFixed(3)})`;
       ctx.fillRect(i, y, 1, h);
     }
-    ctx.restore();
   }
+  if (style === 'italian') {   // blank lack: ljusreflex till vänster och upptill
+    ctx.fillStyle = gradient(ctx, x, 0, x + w * 0.35, 0, [[0, 'rgba(255,255,255,0)'], [0.35, 'rgba(255,255,255,.22)'], [0.6, 'rgba(255,255,255,.05)'], [1, 'rgba(255,255,255,0)']]);
+    ctx.fillRect(x, y, w * 0.35, h);
+    ctx.fillStyle = gradient(ctx, 0, y, 0, y + 70, [[0, 'rgba(255,255,255,.35)'], [1, 'rgba(255,255,255,0)']]);
+    ctx.fillRect(x, y, w, 70);
+  }
+  ctx.restore();
   const chrome = (x0, x1) => gradient(ctx, x0, 0, x1, 0, [[0, '#9EA4A9'], [0.45, '#FFFFFF'], [1, '#8E949A']]);
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,.25)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
-  if (retro) {
+  if (style === 'retro') {
     roundRect(ctx, x + 36, y + 18, w - 120, 8, 4);   // kromlist
     ctx.fillStyle = gradient(ctx, 0, y + 18, 0, y + 26, [[0, '#FFFFFF'], [0.5, '#B9BEC2'], [1, '#8E949A']]);
     ctx.fill();
-    const hx = x + w - 46, hy = y + 60;
-    roundRect(ctx, hx, hy, 24, Math.min(240, h - 120), 12);   // kraftigt kromhandtag
+    const hx = x + w - 46;
+    roundRect(ctx, hx, y + 60, 24, Math.min(240, h - 120), 12);   // kraftigt kromhandtag
     ctx.fillStyle = chrome(hx, hx + 24);
+  } else if (style === 'italian') {
+    const hx = x + w - 48;
+    roundRect(ctx, hx, y + 70, 26, Math.min(300, h - 140), 13);   // rundat kromhandtag
+    ctx.fillStyle = chrome(hx, hx + 26);
   } else {
     const hx = x + w - 34;
     roundRect(ctx, hx, y + 32, 12, h - 64, 6);   // långt, smalt handtag
