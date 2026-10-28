@@ -741,9 +741,9 @@ function geometry(c) {
  * så att storlek och läge — som bär betydelse i Bliss — syns.
  * unit = px per åttondels-kvadrat.
  */
-function symbolSVG(c, unit = 8, cls = '', frame = null) {
+function symbolSVG(c, unit = 8, cls = '', frame = null, padX = null) {
   const { body, bb } = geometry(c);
-  const pad = 140, minW = 800 + 2 * pad;
+  const pad = padX ?? 140, minW = padX == null ? 800 + 2 * pad : 0;
   let x0 = bb.x - pad, w = bb.width + 2 * pad;
   if (w < minW) { x0 -= (minW - w) / 2; w = minW; }
   // frame: gemensam höjd för alla ord i en mening, så att himmels- och jordlinjen går rakt igenom.
@@ -845,8 +845,9 @@ function answerSentence(nr, ok) {
 }
 /** Ett ord i en mening (elementlista ur bygget) ritat i meningens gemensamma ram. */
 const SENTENCE_FRAME = [-60, 2060];
-function wordSVG(key, e, unit, cls = '') {
-  return symbolSVG({ id: 'w:' + key, v: { e } }, unit, cls, SENTENCE_FRAME);
+// spaced: ett helt symbolavstånd (800 = en ruta, himmel till jord) mellan orden i en mening – halva på var sida.
+function wordSVG(key, e, unit, cls = '', spaced = false) {
+  return symbolSVG({ id: 'w:' + key, v: { e } }, unit, cls, SENTENCE_FRAME, spaced ? 400 : null);
 }
 
 window.Glosor = {
