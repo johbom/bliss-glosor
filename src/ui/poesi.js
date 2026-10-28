@@ -4,7 +4,7 @@
  */
 (() => {
 const {
-  card, symbolSVG, esc, poemOptions, poemLabel,
+  S, save, card, symbolSVG, esc, poemOptions, poemLabel,
 } = window.Glosor;
 const UI = window.GlosorUI;
 const { tx, app, register, showDetail } = UI;
@@ -17,6 +17,10 @@ function newOpts(chosenId = null) {
   poem.opts = poemOptions(chosenId, chosenId == null ? [] : poem.opts || [])
     .map((o) => (o.kept && old.has(o.id) ? { ...old.get(o.id), kept: true, fresh: false } : { ...o, ...jitter(), fresh: true }));
 }
+
+// Kylskåpet: retro (mint, krom) eller modernt (borstat stål). S.settings.fridge finns först när man valt.
+const FRIDGES = { retro: ['Retro', 'Retro'], modern: ['Modernt', 'Modern'] };
+const fridgeStyle = () => (FRIDGES[S.settings.fridge] ? S.settings.fridge : 'modern');
 
 const magnetHTML = (c, m, attrs, i = 0) =>
   `<button type="button" class="magnet${m.fresh ? ' fresh' : ''}" ${attrs} style="--rot:${m.rot}deg;--dy:${m.dy}px;--i:${i}">${symbolSVG(c, 3.4)}<span>${esc(poemLabel(c))}</span></button>`;
@@ -32,7 +36,9 @@ function poesi() {
       <p class="small muted" style="margin-bottom:12px">${poem.done
         ? tx('Tryck på ett ord för att se symbolen.', 'Tap a word to see the symbol.')
         : tx('Dra eller tryck på en magnet. Dra ut den för att ta bort.', 'Drag or tap a magnet. Drag it out to remove it.')}</p>
-      <div class="fridge${poem.done ? ' done' : ''}">
+      <div class="tabs fridge-pick" role="group" aria-label="${tx('Kylskåp', 'Fridge')}">${Object.entries(FRIDGES).map(([k, [sv, en]]) =>
+        `<button type="button" data-fridge="${k}" aria-pressed="${fridgeStyle() === k}">${tx(sv, en)}</button>`).join('')}</div>
+      <div class="fridge ${fridgeStyle()}${poem.done ? ' done' : ''}">
         <div class="poem" id="poem">${words || `<p class="poem-empty">${tx('Dra hit ditt första ord', 'Drag your first word here')}</p>`}</div>
         ${poem.done ? '' : `<div class="pile" id="pile">${opts}</div>`}
       </div>
@@ -219,16 +225,16 @@ async function poemImage() {
   rows.push(row);
   const rowW = (r) => r.reduce((a, m) => a + m.bw, 0) + gapX * (r.length - 1);
   const rowH = (r) => Math.max(...r.map((m) => m.bh));
-  const W = Math.ceil(Math.max(480, ...rows.map(rowW)) + 2 * pad);
-  const H = Math.ceil(rows.reduce((a, r) => a + rowH(r), 0) + gapY * (rows.length - 1) + 2 * pad + foot);
+  // Dörren runt dikten (plats för handtaget till höger), köksväggen runt dörren.
+  const wall = 40, handle = 44;
+  const doorW = Math.ceil(Math.max(480, ...rows.map(rowW)) + 2 * pad + handle);
+  const doorH = Math.ceil(rows.reduce((a, r) => a + rowH(r), 0) + gapY * (rows.length - 1) + 2 * pad);
+  const W = doorW + 2 * wall, H = doorH + 2 * wall + foot;
   cv.width = W; cv.height = H;
-  const bg = ctx.createLinearGradient(0, 0, W * 0.3, H);
-  bg.addColorStop(0, '#FBFBF9'); bg.addColorStop(0.55, '#ECEDE9'); bg.addColorStop(1, '#E2E3DE');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-  let y = pad;
+  drawFridge(ctx, fridgeStyle(), wall, wall, doorW, doorH, W, H);
+  let y = wall + pad;
   for (const r of rows) {
-    let x = (W - rowW(r)) / 2;
+    let x = wall + (doorW - handle - rowW(r)) / 2;
     for (const m of r) {
       ctx.save();
       ctx.translate(x + m.bw / 2, y + m.bh / 2 + m.w.dy * PX);
@@ -246,8 +252,62 @@ async function poemImage() {
     y += rowH(r) + gapY;
   }
   ctx.fillStyle = '#8A8A86'; ctx.font = `${12 * PX}px ${font}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
-  ctx.fillText(tx('Kylskåpspoesi med Blissymboler · Bliss-glosor', 'Fridge poetry in Blissymbols · Bliss Vocabulary'), W / 2, H - pad / 2);
+  ctx.fillText(tx('Kylskåpspoesi med Blissymboler · Bliss-glosor', 'Fridge poetry in Blissymbols · Bliss Vocabulary'), W / 2, H - wall + 2);
   return new Promise((ok) => cv.toBlob(ok, 'image/png'));
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function gradient(ctx, x0, y0, x1, y1, stops) {
+  const g = ctx.createLinearGradient(x0, y0, x1, y1);
+  stops.forEach(([at, color]) => g.addColorStop(at, color));
+  return g;
+}
+/** Samma kylskåp som på skärmen (glosor.css, .fridge.retro / .fridge.modern), i bildens skala. */
+function drawFridge(ctx, style, x, y, w, h, W, H) {
+  const retro = style === 'retro';
+  ctx.fillStyle = retro ? gradient(ctx, 0, 0, 0, H, [[0, '#F6EFE2'], [1, '#EADFCB']]) : gradient(ctx, 0, 0, 0, H, [[0, '#F4F5F6'], [1, '#E3E6E9']]);
+  ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.22)'; ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
+  roundRect(ctx, x, y, w, h, retro ? 56 : 16);
+  ctx.fillStyle = retro
+    ? gradient(ctx, x, y, x + w * 0.2, y + h, [[0, '#D3EEE2'], [0.55, '#BCE3D2'], [1, '#A6D6C1']])
+    : gradient(ctx, x, y, x + w * 0.3, y + h, [[0, '#E8EAEC'], [0.55, '#D1D5D9'], [1, '#BEC3C8']]);
+  ctx.fill();
+  ctx.restore();
+  if (!retro) {   // borstat stål
+    ctx.save();
+    roundRect(ctx, x, y, w, h, 16);
+    ctx.clip();
+    for (let i = x; i < x + w; i += 3) {
+      ctx.fillStyle = `rgba(255,255,255,${(0.05 + 0.12 * Math.abs(Math.sin(i * 12.9898))).toFixed(3)})`;
+      ctx.fillRect(i, y, 1, h);
+    }
+    ctx.restore();
+  }
+  const chrome = (x0, x1) => gradient(ctx, x0, 0, x1, 0, [[0, '#9EA4A9'], [0.45, '#FFFFFF'], [1, '#8E949A']]);
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.25)'; ctx.shadowBlur = 6; ctx.shadowOffsetY = 3;
+  if (retro) {
+    roundRect(ctx, x + 36, y + 18, w - 120, 8, 4);   // kromlist
+    ctx.fillStyle = gradient(ctx, 0, y + 18, 0, y + 26, [[0, '#FFFFFF'], [0.5, '#B9BEC2'], [1, '#8E949A']]);
+    ctx.fill();
+    const hx = x + w - 46, hy = y + 60;
+    roundRect(ctx, hx, hy, 24, Math.min(240, h - 120), 12);   // kraftigt kromhandtag
+    ctx.fillStyle = chrome(hx, hx + 24);
+  } else {
+    const hx = x + w - 34;
+    roundRect(ctx, hx, y + 32, 12, h - 64, 6);   // långt, smalt handtag
+    ctx.fillStyle = gradient(ctx, hx, 0, hx + 12, 0, [[0, '#4A4E52'], [0.45, '#8A8F94'], [1, '#3E4246']]);
+  }
+  ctx.fill();
+  ctx.restore();
 }
 /** Bilden görs redan när dikten blir färdig: delningen måste starta direkt på trycket (iOS). */
 function prepareImage() {
@@ -286,6 +346,14 @@ register('poesi', {
     if (t.dataset.placed != null) return showDetail(poem.words[+t.dataset.placed].id), true;
     if (t.id === 'poem-done') { poem.done = true; poesi(); prepareImage(); return true; }
     if (t.id === 'poem-save') return savePoem(), true;
+    if (t.dataset.fridge) {
+      S.settings.fridge = t.dataset.fridge;
+      save();
+      forgetImage();
+      poesi();
+      if (poem.done) prepareImage();
+      return true;
+    }
     if (t.id === 'poem-edit') { poem.done = false; forgetImage(); poesi(); return true; }
     if (t.id === 'poem-clear') { Object.assign(poem, { words: [], hist: [], done: false }); forgetImage(); newOpts(); poesi(); return true; }
     if (t.id === 'poem-undo') { undoWord(); poesi(); return true; }

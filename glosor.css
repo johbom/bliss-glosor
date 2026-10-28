@@ -281,6 +281,24 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 :root[data-theme="dark"] .fridge{background:linear-gradient(165deg,#3A3D42 0%,#2E3035 60%,#272A2E 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 1px 2px rgba(0,0,0,.4)}
 :root[data-theme="dark"] .fridge::after{background:linear-gradient(90deg,#4A4D52,#7A7D82 45%,#3E4146)}
 :root[data-theme="dark"] .pile{border-top-color:rgba(255,255,255,.08)}
+/* Kylskåpen (samma i ljust och mörkt läge – de är föremål). drawFridge() i src/ui/poesi.js ritar samma i bilden.
+   :root ger företräde framför mörka lägets .fridge-regler ovan. */
+.fridge-pick{margin-bottom:10px}
+:root .fridge.retro{border-radius:30px;padding-top:26px;
+  background:linear-gradient(170deg,#D3EEE2 0%,#BCE3D2 55%,#A6D6C1 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),inset 0 -3px 8px rgba(0,60,40,.08),0 2px 6px rgba(0,0,0,.14)}
+.fridge.retro::before{content:"";position:absolute;left:18px;right:60px;top:9px;height:4px;border-radius:2px;
+  background:linear-gradient(180deg,#FFFFFF,#B9BEC2 50%,#8E949A);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+:root .fridge.retro::after{right:8px;top:34px;width:12px;height:120px;border-radius:6px;
+  background:linear-gradient(90deg,#9EA4A9,#FFFFFF 45%,#8E949A);box-shadow:0 2px 3px rgba(0,0,0,.25)}
+:root .fridge.modern{border-radius:10px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 1px,transparent 1px 3px),
+    linear-gradient(165deg,#E8EAEC 0%,#D1D5D9 55%,#BEC3C8 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -2px 6px rgba(0,0,0,.08),0 2px 5px rgba(0,0,0,.14)}
+:root .fridge.modern::after{right:9px;top:16px;bottom:16px;height:auto;width:6px;border-radius:3px;
+  background:linear-gradient(90deg,#4A4E52,#8A8F94 45%,#3E4246);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+:root .fridge.retro .pile,:root .fridge.modern .pile{border-top-color:rgba(0,0,0,.08)}
+.fridge.retro .poem-empty,.fridge.modern .poem-empty{color:#5F6864}
 @media (prefers-reduced-motion: reduce){.magnet,.magnet.fresh,.magnet.settle{animation:none;transition:none}}
 
 @media (max-width:520px){
