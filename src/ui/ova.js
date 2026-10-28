@@ -105,7 +105,7 @@ function quizHTML() {
 function sentenceRow(m, filled = false, glossed = false) {
   return `<div class="sentence${glossed ? ' glossed' : ''}">${m.ord.map((w, i) => {
     if (i === m.lucka && !filled) return `<span class="blank" aria-label="${tx('ordet som saknas', 'the missing word')}">?</span>`;
-    const svg = wordSVG(`${m.nr}-${i}`, w.e, glossed ? 4.6 : 6.4);
+    const svg = wordSVG(`${m.nr}-${i}`, w.e, glossed ? 4.6 : 6.4, '', true);
     return `<figure class="sw${i === m.lucka ? ' hit' : ''}">${svg}${glossed ? `<figcaption>${esc(tx(w.sv, w.en || w.sv))}</figcaption>` : ''}</figure>`;
   }).join('')}</div>`;
 }
