@@ -1,6 +1,6 @@
 /**
  * Kylskåpspoesi: magneterna, dikten och dra-och-släpp. Orden väljs i src/glosor-poesi.js.
- * Dikten ligger kvar så länge appen är öppen (sparas inte).
+ * Dikten ligger kvar så länge appen är öppen (sparas inte), men en färdig dikt kan sparas som bild.
  */
 (() => {
 const {
@@ -10,7 +10,7 @@ const UI = window.GlosorUI;
 const { tx, app, register, showDetail } = UI;
 
 // Varje magnet får en egen lutning, som följer med när den flyttas – så ser kylskåpsdörren lagom stökig ut.
-const poem = { words: [], opts: null, hist: [], done: false, seq: 0 };
+const poem = { words: [], opts: null, hist: [], done: false, seq: 0, image: null, shown: null };
 const jitter = () => ({ rot: +(Math.random() * 8 - 4).toFixed(1), dy: Math.round(Math.random() * 8 - 4) });
 function newOpts(chosenId = null) {
   const old = new Map((poem.opts || []).map((o) => [o.id, o]));
@@ -37,11 +37,14 @@ function poesi() {
         ${poem.done ? '' : `<div class="pile" id="pile">${opts}</div>`}
       </div>
       <div class="row poem-actions">${poem.done
-        ? `<button type="button" class="primary" id="poem-clear">${tx('Rensa och skriv en ny', 'Clear and write a new one')}</button>
+        ? `<button type="button" class="primary" id="poem-save">${tx('Spara som bild', 'Save as picture')}</button>
+           <button type="button" class="ghost" id="poem-clear">${tx('Rensa och skriv en ny', 'Clear and write a new one')}</button>
            <button type="button" class="ghost" id="poem-edit">${tx('Skriv vidare', 'Keep writing')}</button>`
         : `<button type="button" class="primary" id="poem-done" ${poem.words.length ? '' : 'disabled'}>${tx('Färdig', 'Done')}</button>
            <button type="button" class="ghost" id="poem-undo" ${poem.hist.length ? '' : 'disabled'}>${tx('↶ Ångra', '↶ Undo')}</button>
            <button type="button" class="ghost" id="poem-shuffle">${tx('Nya ord', 'New words')}</button>`}</div>
+      ${poem.done && poem.shown ? `<figure class="poem-picture"><img src="${poem.shown}" alt="${tx('Dikten som bild', 'The poem as a picture')}" />
+        <figcaption class="small muted">${tx('Håll in eller högerklicka på bilden för att spara den.', 'Press and hold or right-click the picture to save it.')}</figcaption></figure>` : ''}
     </section>`;
   for (const o of poem.opts) o.fresh = false;
   for (const w of poem.words) w.fresh = false;
@@ -182,6 +185,97 @@ function tapMagnet(el) {
   landOn(gh, key);
 }
 
+// ---------------------------------------------------------------- spara som bild
+// Magneterna ritas på kylskåpsdörren i dubbel skala, med samma lutning som på skärmen.
+const PX = 2;
+function symbolImage(c) {
+  const svg = symbolSVG(c, 3.4 * PX).replace(/currentColor/g, '#1B1B1D');
+  return new Promise((ok, fail) => {
+    const im = new Image();
+    im.onload = () => ok(im);
+    im.onerror = fail;
+    im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+  });
+}
+async function poemImage() {
+  await document.fonts?.ready;
+  const font = getComputedStyle(document.body).fontFamily;
+  const cv = document.createElement('canvas'), ctx = cv.getContext('2d');
+  ctx.font = `${14 * PX}px ${font}`;
+  const mags = await Promise.all(poem.words.map(async (w) => {
+    const c = card(w.id), im = await symbolImage(c), label = poemLabel(c);
+    const bw = Math.max(58 * PX, im.width + 16 * PX, ctx.measureText(label).width + 16 * PX);
+    return { w, im, label, bw, bh: im.height + 22 * PX };
+  }));
+  // Rader som på skärmen, centrerade.
+  const maxW = 1100, gapX = 10 * PX, gapY = 16 * PX, pad = 56, foot = 40;
+  const rows = [];
+  let row = [], rw = 0;
+  for (const m of mags) {
+    if (row.length && rw + gapX + m.bw > maxW) { rows.push(row); row = []; rw = 0; }
+    rw += (row.length ? gapX : 0) + m.bw;
+    row.push(m);
+  }
+  rows.push(row);
+  const rowW = (r) => r.reduce((a, m) => a + m.bw, 0) + gapX * (r.length - 1);
+  const rowH = (r) => Math.max(...r.map((m) => m.bh));
+  const W = Math.ceil(Math.max(480, ...rows.map(rowW)) + 2 * pad);
+  const H = Math.ceil(rows.reduce((a, r) => a + rowH(r), 0) + gapY * (rows.length - 1) + 2 * pad + foot);
+  cv.width = W; cv.height = H;
+  const bg = ctx.createLinearGradient(0, 0, W * 0.3, H);
+  bg.addColorStop(0, '#FBFBF9'); bg.addColorStop(0.55, '#ECEDE9'); bg.addColorStop(1, '#E2E3DE');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+  let y = pad;
+  for (const r of rows) {
+    let x = (W - rowW(r)) / 2;
+    for (const m of r) {
+      ctx.save();
+      ctx.translate(x + m.bw / 2, y + m.bh / 2 + m.w.dy * PX);
+      ctx.rotate((m.w.rot * Math.PI) / 180);
+      ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 5 * PX; ctx.shadowOffsetY = 2 * PX;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(-m.bw / 2, -m.bh / 2, m.bw, m.bh);
+      ctx.shadowColor = 'transparent';
+      ctx.drawImage(m.im, -m.im.width / 2, -m.bh / 2 + 5 * PX);
+      ctx.fillStyle = '#1B1B1D'; ctx.font = `${14 * PX}px ${font}`; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(m.label, 0, -m.bh / 2 + 3 * PX + m.im.height);
+      ctx.restore();
+      x += m.bw + gapX;
+    }
+    y += rowH(r) + gapY;
+  }
+  ctx.fillStyle = '#8A8A86'; ctx.font = `${12 * PX}px ${font}`; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText(tx('Kylskåpspoesi med Blissymboler · Bliss-glosor', 'Fridge poetry in Blissymbols · Bliss Vocabulary'), W / 2, H - pad / 2);
+  return new Promise((ok) => cv.toBlob(ok, 'image/png'));
+}
+/** Bilden görs redan när dikten blir färdig: delningen måste starta direkt på trycket (iOS). */
+function prepareImage() {
+  poem.image = poemImage().then((blob) => new File([blob], `${tx('dikt', 'poem')}.png`, { type: 'image/png' }));
+  poem.image.catch(() => {});
+}
+function forgetImage() {
+  if (poem.shown) URL.revokeObjectURL(poem.shown);
+  Object.assign(poem, { image: null, shown: null });
+}
+async function savePoem() {
+  if (!poem.image) prepareImage();
+  let file;
+  try { file = await poem.image; } catch (_) { return; }
+  if (!poem.shown) { poem.shown = URL.createObjectURL(file); poesi(); }
+  // Mobil: delningsmenyn (Spara bild). Dator: hämta filen. Visas bilden dessutom går den alltid att spara för hand.
+  if (matchMedia('(pointer: coarse)').matches && navigator.canShare?.({ files: [file] })) {
+    navigator.share({ files: [file] }).catch(() => {});
+    return;
+  }
+  const a = document.createElement('a');
+  a.href = poem.shown;
+  a.download = file.name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
 // ---------------------------------------------------------------- händelser
 register('poesi', {
   render: poesi,
@@ -190,9 +284,10 @@ register('poesi', {
     if (UI.view() !== 'poesi') return false;
     if (t.dataset.mag != null) return tapMagnet(t), true;
     if (t.dataset.placed != null) return showDetail(poem.words[+t.dataset.placed].id), true;
-    if (t.id === 'poem-done') { poem.done = true; poesi(); return true; }
-    if (t.id === 'poem-edit') { poem.done = false; poesi(); return true; }
-    if (t.id === 'poem-clear') { Object.assign(poem, { words: [], hist: [], done: false }); newOpts(); poesi(); return true; }
+    if (t.id === 'poem-done') { poem.done = true; poesi(); prepareImage(); return true; }
+    if (t.id === 'poem-save') return savePoem(), true;
+    if (t.id === 'poem-edit') { poem.done = false; forgetImage(); poesi(); return true; }
+    if (t.id === 'poem-clear') { Object.assign(poem, { words: [], hist: [], done: false }); forgetImage(); newOpts(); poesi(); return true; }
     if (t.id === 'poem-undo') { undoWord(); poesi(); return true; }
     if (t.id === 'poem-shuffle') { poem.opts = []; newOpts(poem.words.length ? poem.words[poem.words.length - 1].id : null); poesi(); return true; }
     return false;
