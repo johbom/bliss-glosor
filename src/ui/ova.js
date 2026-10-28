@@ -233,8 +233,8 @@ function togglePal(i) {
 function checkStep() {
   if (answered) return;
   if (!step.sel.length) return;
-  const { ok, order, skipped } = checkParts(step);
-  const want = new Set(step.c.parts);
+  const { ok, order, skipped, twin } = checkParts(step);
+  const want = new Set((twin || step.c).parts);
   if (ok && skipped) step.c.optInd.forEach((id) => want.delete(id));   // frivillig operator utelämnad – inte "missad"
   document.querySelectorAll('.pal').forEach((b, i) => {
     const id = step.palette[i].id, picked = step.sel.includes(id);
@@ -248,6 +248,7 @@ function checkStep() {
   if (!ok) note = tx('Streckat = missad del, rött = ingår inte.', 'Dashed = missed part, red = not included.');
   else if (step.mode === 'build' && !order) note = tx('Rätt delar! BCI:s ordning:', 'Right parts! BCI order:');
   if (ok && skipped) note = (note ? note + ' ' : '') + tx('BCI tar även med operatorn.', 'BCI also includes the indicator.');
+  if (twin) note = tx('Också rätt – men här menades den här:', 'Also right – but this one was meant:');
   finish(ok, note);
 }
 

@@ -146,7 +146,15 @@ function pickHeads(key, head) {
   const taken = new Set(firsts.keys());
   for (const cs of firsts.values()) {
     if (cs.length < 2) continue;
-    const rank = (c) => [VARIANT_Q.test(c[key].join(', ')) ? 1 : 0, cs.some((o) => o.parts.includes(c.id)) ? 0 : 1, c.isChar ? 0 : 1, -c.freq];
+    // Ett eget ord för de övriga: BCI-synonym som ingen annan i gruppen har, eller BCI:s kvalificering.
+    const altOf = (c) => c[key].findIndex((s, j) => j > 0 && !/[()]/.test(s) && !OBJ_FORMS.has(norm(s)) && !taken.has(norm(s))
+      && !cs.some((o) => o !== c && o[key].some((t) => norm(t) === norm(s))));
+    // Har ett kort en BCI-synonym som preciserar ordet ("gå framåt") och ett annat bara ordet, får det
+    // första synonymen och det andra ordet: gå (ben och fötter) är "gå", gå (fram) "gå framåt".
+    const bareOnly = cs.some((o) => altOf(o) < 0 && !qual(o));
+    const refines = (c) => { const i = altOf(c); return bareOnly && i > 0 && norm(c[key][i]).startsWith(norm(bare(c)) + ' '); };
+    const rank = (c) => [VARIANT_Q.test(c[key].join(', ')) ? 1 : 0, cs.some((o) => o.parts.includes(c.id)) ? 0 : 1,
+      refines(c) ? 1 : 0, c.isChar ? 0 : 1, -c.freq];
     const [keep, ...rest] = [...cs].sort((a, b) => {
       const x = rank(a), y = rank(b), i = x.findIndex((v, k) => v !== y[k]);
       return i < 0 ? 0 : x[i] - y[i];
@@ -156,8 +164,7 @@ function pickHeads(key, head) {
     for (const c of rest) {
       const q = qual(c);
       if (q && VARIANT_Q.test(q)) { c[head] = [`${bare(c)} ${q}`, 0]; continue; }
-      const i = c[key].findIndex((s, j) => j > 0 && !/[()]/.test(s) && !OBJ_FORMS.has(norm(s)) && !taken.has(norm(s))
-        && !cs.some((o) => o !== c && o[key].some((t) => norm(t) === norm(s))));
+      const i = altOf(c);
       if (i > 0) { taken.add(norm(c[key][i])); c[head] = [c[key][i], i]; } else if (q) c[head] = [`${bare(c)} ${q}`, 0];
     }
   }
@@ -700,6 +707,12 @@ function checkParts(step) {
     return { ok: same(sorted([...new Set(ref)]), sorted([...new Set(step.sel)])), order: true, skipped };
   }
   const ok = same(sorted(ref), sorted(step.sel));
+  if (!ok) {
+    // Ett annat ord som visas likadant (två kort som båda heter "gå") räknas också som rätt.
+    const twin = [...deck.values()].find((o) => o !== step.c && o.word === step.c.word && o.parts.length
+      && same(sorted(o.parts), sorted(step.sel)));
+    if (twin) return { ok: true, order: step.sel.every((x, i) => x === twin.parts[i]), skipped: false, twin };
+  }
   return { ok, order: ok && step.sel.every((x, i) => x === ref[i]), skipped };
 }
 
