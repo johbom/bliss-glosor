@@ -197,28 +197,29 @@ for (const c of deck.values()) {
 // ---- vardagsord ----
 // Ord som behövs tidigt i vardagen: mat och dryck, fordon, vardagssysslor, familj, känslor och
 // småord som vill, mer och sluta. Grundtecken som ingår i dem (i alla led) lärs före andra
-// grundtecken; sammansatta vardagsord får en bonus (EVERYDAY_BONUS = ett ord ~50 gånger vanligare)
-// men tränger inte undan de allra vanligaste orden (vara, i, till). Bara BCI-id, inga nya ord.
+// grundtecken; sammansatta vardagsord får en bonus (EVERYDAY_BONUS = ett ord ~400 gånger vanligare),
+// så att även ovanliga vardagsord (badrum) kommer före vanliga ord utanför listan, och de väntar
+// inte på grundtecken som inget vardagsord behöver (pickNew). Bara BCI-id, inga nya ord.
 const EVERYDAY = [
   // mat och dryck
   14377, 13906, 13882, 18209, 15468, 12895, 23196, 14405, 12405, 12623, 13373, 17511, 14406, 14921,
-  22376, 13157, 16726, 16192, 17218, 16230, 15444, 14189, 22371, 20526, 12898, 15405, 17468, 14912,
-  17719, 14442, 22578, 13690, 17233, 14389,
+  22369, 22376, 13157, 16726, 16192, 17218, 16230, 15444, 14189, 22371, 20526, 12898, 15405, 17468,
+  14912, 17719, 14442, 22578, 13690, 17233, 14389,
   // fordon och resor
   13121, 13089, 17767, 12834, 12357, 16509, 17772,
   // vardagssysslor, saker och platser
-  17009, 12649, 18038, 16969, 17747, 12913, 13366, 13371, 15961, 28080, 16959, 16200, 12621, 17763,
-  16747, 14692, 16465, 13873, 18285, 16990, 13631, 16699, 16995, 17249, 12343, 13383, 16496, 13099,
-  23223, 14885, 16734, 18273, 15942, 12875, 17518, 15679, 17519, 23447,
+  17009, 12649, 18038, 16969, 17747, 12637, 12913, 13366, 13371, 15961, 28080, 16959, 16200, 12621,
+  17763, 16747, 14692, 16465, 13873, 18285, 16990, 13631, 16699, 16995, 17249, 12343, 13383, 16496,
+  13099, 23223, 14885, 16734, 18273, 15942, 12875, 17518, 15679, 17519, 23447,
   // familj och vänner
   15662, 14157, 12909, 16994, 14401, 13166,
   // känslor
   14676, 16702, 12377, 27146, 15955, 12347, 16973,
   // småord
-  14916, 18465, 12639, 15733, 18231, 18237, 14708, 17707, 18035, 13114, 14685, 13131, 14440, 15654,
-  17268, 18294, 15722, 14463, 12615, 15210, 14704,
+  14932, 15918, 17739, 14403, 18267, 12374, 14916, 18465, 12639, 15733, 18231, 18237, 14708, 17707,
+  18035, 13114, 14685, 13131, 14440, 15654, 17268, 18294, 15722, 14463, 12615, 15210, 14704,
 ];
-const EVERYDAY_BONUS = 8;
+const EVERYDAY_BONUS = 12;
 const everyday = new Set();
 (function need(ids) {
   for (const id of ids) if (deck.has(id) && !everyday.has(id)) { everyday.add(id); need(deck.get(id).parts); }
@@ -449,7 +450,9 @@ function pickNew() {
   const atom = nextAtom();
   const all = unlockedCompounds();
   const comps = atom ? all.filter((c) => everyday.has(c.id) || c.freq >= minFreq()) : all;   // utan grundtecken kvar: ingen gräns
-  if (comps.length && (S.alt || !atom)) { S.alt = false; return comps[0]; }
+  // Väntar ett vardagsord går det före grundtecken som inget vardagsord behöver (båt).
+  const waiting = comps.length && everyday.has(comps[0].id) && !everyday.has(atom?.id);
+  if (comps.length && (S.alt || !atom || waiting)) { S.alt = false; return comps[0]; }
   if (atom) { S.alt = true; return atom; }
   return null;
 }
