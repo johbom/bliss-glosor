@@ -195,7 +195,9 @@ function tapMagnet(el) {
 // Magneterna ritas på kylskåpsdörren i dubbel skala, med samma lutning som på skärmen.
 const PX = 2;
 function symbolImage(c) {
-  const svg = symbolSVG(c, 3.4 * PX).replace(/currentColor/g, '#1B1B1D');
+  // Utan appens stilmall skulle himmels- och jordlinjen få symbolens färg och tjocklek.
+  const svg = symbolSVG(c, 3.4 * PX).replace(/currentColor/g, '#1B1B1D')
+    .replace('<style>', '<style>.staff{stroke:#D9D5CA;stroke-width:10}.staff.earth{stroke-width:16}');
   return new Promise((ok, fail) => {
     const im = new Image();
     im.onload = () => ok(im);
