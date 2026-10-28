@@ -18,7 +18,8 @@ function list(rebuild = false) {
       const syns = c.syns.map((s) => s.toLowerCase());
       return syns.includes(q) ? 0 : syns.some((s) => s.startsWith(q)) ? 1 : 2;
     };
-    items = [...deck.values()].filter((c) => c.v.sv.toLowerCase().includes(q) || c.v.en.toLowerCase().includes(q))
+    items = [...deck.values()].filter((c) => c.v.sv.toLowerCase().includes(q) || c.v.en.toLowerCase().includes(q)
+      || c.synsSv.some((s) => s.toLowerCase().includes(q)))
       .sort((a, b) => rank(a) - rank(b) || b.score - a.score)
       .slice(0, 60);
   } else if (listTab === 'mine') {

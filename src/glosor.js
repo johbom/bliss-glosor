@@ -76,12 +76,18 @@ function enSyns(en) {
   return out;
 }
 
+// Svenska ord som går före BCI:s svenska glosa, när BCI:s ord är ovanligt i svenskan. BCI:s egna ord
+// ligger kvar som synonymer. Bara ord som användaren bett om – symbolen och delarna är BCI:s.
+const SV_FIRST = {
+  15930: 'oralsex',   // BCI: "munsex, oralt samlag" (norska listan: "munnsex, oralsex")
+};
+
 const deck = new Map();
 for (const [k, [raw, expl, isChar, freq, old, , notes, merged, en]] of Object.entries(DERIV)) {
   const v = getById(+k);
   if (old || !v || !v.e?.length) continue;
   if (/_\((lower|upper)case\)|half_sized|\(OLD\)/i.test(v.en)) continue;
-  const synsSv = splitSyns(v.sv).map((s) => s.replace(/\s*\(etc\)/, '').trim()).filter(Boolean);
+  const synsSv = [SV_FIRST[v.id], ...splitSyns(v.sv)].filter(Boolean).map((s) => s.replace(/\s*\(etc\)/, '').trim()).filter(Boolean);
   const synsEn = enSyns(v.en);
   // notes: BCI:s anteckning per del ("halv storlek", "förkortning"), samma ordning som raw.
   // merged: sammanslaget tecken (BCI: "Character (superimposed)") — delarna är sammanfogade till ett tecken.
