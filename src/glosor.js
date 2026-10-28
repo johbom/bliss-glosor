@@ -194,7 +194,38 @@ for (const c of deck.values()) {
     ? Math.log1p(c.freq) * 2 + Math.log1p(reach) - c.level * 0.3
     : Math.log1p(reach) * 3 + Math.log1p(c.freq) * 0.5;
 }
-const atomOrder = [...deck.values()].filter((c) => !c.parts.length).sort((a, b) => b.score - a.score);
+// ---- vardagsord ----
+// Ord som behövs tidigt i vardagen: mat och dryck, fordon, vardagssysslor, familj, känslor och
+// småord som vill, mer och sluta. Grundtecken som ingår i dem (i alla led) lärs före andra
+// grundtecken; sammansatta vardagsord får en bonus (EVERYDAY_BONUS = ett ord ~50 gånger vanligare)
+// men tränger inte undan de allra vanligaste orden (vara, i, till). Bara BCI-id, inga nya ord.
+const EVERYDAY = [
+  // mat och dryck
+  14377, 13906, 13882, 18209, 15468, 12895, 23196, 14405, 12405, 12623, 13373, 17511, 14406, 14921,
+  22376, 13157, 16726, 16192, 17218, 16230, 15444, 14189, 22371, 20526, 12898, 15405, 17468, 14912,
+  17719, 14442, 22578, 13690, 17233, 14389,
+  // fordon och resor
+  13121, 13089, 17767, 12834, 12357, 16509, 17772,
+  // vardagssysslor, saker och platser
+  17009, 12649, 18038, 16969, 17747, 12913, 13366, 13371, 15961, 28080, 16959, 16200, 12621, 17763,
+  16747, 14692, 16465, 13873, 18285, 16990, 13631, 16699, 16995, 17249, 12343, 13383, 16496, 13099,
+  23223, 14885, 16734, 18273, 15942, 12875, 17518, 15679, 17519, 23447,
+  // familj och vänner
+  15662, 14157, 12909, 16994, 14401, 13166,
+  // känslor
+  14676, 16702, 12377, 27146, 15955, 12347, 16973,
+  // småord
+  14916, 18465, 12639, 15733, 18231, 18237, 14708, 17707, 18035, 13114, 14685, 13131, 14440, 15654,
+  17268, 18294, 15722, 14463, 12615, 15210, 14704,
+];
+const EVERYDAY_BONUS = 8;
+const everyday = new Set();
+(function need(ids) {
+  for (const id of ids) if (deck.has(id) && !everyday.has(id)) { everyday.add(id); need(deck.get(id).parts); }
+})(EVERYDAY);
+const atomOrder = [...deck.values()].filter((c) => !c.parts.length)
+  .sort((a, b) => (everyday.has(b.id) - everyday.has(a.id)) || b.score - a.score);
+const priority = (c) => c.score + (everyday.has(c.id) ? EVERYDAY_BONUS : 0);
 
 // ---- "Utan operatorn": samma ritning utan indikatorn ovanpå ----
 // vara (12639) = H2 + W2 + handlingsindikatorn; utan indikatorn är ritningen exakt
@@ -388,7 +419,7 @@ function unlockedCompounds() {
     if (c.hasTextPart && ![...c.shapes].every((code) => !ATOM_SHAPES.has(code) || knownShapes().has(code))) continue;
     out.push(c);
   }
-  return out.sort((a, b) => b.score - a.score);
+  return out.sort((a, b) => priority(b) - priority(a));
 }
 const nextAtom = () => atomOrder.find((c) => !S.cards[c.id]) || null;
 
@@ -405,10 +436,10 @@ function toggleMine(id) {
 
 /**
  * Nästa nya kort: först ord ur Mina ord som inte påbörjats (oavsett om delarna
- * kan), sedan växelvis grundtecken och upplåsta sammansatta ord.
+ * kan), sedan växelvis grundtecken och upplåsta sammansatta ord – vardagsord först.
  */
 // Ovanliga sammansatta ord väntar: frekvensgränsen (SUC 3.0) sänks i takt med hur många ord man lärt sig,
-// så att t.ex. medborgare (63) inte kommer direkt bara för att det låses upp av person.
+// så att t.ex. medborgare (63) inte kommer direkt bara för att det låses upp av person. Vardagsord väntar inte.
 const FREQ_STEPS = [[300, 100], [600, 50], [1000, 20]];
 const minFreq = () => (FREQ_STEPS.find(([n]) => introduced().length < n) || [0, 0])[1];
 
@@ -417,7 +448,7 @@ function pickNew() {
   if (chosen) return chosen;
   const atom = nextAtom();
   const all = unlockedCompounds();
-  const comps = atom ? all.filter((c) => c.freq >= minFreq()) : all;   // utan grundtecken kvar: ingen gräns
+  const comps = atom ? all.filter((c) => everyday.has(c.id) || c.freq >= minFreq()) : all;   // utan grundtecken kvar: ingen gräns
   if (comps.length && (S.alt || !atom)) { S.alt = false; return comps[0]; }
   if (atom) { S.alt = true; return atom; }
   return null;
