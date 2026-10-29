@@ -82,10 +82,16 @@ const SV_FIRST = {
   15930: 'oralsex',   // BCI: "munsex, oralt samlag" (norska listan: "munnsex, oralsex")
 };
 
+// Delar som BCI:s förklaringsark missar men som syns i BCI:s egen symbol.
+const PARTS_FIX = {
+  20526: [17506, 16225, 8998],   // god: arket säger "taste + description indicator", men symbolen har också +! (gärna, positiv)
+};
+
 const deck = new Map();
-for (const [k, [raw, expl, isChar, freq, old, , notes, merged, en]] of Object.entries(DERIV)) {
+for (const [k, [raw0, expl, isChar, freq, old, , notes, merged, en]] of Object.entries(DERIV)) {
   const v = getById(+k);
   if (old || !v || !v.e?.length) continue;
+  const raw = PARTS_FIX[v.id] || raw0;
   if (/_\((lower|upper)case\)|half_sized|\(OLD\)/i.test(v.en)) continue;
   const synsSv = [SV_FIRST[v.id], ...splitSyns(v.sv)].filter(Boolean).map((s) => s.replace(/\s*\(etc\)/, '').trim()).filter(Boolean);
   const synsEn = enSyns(v.en);
@@ -709,17 +715,32 @@ function checkParts(step) {
   const full = step.c.parts, short = full.filter((x) => !opt.has(x));
   const skipped = opt.size > 0 && !step.sel.some((x) => opt.has(x));
   const ref = skipped ? short : full;
-  if (step.mode === 'parts') {
-    return { ok: same(sorted([...new Set(ref)]), sorted([...new Set(step.sel)])), order: true, skipped };
+  const uniq = (a) => sorted([...new Set(a)]);
+  const match = step.mode === 'parts' ? (a) => same(uniq(a), uniq(step.sel)) : (a) => same(sorted(a), sorted(step.sel));
+  if (match(ref)) return { ok: true, order: step.mode === 'parts' || step.sel.every((x, i) => x === ref[i]), skipped };
+  // En del uppdelad i sina egna delar är också rätt (inte = utan + uppmaning).
+  for (const alt of splitParts(full)) {
+    if (match(alt)) return { ok: true, order: step.mode === 'parts' || step.sel.every((x, i) => x === alt[i]), skipped: false, split: alt };
   }
-  const ok = same(sorted(ref), sorted(step.sel));
-  if (!ok) {
-    // Ett annat ord som visas likadant (två kort som båda heter "gå") räknas också som rätt.
-    const twin = [...deck.values()].find((o) => o !== step.c && o.word === step.c.word && o.parts.length
-      && same(sorted(o.parts), sorted(step.sel)));
-    if (twin) return { ok: true, order: step.sel.every((x, i) => x === twin.parts[i]), skipped: false, twin };
-  }
-  return { ok, order: ok && step.sel.every((x, i) => x === ref[i]), skipped };
+  if (step.mode === 'parts') return { ok: false, order: true, skipped };
+  // Ett annat ord som visas likadant (två kort som båda heter "gå") räknas också som rätt.
+  const twin = [...deck.values()].find((o) => o !== step.c && o.word === step.c.word && o.parts.length
+    && same(sorted(o.parts), sorted(step.sel)));
+  if (twin) return { ok: true, order: step.sel.every((x, i) => x === twin.parts[i]), skipped: false, twin };
+  return { ok: false, order: false, skipped };
+}
+
+// Delarna med en eller flera delar ersatta av sina egna (högst två steg ner).
+function splitParts(list, depth = 2) {
+  const out = [];
+  if (!depth) return out;
+  list.forEach((id, i) => {
+    const p = deck.get(id);
+    if (!p.complete) return;
+    const alt = [...list.slice(0, i), ...p.parts, ...list.slice(i + 1)];
+    out.push(alt, ...splitParts(alt, depth - 1));
+  });
+  return out;
 }
 
 // ---------------------------------------------------------------- rendering
