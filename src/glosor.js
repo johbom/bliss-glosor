@@ -82,9 +82,22 @@ const SV_FIRST = {
   15930: 'oralsex',   // BCI: "munsex, oralt samlag" (norska listan: "munnsex, oralsex")
 };
 
-// Delar som BCI:s förklaringsark missar men som syns i BCI:s egen symbol.
+// Delar som BCI:s förklaringsark missar eller namnger med ett enklare ord än det som syns i BCI:s
+// egen symbol. Bara ord som granskats mot symbolen (Bliss-delgranskning, oktober 2026).
 const PARTS_FIX = {
-  20526: [17506, 16225, 8998],   // god: arket säger "taste + description indicator", men symbolen har också +! (gärna, positiv)
+  20526: [17506, 16225, 8998],          // god: arket "taste + description indicator"; symbolen har också +! (gärna)
+  12628: [16161, 14661],                // frisör: "hair" är ritat som hår på huvudet
+  12629: [16430, 14661],                // frisersalong: d:o
+  16938: [17200, 14661],                // schampo: d:o
+  21075: [12875, 12334, 20561],         // mässbok: "religion" är ritad som religion (Gud), inte tro
+  12871: [14183, 14377, 18209, 14947, 8993],   // koka (mat): symbolen har också mat (eld + mat = laga mat)
+  16184: [13377, 15666, 17192],         // rosa: "röd och vit" – symbolen har snö (vit), inte sol
+  23491: [15943, 23467, 8993],          // exportera (dator): symbolen har datainformation, inte bara siffrorna
+  24175: [12383, 14647, 17236],         // jaguar: "animal" är ritat som katt
+  24405: [16164, 15701, 12359],         // alkoholism: symbolen har också dryck med alkohol
+  24607: [13423, 17731],                // Bangladesh: "land" är ritat som land (flagga + mark)
+  25333: [12655, 17236],                // nyckelpiga: skalbagge + fläck (arket: "bug + dot")
+  29105: [16728, 12380, 29412],         // gnälla (hund): symbolen har också hund
 };
 
 const deck = new Map();
