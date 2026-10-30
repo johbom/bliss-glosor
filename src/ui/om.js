@@ -31,6 +31,7 @@ function aboutEn(lic) {
   return `<section class="panel prose">
     ${shareHTML()}
     <h2>About Bliss Vocabulary</h2>
+    <p>Bliss Vocabulary was developed in BlissmAiker, a project funded by the Swedish Inheritance Fund (Allmänna arvsfonden).</p>
     <p>Bliss Vocabulary (Bliss-glosor in Swedish) is a free vocabulary trainer for Blissymbolics. You learn the basic characters first,
       then the words built from them, and review them at ever longer intervals. The English words and explanations are BCI's own.</p>
     <p>Made by John Säbom. The symbols are drawn with BlissEngine by P-O Hedvall and Jonas Paulsson – the drawing engine
@@ -120,6 +121,7 @@ function about() {
   app.innerHTML = `<section class="panel prose">
     ${shareHTML()}
     <h2>Om Bliss-glosor</h2>
+    <p>Bliss-glosor är utvecklat i Allmänna arvsfondens projekt BlissmAiker.</p>
     <p>Bliss-glosor är ett gratis glosprogram för Blissymbolik. Du lär dig först grundtecknen, sedan orden som byggs av dem,
       och repeterar dem med allt längre mellanrum.</p>
     <p>Gjort av John Säbom. Symbolerna ritas med BlissEngine av P-O Hedvall och Jonas Paulsson – ritmotorn ur WinBliss,
