@@ -308,6 +308,17 @@ for (const c of deck.values()) {
   const opt = inds.filter((id) => carried.has(indCode(id)));
   if (opt.length) c.optInd = [...new Set(opt)];
 }
+// Utan egen operator: smärta = känsla + sjuk, men sjuks operator syns inte i ordet. Indikatorer som
+// grammatiska markörer tas bort inne i sammansatta ord (Fundamental Rules 7.0).
+const opCode = (e) => `${e[0]}${e[1]}/${e[2]}`;
+const opDrawn = (c, id) => {
+  const own = new Set(c.v.e.filter(isIndicatorEl).map(opCode));
+  return deck.get(id).v.e.every((e) => own.has(opCode(e)));
+};
+for (const c of deck.values()) {
+  c.opHidden = !c.opDropped && c.parts.some((p) => !isIndicatorCard(p)
+    && deck.get(p).parts.some((id) => isIndicatorCard(id) && !opDrawn(c, id)));
+}
 // Former (familj + storlek) som minst ett grundtecken är ritat med – de går att lära sig.
 const ATOM_SHAPES = new Set(atomOrder.flatMap((c) => [...c.shapes]));
 const compoundCount = deck.size - atomOrder.length;
@@ -735,6 +746,13 @@ function checkParts(step) {
   for (const alt of splitParts(full)) {
     if (match(alt)) return { ok: true, order: step.mode === 'parts' || step.sel.every((x, i) => x === alt[i]), skipped: false, split: alt };
   }
+  // Delen utan den operator som inte syns i ordet är också rätt (sömn = öga + sluten enhet, BCI: stänga).
+  for (const alt of splitParts(full)) {
+    const plain = alt.filter((id, i) => !isIndicatorCard(id) || (opDrawn(step.c, id) && alt.indexOf(id) === i));
+    if (plain.length < alt.length && match(plain)) {
+      return { ok: true, order: step.mode === 'parts' || step.sel.every((x, i) => x === plain[i]), skipped: false, split: plain, plain: true };
+    }
+  }
   if (step.mode === 'parts') return { ok: false, order: true, skipped };
   // Ett annat ord som visas likadant (två kort som båda heter "gå") räknas också som rätt.
   const twin = [...deck.values()].find((o) => o !== step.c && o.word === step.c.word && o.parts.length
@@ -842,6 +860,10 @@ function mergedNote(c) {
 
 /** Förklaring när delar har egna operatorer (bli = gå + vara + operator): bara en operator syns i ordet. */
 function opNote(c) {
+  if (c.opHidden) {
+    return `<p class="merged-note">${L('Delarnas operatorer tas bort när ord sätts ihop.',
+      'The parts’ indicators are removed when words are combined.')}</p>`;
+  }
   if (!c.opDropped) return '';
   return `<p class="merged-note">${L('Delarnas operatorer ersätts av en enda för hela ordet.',
     'The parts’ indicators are replaced by one for the whole word.')}</p>`;

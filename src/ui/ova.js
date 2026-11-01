@@ -233,7 +233,7 @@ function togglePal(i) {
 function checkStep() {
   if (answered) return;
   if (!step.sel.length) return;
-  const { ok, order, skipped, twin, split } = checkParts(step);
+  const { ok, order, skipped, twin, split, plain } = checkParts(step);
   const want = new Set(split || (twin || step.c).parts);
   if (ok && skipped) step.c.optInd.forEach((id) => want.delete(id));   // frivillig operator utelämnad – inte "missad"
   document.querySelectorAll('.pal').forEach((b, i) => {
@@ -250,6 +250,7 @@ function checkStep() {
   if (ok && skipped) note = (note ? note + ' ' : '') + tx('BCI tar även med operatorn.', 'BCI also includes the indicator.');
   if (twin) note = tx('Också rätt – men här menades den här:', 'Also right – but this one was meant:');
   if (split) note = tx('Rätt – du delade upp en del ännu mer. BCI:s delar:', 'Right – you split a part further. BCI parts:');
+  if (plain) note = tx('Rätt – så ser delen ut utan operatorn. BCI:s delar:', 'Right – that is the part without its indicator. BCI parts:');
   finish(ok, note);
 }
 
