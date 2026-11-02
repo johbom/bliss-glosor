@@ -229,7 +229,7 @@ function chooseOption(i) {
     return;
   }
   const btns = [...document.querySelectorAll('.opt')];
-  btns.forEach((b) => { b.disabled = true; });
+  btns.forEach((b) => { b.disabled = true; b.classList.remove('heard'); });   // svaret visas i rött/grönt, inte som uppläst
   const ok = i === step.answer;
   btns[i].classList.add(ok ? 'ok' : 'bad');
   if (!ok) btns[step.answer].classList.add('miss');

@@ -6,21 +6,26 @@
 @font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/atkinson-hyperlegible-700-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:"Atkinson Hyperlegible";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-400i-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"Atkinson Hyperlegible";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-400i-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
+/* Färgerna följer Furubodas webbplats: krämvit bakgrund, blågrönt, ljusblå och gula runda knappar med
+   marinblå text. --dim är Furubodas grå något mörkare, så att liten text läses lätt även på krämvitt. */
 :root{
-  --ink:#1B1B1D; --dim:#6E6E73; --panel:#FFFFFF; --panel-2:#F4F3EF; --bg:#ECEBE6;
-  --accent:#28558C; --accent-ink:#FFFFFF; --accent-soft:#DCE6F2; --rule:#DAD7CE;
+  --ink:#242723; --dim:#5C5C5C; --panel:#FFFFFF; --panel-2:#F1F9FE; --bg:#FEE7C0;
+  --accent:#087BA1; --accent-ink:#FFFFFF; --accent-soft:#D2E2EC; --rule:#CCCCCC;
+  --btn:#FCBE27; --btn-ink:#022134; --btn-2:#D2E2EC; --btn-2-ink:#022134;
   --ok:#2E7D46; --ok-soft:#DDF0E2; --bad:#B23A3A; --bad-soft:#F6DEDE; --staff:#D9D5CA;
   --c-YELLOW:#E9C23B; --c-RED:#D9534F; --c-GREEN:#4CAF6A; --c-BLUE:#4A7FD0; --c-WHITE:#C8C6C0; --c-GRAY:#8E8E8E;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --ink:#ECECEE; --dim:#9A9AA2; --panel:#1F2023; --panel-2:#26282A; --bg:#17181B;
-  --accent:#7FA8DB; --accent-ink:#0E1621; --accent-soft:#223146; --rule:#33363B;
+  --ink:#ECECEE; --dim:#A3A8AC; --panel:#1E2428; --panel-2:#253038; --bg:#151A1D;
+  --accent:#5CB8DB; --accent-ink:#022134; --accent-soft:#1D3A4A; --rule:#3A454D;
+  --btn:#FCBE27; --btn-ink:#022134; --btn-2:#1D3A4A; --btn-2-ink:#ECECEE;
   --ok:#6FBF8A; --ok-soft:#1E3326; --bad:#E07B7B; --bad-soft:#3A2224; --staff:#34373C;
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
-  --ink:#ECECEE; --dim:#9A9AA2; --panel:#1F2023; --panel-2:#26282A; --bg:#17181B;
-  --accent:#7FA8DB; --accent-ink:#0E1621; --accent-soft:#223146; --rule:#33363B;
+  --ink:#ECECEE; --dim:#A3A8AC; --panel:#1E2428; --panel-2:#253038; --bg:#151A1D;
+  --accent:#5CB8DB; --accent-ink:#022134; --accent-soft:#1D3A4A; --rule:#3A454D;
+  --btn:#FCBE27; --btn-ink:#022134; --btn-2:#1D3A4A; --btn-2-ink:#ECECEE;
   --ok:#6FBF8A; --ok-soft:#1E3326; --bad:#E07B7B; --bad-soft:#3A2224; --staff:#34373C;
   color-scheme:dark;
 }
@@ -32,11 +37,12 @@ html{background:var(--bg)}
    Ett fast fält i bakgrundsfärgen bakom statusraden ger en ren kant, och sidhuvudet börjar under det. */
 .statusbar{position:fixed;top:0;left:0;right:0;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:50}
 button{font:inherit;color:inherit;cursor:pointer}
+input{accent-color:var(--accent)}
 header,main{max-width:920px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 header{display:flex;align-items:center;gap:14px;padding-top:calc(env(safe-area-inset-top,0px) + 12px);padding-bottom:12px;flex-wrap:wrap}
 header h1{font-size:20px}
 header nav{margin-left:auto;display:flex;gap:4px}
-header nav button{background:none;border:0;padding:6px 12px;border-radius:8px;color:var(--dim)}
+header nav button{background:none;border:0;padding:6px 12px;border-radius:999px;color:var(--dim)}
 header nav button[aria-current="true"]{background:var(--panel);color:var(--ink);font-weight:600}
 .lang-toggle{background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:4px 11px;font-size:13px;font-weight:700;color:var(--accent)}
 .lang-toggle:hover{border-color:var(--accent)}
@@ -66,9 +72,11 @@ h2{font-size:17px;margin-bottom:12px}
 .stat span{font-size:13px;color:var(--dim)}
 .bar{height:8px;background:var(--panel-2);border-radius:4px;overflow:hidden;margin:6px 0 14px}
 .bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
-.primary{background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:12px 22px;font-size:17px;font-weight:600}
+.primary{background:var(--btn);color:var(--btn-ink);border:0;border-radius:999px;padding:12px 24px;font-size:17px;font-weight:600}
 .primary:disabled{opacity:.45;cursor:default}
-.ghost{background:none;border:1px solid var(--rule);border-radius:10px;padding:10px 16px}
+.ghost{background:var(--btn-2);color:var(--btn-2-ink);border:0;border-radius:999px;padding:10px 18px}
+.ghost:hover:not(:disabled){box-shadow:inset 0 0 0 2px var(--accent)}
+.ghost:disabled{opacity:.5;cursor:default}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .settings label{display:flex;gap:8px;align-items:center;padding:4px 0}
 .settings fieldset{border:0;padding:0;margin:0 0 12px}
@@ -157,7 +165,7 @@ h2{font-size:17px;margin-bottom:12px}
 .backup-msg.good{background:var(--ok-soft)} .backup-msg.bad{background:var(--bad-soft)}
 .confirm{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px;border-radius:10px;background:var(--bad-soft)}
 .confirm .ghost{padding:8px 14px}
-.confirm .yes{background:var(--bad);color:var(--panel);border:0;border-radius:10px;padding:8px 14px;font-weight:700}
+.confirm .yes{background:var(--bad);color:#FFFFFF;border:0;border-radius:999px;padding:8px 16px;font-weight:700}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* symboler */
