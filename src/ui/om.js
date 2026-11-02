@@ -41,20 +41,12 @@ function aboutEn(lic) {
     <p>A big thank you to Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), who works so hard in the
       Bliss projects and on spreading and developing Bliss.</p>
 
-    <aside class="promo" aria-labelledby="promo-title">
-      <div class="promo-kicker">Tip</div>
-      <h3 id="promo-title">Blisshuset – Sunderby folkhögskola</h3>
-      <p>The Blisshuset association is based at <a href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">Sunderby folkhögskola</a>, which also runs Blisskursen – a folk high school course.</p>
-      <p>Blisshuset also offers products with Blissymbols – bracelets, chopping boards, pictures and much more.</p>
-      <a class="promo-link" href="https://blisshuset.com" target="_blank" rel="noopener">Visit blisshuset.com</a>
-    </aside>
-
     <h3>Links</h3>
     <div class="links">
-      <a class="link-card" href="https://specialneedstoys.com" target="_blank" rel="noopener">
-        <b>TFH Special Needs Toys</b>
-        <span>Sensory toys and products for people with special needs, for school, care and the home.</span>
-        <span class="link-url">specialneedstoys.com</span>
+      <a class="link-card" href="https://blisshuset.com" target="_blank" rel="noopener">
+        <b>Blisshuset</b>
+        <span>The Blisshuset association, based at Sunderby folkhögskola. Products with Blissymbols – bracelets, chopping boards, pictures and much more.</span>
+        <span class="link-url">blisshuset.com</span>
       </a>
       <a class="link-card" href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">
         <b>Sunderby folkhögskola</b>
@@ -136,20 +128,12 @@ function about() {
     <p>Ett stort tack till Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), som arbetar så hårt
       i Blissprojekten och med att sprida och utveckla Bliss.</p>
 
-    <aside class="promo" aria-labelledby="promo-title">
-      <div class="promo-kicker">Tips</div>
-      <h3 id="promo-title">Blisshuset – Sunderby folkhögskola</h3>
-      <p>Föreningen Blisshuset finns på <a href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">Sunderby folkhögskola</a>, som också driver Blisskursen – en folkhögskolekurs.</p>
-      <p>Hos Blisshuset finns också produkter med Blissymboler – armband, skärbrädor, tavlor och mycket mer.</p>
-      <a class="promo-link" href="https://blisshuset.com" target="_blank" rel="noopener">Besök blisshuset.com</a>
-    </aside>
-
     <h3>Länkar</h3>
     <div class="links">
-      <a class="link-card" href="https://tfhsensory.se" target="_blank" rel="noopener">
-        <b>TFH Sensory – Sinnesupplevelser för alla</b>
-        <span>Sinnesstimulerande produkter för vård, skola, äldreomsorg och hemmet.</span>
-        <span class="link-url">tfhsensory.se</span>
+      <a class="link-card" href="https://blisshuset.com" target="_blank" rel="noopener">
+        <b>Blisshuset</b>
+        <span>Föreningen Blisshuset finns på Sunderby folkhögskola. Produkter med Blissymboler – armband, skärbrädor, tavlor och mycket mer.</span>
+        <span class="link-url">blisshuset.com</span>
       </a>
       <a class="link-card" href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">
         <b>Sunderby folkhögskola</b>
