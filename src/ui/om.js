@@ -35,9 +35,9 @@ function aboutEn(lic) {
       then the words built from them, and review them at ever longer intervals. The English words and explanations are BCI's own.</p>
     <p>Made by John Säbom.</p>
     <p>Developed with support from the Swedish Inheritance Fund (Allmänna Arvsfonden) in the project BlissmAiker 2026, run by
-      Sunderby Folkhögskola, Furuboda Folkhögskola and RISE.</p>
+      Sunderby folkhögskola, Furuboda folkhögskola and RISE.</p>
     <p>The symbols are drawn with BlissEngine and the WinBliss drawing engine, created by P-O Hedvall and Jonas Paulsson, which BCI has
-      used to standardise the Blissymbols. BlissEngine was created at Furuboda Folkhögskola in a project funded by the Swedish Inheritance Fund (Allmänna Arvsfonden).</p>
+      used to standardise the Blissymbols. BlissEngine was created at Furuboda folkhögskola in a project funded by the Swedish Inheritance Fund (Allmänna Arvsfonden).</p>
     <p>A big thank you to Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), who works so hard in the
       Bliss projects and on spreading and developing Bliss.</p>
 
@@ -126,10 +126,10 @@ function about() {
     <p>Bliss-glosor är ett gratis glosprogram för Blissymbolik. Du lär dig först grundtecknen, sedan orden som byggs av dem,
       och repeterar dem med allt längre mellanrum.</p>
     <p>Skapat av John Säbom.</p>
-    <p>Utvecklat med stöd av Allmänna Arvsfonden i projektet BlissmAiker 2026 som drivs av Sunderby Folkhögskola,
-      Furuboda Folkhögskola och RISE.</p>
+    <p>Utvecklat med stöd av Allmänna Arvsfonden i projektet BlissmAiker 2026 som drivs av Sunderby folkhögskola,
+      Furuboda folkhögskola och RISE.</p>
     <p>Symbolerna är ritade med BlissEngine och ritmotorn WinBliss, skapat av P-O Hedvall och Jonas Paulsson, och som BCI har
-      använt för att standardisera Blissymbolerna. BlissEngine skapades på Furuboda Folkhögskola inom ett projekt med stöd från Allmänna Arvsfonden.</p>
+      använt för att standardisera Blissymbolerna. BlissEngine skapades på Furuboda folkhögskola inom ett projekt med stöd från Allmänna Arvsfonden.</p>
     <p>Ett stort tack till Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), som arbetar så hårt
       i Blissprojekten och med att sprida och utveckla Bliss.</p>
 
