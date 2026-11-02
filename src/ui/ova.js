@@ -194,11 +194,13 @@ function finish(ok, note) {
   card$.querySelectorAll('.actions,.hint,.say').forEach((n) => n.remove());   // svaret får en egen högtalarknapp
   if (step.kind === 'sentence') {
     answerSentence(step.m.nr, ok);
+    if (ok) say(tx('Rätt!', 'Correct!'));
     card$.querySelector('.sentence').outerHTML = sentenceRow(step.m, true);   // luckan fylls i
     card$.insertAdjacentHTML('beforeend', sentenceFeedbackHTML(ok, note));
   } else {
     const ms = grade(step.c.id, ok);
-    if (step.mode === 'sym') say(step.c.word);
+    // "Rätt!", och i "Vad betyder symbolen?" ordet, som inte lästs upp förut.
+    say([ok ? tx('Rätt!', 'Correct!') : '', step.mode === 'sym' ? step.c.word : ''].filter(Boolean).join(' '));
     card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
     for (const { track, n, rank } of checkMilestones().reverse()) {
       const m = milestoneState(track);
@@ -226,11 +228,10 @@ function chooseOption(i) {
 function togglePal(i) {
   if (answered || !step.palette || i >= step.palette.length) return;
   const id = step.palette[i].id;
-  if (step.mode === 'parts') {
-    const k = step.sel.indexOf(id);
-    k < 0 ? step.sel.push(id) : step.sel.splice(k, 1);
-  } else step.sel.push(id);
+  const k = step.mode === 'parts' ? step.sel.indexOf(id) : -1;
+  k < 0 ? step.sel.push(id) : step.sel.splice(k, 1);
   renderStep();
+  if (k < 0) say(step.palette[i].word);   // delen läses upp när den väljs, inte när den tas bort
 }
 
 function checkStep() {
