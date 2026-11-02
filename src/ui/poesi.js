@@ -34,8 +34,8 @@ function poesi() {
       <div class="head"><h2>${tx('Kylskåpspoesi', 'Fridge poetry')}</h2>
         <button type="button" class="ghost" data-act="home">${tx('← Start', '← Home')}</button></div>
       <p class="small muted" style="margin-bottom:12px">${poem.done
-        ? tx('Tryck på ett ord för att se symbolen.', 'Tap a word to see the symbol.')
-        : tx('Dra eller tryck på en magnet. Dra ut den för att ta bort.', 'Drag or tap a magnet. Drag it out to remove it.')}</p>
+        ? tx('Dra orden för att byta ordning. Tryck för att se symbolen.', 'Drag the words to reorder them. Tap to see the symbol.')
+        : tx('Dra eller tryck på en magnet. Dra orden i dikten för att byta ordning, eller ut för att ta bort.', 'Drag or tap a magnet. Drag words in the poem to reorder them, or out to remove them.')}</p>
       <div class="tabs fridge-pick" role="group" aria-label="${tx('Kylskåp', 'Fridge')}">${Object.entries(FRIDGES).map(([k, [sv, en]]) =>
         `<button type="button" data-fridge="${k}" aria-pressed="${fridgeStyle() === k}">${tx(sv, en)}</button>`).join('')}</div>
       <div class="fridge ${fridgeStyle()}${poem.done ? ' done' : ''}">
@@ -76,16 +76,46 @@ function undoWord() {
   poem.opts = h.opts.map((o) => ({ ...o, fresh: false }));
 }
 
-/** Var i dikten en magnet släpps: före första magneten som ligger efter punkten i läsordning. */
-function insertIndex(x, y, skip = -1) {
-  let i = 0;
-  for (const el of document.querySelectorAll('#poem .magnet')) {
-    if (+el.dataset.placed === skip) continue;
-    const r = el.getBoundingClientRect();
-    if (y < r.top || (y <= r.bottom && x < r.left + r.width / 2)) return i;
-    i++;
+/**
+ * Var i dikten en magnet släpps: på närmaste rad, vänster om första magneten vars mitt ligger till höger
+ * om punkten – så spelar det ingen roll hur högt eller lågt den släpps. Ger platsen (at) och var strecket ritas.
+ */
+function dropSpot(x, y, skip = -1) {
+  const mags = [...document.querySelectorAll('#poem .magnet')].filter((el) => +el.dataset.placed !== skip)
+    .map((el) => el.getBoundingClientRect());
+  if (!mags.length) return { at: 0 };
+  const rows = [];
+  mags.forEach((r, i) => {
+    const row = rows[rows.length - 1];
+    if (row && r.top + r.height / 2 < row.bottom) { row.bottom = Math.max(row.bottom, r.bottom); row.end = i + 1; }
+    else rows.push({ start: i, end: i + 1, top: r.top, bottom: r.bottom });
+  });
+  const dist = (row) => Math.abs((row.top + row.bottom) / 2 - y);
+  const row = rows.reduce((a, b) => (dist(b) < dist(a) ? b : a));
+  for (let i = row.start; i < row.end; i++) {
+    const r = mags[i];
+    if (x < r.left + r.width / 2) return { at: i, left: r.left - 4, top: r.top, height: r.height };
   }
-  return i;
+  const r = mags[row.end - 1];
+  return { at: row.end, left: r.right + 4, top: r.top, height: r.height };
+}
+/** Ett streck i dikten visar var magneten hamnar. */
+function showCaret(x, y, skip) {
+  const box = document.getElementById('poem');
+  let bar = box.querySelector('.poem-caret');
+  const spot = x == null ? {} : dropSpot(x, y, skip);
+  if (spot.left == null) { bar?.remove(); return; }
+  if (!bar) {
+    bar = document.createElement('i');
+    bar.className = 'poem-caret';
+    box.appendChild(bar);
+  }
+  const b = box.getBoundingClientRect();
+  Object.assign(bar.style, {
+    left: `${spot.left - b.left - box.clientLeft - 2}px`,
+    top: `${spot.top - b.top - box.clientTop}px`,
+    height: `${spot.height}px`,
+  });
 }
 
 // En lös kopia av magneten följer fingret och lutar åt det håll den dras.
@@ -125,7 +155,7 @@ function landOn(gh, key) {
 
 let drag = null, suppressClick = false;
 app.addEventListener('pointerdown', (e) => {
-  if (UI.view() !== 'poesi' || poem.done || drag || e.button > 0) return;
+  if (UI.view() !== 'poesi' || drag || e.button > 0) return;
   const el = e.target.closest('.magnet');
   if (el) drag = { el, pid: e.pointerId, x0: e.clientX, y0: e.clientY, lx: e.clientX, gh: null };
 });
@@ -145,20 +175,27 @@ window.addEventListener('pointermove', (e) => {
   const pr = document.getElementById('poem').getBoundingClientRect();
   drag.over = e.clientX >= pr.left && e.clientX <= pr.right && e.clientY >= pr.top - 10 && e.clientY <= pr.bottom + 10;
   document.getElementById('poem').classList.toggle('over', drag.over);
+  // Magnetens mitt räknas, inte fingret, som kan hålla i ett hörn.
+  const r = drag.el.getBoundingClientRect();
+  drag.cx = e.clientX - drag.ox + r.width / 2;
+  drag.cy = e.clientY - drag.oy + r.height / 2;
+  if (drag.over) showCaret(drag.cx, drag.cy, drag.el.dataset.placed != null ? +drag.el.dataset.placed : -1);
+  else showCaret();
   // nära skärmkanten: bläddra med, så att dikten nås även när magneterna ligger långt ner
   if (e.clientY < 70) window.scrollBy(0, -14);
   else if (e.clientY > innerHeight - 70) window.scrollBy(0, 14);
 }, { passive: false });
 function endDrag(e) {
   if (!drag || e.pointerId !== drag.pid) return;
-  const { el, gh, over } = drag;
+  const { el, gh, over, cx, cy } = drag;
   drag = null;
   if (!gh) return;   // ingen förflyttning: ett vanligt tryck, som klickhanteraren tar
+  showCaret();
   suppressClick = true;
   setTimeout(() => { suppressClick = false; }, 60);
   const placed = el.dataset.placed != null ? +el.dataset.placed : -1;
-  if (e.type === 'pointercancel' || (!over && placed < 0)) {
-    // tillbaka till högen
+  if (e.type === 'pointercancel' || (!over && (placed < 0 || poem.done))) {
+    // tillbaka till högen, eller till sin plats i en färdig dikt
     const r = el.getBoundingClientRect();
     return glide(gh, r.left, r.top, gh.rot, () => el.classList.remove('lifted'));
   }
@@ -168,15 +205,18 @@ function endDrag(e) {
     poesi();
     return glide(gh, gh.x, innerHeight + 40, gh.rot + 40, null, true);
   }
-  const at = insertIndex(e.clientX, e.clientY, placed);
+  const { at } = dropSpot(cx, cy, placed);
   let key;
   if (placed >= 0) {
     const [w] = poem.words.splice(placed, 1);
     poem.words.splice(at, 0, w);
     key = w.key;
   } else key = placeWord(+el.dataset.mag, at);
+  const moved = poem.done && at !== placed;
+  if (moved) forgetImage();   // bilden visar den gamla ordningen
   poesi();
   landOn(gh, key);
+  if (moved) prepareImage();
 }
 window.addEventListener('pointerup', endDrag);
 window.addEventListener('pointercancel', endDrag);
