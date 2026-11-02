@@ -58,13 +58,18 @@ function aboutEn(lic) {
       </a>
       <a class="link-card" href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">
         <b>Sunderby folkhögskola</b>
-        <span>Home of the Blisshuset association. The school runs Blisskursen and the BlissmAiker project.</span>
+        <span>Home of the Blisshuset association. The school runs Blisskursen.</span>
         <span class="link-url">sunderbyfolkhogskola.se</span>
       </a>
       <a class="link-card" href="https://furuboda.org" target="_blank" rel="noopener">
         <b>Föreningen Furuboda</b>
         <span>The organisation behind Furuboda folkhögskola, where BlissEngine was created.</span>
         <span class="link-url">furuboda.org</span>
+      </a>
+      <a class="link-card" href="https://www.ri.se/en" target="_blank" rel="noopener">
+        <b>RISE Research Institutes of Sweden</b>
+        <span>Sweden's research institute, working to strengthen industry's competitiveness and renew the public sector.</span>
+        <span class="link-url">ri.se</span>
       </a>
     </div>
 
@@ -148,13 +153,18 @@ function about() {
       </a>
       <a class="link-card" href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">
         <b>Sunderby folkhögskola</b>
-        <span>Här finns Föreningen Blisshuset. Skolan driver Blisskursen och projektet BlissmAiker.</span>
+        <span>Här finns Föreningen Blisshuset. Skolan driver Blisskursen.</span>
         <span class="link-url">sunderbyfolkhogskola.se</span>
       </a>
       <a class="link-card" href="https://furuboda.org" target="_blank" rel="noopener">
         <b>Föreningen Furuboda</b>
         <span>Huvudman för Furuboda folkhögskola, där BlissEngine skapades.</span>
         <span class="link-url">furuboda.org</span>
+      </a>
+      <a class="link-card" href="https://www.ri.se" target="_blank" rel="noopener">
+        <b>RISE Research Institutes of Sweden</b>
+        <span>Sveriges forskningsinstitut, som arbetar för näringslivets konkurrenskraft och den offentliga sektorns förnyelse.</span>
+        <span class="link-url">ri.se</span>
       </a>
     </div>
 
