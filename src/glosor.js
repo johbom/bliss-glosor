@@ -196,6 +196,12 @@ function pickHeads(key, head) {
 }
 pickHeads('synsSv', 'headSv');
 pickHeads('synsEn', 'headEn');
+// Engelska huvudord när det som blir kvar efter pickHeads är tvetydigt. Alla BCI:s synonymer visas
+// kvar (index -1). Bara ord som användaren bett om.
+const EN_HEAD = {
+  14688: 'he/she',   // BCI: "he,she,him,her,one" (sv. "man"). "he" och "she" är egna ord, och "one" togs för siffran
+};
+for (const [id, w] of Object.entries(EN_HEAD)) if (deck.has(+id)) deck.get(+id).headEn = [w, -1];
 
 // Nivå (0 = grundtecken) och hur många ord som bygger på kortet, direkt eller indirekt.
 const levelMemo = new Map();
@@ -915,11 +921,14 @@ function wordSVG(key, e, unit, cls = '', spaced = false) {
   return symbolSVG({ id: 'w:' + key, v: { e } }, unit, cls, SENTENCE_FRAME, spaced ? 400 : null);
 }
 
-/** Det som läses upp: ordet utan BCI:s parentes ("tro (verb)" → "tro") och med mellanslag för _ ("en_annan_gång"). */
+/**
+ * Det som läses upp: ordet utan BCI:s parentes ("tro (verb)" → "tro"), med mellanslag för _ ("en_annan_gång")
+ * och en kort paus för / ("he/she" → "he, she").
+ */
 function speechText(word) {
   let w = String(word || ''), prev;
   do { prev = w; w = w.replace(/\s*-?\([^()]*\)\s*$/, ''); } while (w !== prev);
-  return w.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+  return w.replace(/_/g, ' ').replace(/\s*\/\s*/g, ', ').replace(/\s+/g, ' ').trim();
 }
 
 window.Glosor = {
