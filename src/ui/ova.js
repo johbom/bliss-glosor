@@ -8,7 +8,7 @@ const {
   formulaHTML, esc, startFocus, focusState, mergedNote, startSentences, sentenceState, nextSentence,
   answerSentence, wordSVG, milestoneState, checkMilestones,
 } = window.Glosor;
-const { tx, fmtN, app, setView, register, endModes, milestoneHTML, msUnit, say, sayBtn, speakOn } = window.GlosorUI;
+const { tx, fmtN, app, setView, register, endModes, milestoneHTML, msUnit, say, sayBtn, speakOn, stop } = window.GlosorUI;
 
 let step = null, answered = false, sess = null;
 
@@ -24,6 +24,7 @@ function startSession(kind) {
 }
 
 function advance() {
+  stop();   // det förra kortets uppläsning (och "Rätt!" – ordet efter pausen) tystnar vid Fortsätt
   step = sess.sentences ? nextSentence() : nextStep();
   answered = false;
   if (step?.kind === 'intro') sess.fresh++;
