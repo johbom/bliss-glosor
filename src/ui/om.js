@@ -35,7 +35,7 @@ function aboutEn(lic) {
       then the words built from them, and review them at ever longer intervals. The English words and explanations are BCI's own.</p>
     <p>Made by John Säbom.</p>
     <p>Developed with support from the Swedish Inheritance Fund (Allmänna Arvsfonden) in the project BlissmAiker 2026, run by
-      Sunderby folkhögskola, Furuboda folkhögskola and RISE.</p>
+      Sunderby folkhögskola, Furuboda folkhögskola, Blisshuset and RISE.</p>
     <p>The symbols are drawn with BlissEngine and the WinBliss drawing engine, created by P-O Hedvall and Jonas Paulsson, which BCI has
       used to standardise the Blissymbols. BlissEngine was created at Furuboda folkhögskola in a project funded by the Swedish Inheritance Fund (Allmänna Arvsfonden).</p>
     <p>A big thank you to Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), who works so hard in the
@@ -45,7 +45,7 @@ function aboutEn(lic) {
       <div class="promo-kicker">Tip</div>
       <h3 id="promo-title">Blisshuset – Sunderby folkhögskola</h3>
       <p>The Blisshuset association is based at <a href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">Sunderby folkhögskola</a>, which also runs Blisskursen – a folk high school course.
-        Sunderby folkhögskola also runs the BlissmAiker project together with Furuboda folkhögskola and
+        Sunderby folkhögskola and Blisshuset also run the BlissmAiker project together with Furuboda folkhögskola and
         the RISE research institute.</p>
       <p>Blisshuset also offers products with Blissymbols – bracelets, chopping boards, pictures and much more.</p>
       <a class="promo-link" href="https://blisshuset.com" target="_blank" rel="noopener">Visit blisshuset.com</a>
@@ -127,7 +127,7 @@ function about() {
       och repeterar dem med allt längre mellanrum.</p>
     <p>Skapat av John Säbom.</p>
     <p>Utvecklat med stöd av Allmänna Arvsfonden i projektet BlissmAiker 2026 som drivs av Sunderby folkhögskola,
-      Furuboda folkhögskola och RISE.</p>
+      Furuboda folkhögskola, Blisshuset och RISE.</p>
     <p>Symbolerna är ritade med BlissEngine och ritmotorn WinBliss, skapat av P-O Hedvall och Jonas Paulsson, och som BCI har
       använt för att standardisera Blissymbolerna. BlissEngine skapades på Furuboda folkhögskola inom ett projekt med stöd från Allmänna Arvsfonden.</p>
     <p>Ett stort tack till Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), som arbetar så hårt
@@ -137,7 +137,7 @@ function about() {
       <div class="promo-kicker">Tips</div>
       <h3 id="promo-title">Blisshuset – Sunderby folkhögskola</h3>
       <p>Föreningen Blisshuset finns på <a href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">Sunderby folkhögskola</a>, som också driver Blisskursen – en folkhögskolekurs.
-        Sunderby folkhögskola driver också projektet BlissmAiker tillsammans med Furuboda folkhögskola och
+        Sunderby folkhögskola och Blisshuset driver också projektet BlissmAiker tillsammans med Furuboda folkhögskola och
         forskningsinstitutet RISE.</p>
       <p>Hos Blisshuset finns också produkter med Blissymboler – armband, skärbrädor, tavlor och mycket mer.</p>
       <a class="promo-link" href="https://blisshuset.com" target="_blank" rel="noopener">Besök blisshuset.com</a>
