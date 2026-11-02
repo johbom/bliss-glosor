@@ -44,9 +44,7 @@ function aboutEn(lic) {
     <aside class="promo" aria-labelledby="promo-title">
       <div class="promo-kicker">Tip</div>
       <h3 id="promo-title">Blisshuset – Sunderby folkhögskola</h3>
-      <p>The Blisshuset association is based at <a href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">Sunderby folkhögskola</a>, which also runs Blisskursen – a folk high school course.
-        Sunderby folkhögskola and Blisshuset also run the BlissmAiker project together with Furuboda folkhögskola and
-        the RISE research institute.</p>
+      <p>The Blisshuset association is based at <a href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">Sunderby folkhögskola</a>, which also runs Blisskursen – a folk high school course.</p>
       <p>Blisshuset also offers products with Blissymbols – bracelets, chopping boards, pictures and much more.</p>
       <a class="promo-link" href="https://blisshuset.com" target="_blank" rel="noopener">Visit blisshuset.com</a>
     </aside>
@@ -136,9 +134,7 @@ function about() {
     <aside class="promo" aria-labelledby="promo-title">
       <div class="promo-kicker">Tips</div>
       <h3 id="promo-title">Blisshuset – Sunderby folkhögskola</h3>
-      <p>Föreningen Blisshuset finns på <a href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">Sunderby folkhögskola</a>, som också driver Blisskursen – en folkhögskolekurs.
-        Sunderby folkhögskola och Blisshuset driver också projektet BlissmAiker tillsammans med Furuboda folkhögskola och
-        forskningsinstitutet RISE.</p>
+      <p>Föreningen Blisshuset finns på <a href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">Sunderby folkhögskola</a>, som också driver Blisskursen – en folkhögskolekurs.</p>
       <p>Hos Blisshuset finns också produkter med Blissymboler – armband, skärbrädor, tavlor och mycket mer.</p>
       <a class="promo-link" href="https://blisshuset.com" target="_blank" rel="noopener">Besök blisshuset.com</a>
     </aside>
