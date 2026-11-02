@@ -12,9 +12,9 @@ källorna nedan, och dela det som bygger på BCI:s material under samma licens
 
 | Del | Filer | Upphov | Licens |
 |---|---|---|---|
-| Blissymbolerna, ordförrådet BCI-AV, de svenska glosorna och härledningarna | `src/vendor/bliss-data.js`, `src/vendor/bliss-derivations.js`, `icons/` | © Blissymbolics Communication International (BCI); Blissymbolics © C.K. Bliss 1949, 1965 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.sv) |
+| Blissymbolerna, ordförrådet BCI-AV, de svenska glosorna och härledningarna | `src/vendor/bliss-data.js`, `src/vendor/bliss-derivations.js`, `src/vendor/bliss-ritningar.js`, `icons/` | © Blissymbolics Communication International (BCI); Blissymbolics © C.K. Bliss 1949, 1965 | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.sv) |
 | Svenska översättningar av härledningarnas förklaringar | `data/forklaringar-sv.json` (inbakad i `src/vendor/bliss-derivations.js`) | John Säbom, byggt på BCI:s material | [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.sv) |
-| Ritmotorn BlissEngine | `src/vendor/bliss-shapes.js`, `src/vendor/bliss-engine.js` | © AnyCom AB – BlissEngine av P-O Hedvall och Jonas Paulsson – ritmotorn ur WinBliss (1997–2007), överförd till webben 2026 | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.sv) |
+| Ritmotorn BlissEngine | ingår inte i appen; symbolerna är ritade i förväg med originalmotorn (`src/vendor/bliss-ritningar.js`) | © AnyCom AB – BlissEngine av P-O Hedvall och Jonas Paulsson – ritmotorn ur WinBliss (1997–2007), överförd till webben 2026 | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.sv) |
 | Ordfrekvenser (ordningen inom en nivå) | inbakade i `src/vendor/bliss-derivations.js` | SUC 3.0-statistik, Språkbanken Text, Göteborgs universitet | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.sv) |
 | Typsnittet Atkinson Hyperlegible | `fonts/` | © 2020 Braille Institute of America, Inc. | [SIL Open Font License 1.1](fonts/OFL.txt) |
 | Glosprogrammets egen kod | `glosor.html`, `src/glosor.js`, `glosor-sw.js`, `glosor.webmanifest`, `scripts/build-*.js` | © 2026 John Säbom | [MIT](LICENSE) |

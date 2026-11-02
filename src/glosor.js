@@ -17,8 +17,8 @@
 
 (() => {
 // Vanligt skript, inte ES-modul: webbläsare blockerar moduler när sidan öppnas
-// direkt från disken (file://). Kräver att bliss-engine.js, bliss-data.js och
-// bliss-derivations.js (window.DERIV) laddats före, och exponerar window.Glosor.
+// direkt från disken (file://). Kräver att bliss-data.js, bliss-ritningar.js (window.BLISS_RITNINGAR)
+// och bliss-derivations.js (window.DERIV) laddats före, och exponerar window.Glosor.
 const DERIV = window.DERIV;
 const BLISS = new Map(window.BLISS_DATA.map((s) => [s.id, s]));
 /** Samma sammanslagning som src/vocabulary.js: svensk glosa ur arket, engelska som reserv. */
@@ -785,11 +785,14 @@ function splitParts(list, depth = 2) {
 
 // ---------------------------------------------------------------- rendering
 
+// Ritningarna är färdiga: originalmotorn BlissEngine ritade dem vid bygget (scripts/build-ritningar.js).
+// Appen ritar inget själv – saknas en ritning visas ingen symbol, hellre det än en egen variant.
+const RITNINGAR = window.BLISS_RITNINGAR || {};
 const bodyCache = new Map();
 let meter = null;
 function geometry(c) {
   if (bodyCache.has(c.id)) return bodyCache.get(c.id);
-  const { body } = window.renderBliss(c.v);
+  const body = RITNINGAR[c.id] || '';
   if (!meter) {
     meter = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     meter.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:10px;height:10px';
