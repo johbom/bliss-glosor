@@ -18,18 +18,32 @@ function utter(text) {
   u.lang = lang() === 'en' ? 'en-GB' : 'sv-SE';
   return u;
 }
+// run räknas upp vid varje stop(), så att en väntande paus inte startar nästa del efter ett avbrott.
+let run = 0, gapTimer = null, current = null;
+const PAUSE = 600;   // ms mellan delarna: "Rätt!" – "bra", inte "rätt bra"
 function stop() {
   if (!canSpeak) return;
+  run++;
+  clearTimeout(gapTimer);
   // Safari tappar ibland nästa yttrande om cancel() körs när inget läses.
   if (synth.speaking || synth.pending) synth.cancel();
   document.querySelectorAll('.saying').forEach((el) => el.classList.remove('saying'));
 }
-/** Läs upp en text (avbryter det som läses). Anropas helst direkt i ett tryck: iPhone kräver det första gången. */
+/**
+ * Läs upp en text, eller flera med en paus emellan: say(['Rätt!', 'bra']). Avbryter det som läses.
+ * Anropas helst direkt i ett tryck: iPhone kräver det första gången.
+ */
 function say(text, force = false) {
-  const t = speechText(text);
-  if (!t || !(force || speakOn())) return;
+  const parts = [].concat(text).map(speechText).filter(Boolean);
+  if (!parts.length || !(force || speakOn())) return;
   stop();
-  synth.speak(utter(t));
+  const me = run;
+  const next = (i) => {
+    const u = current = utter(parts[i]);   // current: hålls kvar, annars kan onend utebli (Chrome)
+    if (i + 1 < parts.length) u.onend = () => { if (me === run) gapTimer = setTimeout(() => me === run && next(i + 1), PAUSE); };
+    synth.speak(u);
+  };
+  next(0);
 }
 /** Läs upp ord för ord; elementet för ordet som läses får klassen saying. items: [{ text, el: () => Element }]. */
 function sayAll(items) {

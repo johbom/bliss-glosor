@@ -8,7 +8,7 @@ const {
   formulaHTML, esc, startFocus, focusState, mergedNote, startSentences, sentenceState, nextSentence,
   answerSentence, wordSVG, milestoneState, checkMilestones,
 } = window.Glosor;
-const { tx, fmtN, app, setView, register, endModes, milestoneHTML, msUnit, say, sayBtn } = window.GlosorUI;
+const { tx, fmtN, app, setView, register, endModes, milestoneHTML, msUnit, say, sayBtn, speakOn } = window.GlosorUI;
 
 let step = null, answered = false, sess = null;
 
@@ -76,8 +76,9 @@ function quizHTML() {
   if (mode === 'sym') {
     return `<div class="kicker">${MODES.sym}</div><p class="prompt">${tx('Vad betyder symbolen?', 'What does the symbol mean?')}</p>
       <div class="stage">${symbolSVG(c, 9)}</div>
-      <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}"><span class="k">${i + 1}</span>${esc(o.word)}</button>`).join('')}</div>
-      <div class="hint">${tx('Tangent 1–4 väljer', 'Keys 1–4 choose')}</div>`;
+      <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt${step.heard === i ? ' heard' : ''}" data-opt="${i}"><span class="k">${i + 1}</span>${esc(o.word)}</button>`).join('')}</div>
+      <div class="hint">${listenFirst() ? tx('Tryck en gång för att lyssna, igen för att välja', 'Tap once to listen, again to choose')
+        : tx('Tangent 1–4 väljer', 'Keys 1–4 choose')}</div>`;
   }
   if (mode === 'word') {
     return `<div class="kicker">${MODES.word}</div><p class="prompt">${tx('Vilken symbol betyder', 'Which symbol means')}</p>
@@ -200,7 +201,7 @@ function finish(ok, note) {
   } else {
     const ms = grade(step.c.id, ok);
     // "Rätt!" eller "Inte riktigt.", och i "Vad betyder symbolen?" ordet, som inte lästs upp förut.
-    say([ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt.', 'Not quite.'), step.mode === 'sym' ? step.c.word : ''].filter(Boolean).join(' '));
+    say([ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt.', 'Not quite.'), step.mode === 'sym' ? step.c.word : '']);
     card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
     for (const { track, n, rank } of checkMilestones().reverse()) {
       const m = milestoneState(track);
@@ -214,8 +215,18 @@ function finish(ok, note) {
   document.querySelector('.progress').outerHTML = progressBar();
 }
 
+// Med uppläsning i "Vad betyder symbolen?": första trycket läser alternativet, nästa tryck på samma väljer det.
+// (I de andra övningarna är alternativen symboler – att läsa upp dem skulle avslöja svaret.)
+const listenFirst = () => speakOn() && step?.mode === 'sym';
+
 function chooseOption(i) {
   if (answered || !step.options || i >= step.options.length) return;
+  if (listenFirst() && step.heard !== i) {
+    step.heard = i;
+    document.querySelectorAll('.opt').forEach((b, j) => b.classList.toggle('heard', j === i));
+    say(step.options[i].word);
+    return;
+  }
   const btns = [...document.querySelectorAll('.opt')];
   btns.forEach((b) => { b.disabled = true; });
   const ok = i === step.answer;
@@ -282,6 +293,7 @@ register('session', {
     if (e.key === 'Enter') {
       const btn = document.querySelector('#card .actions .primary, .panel .actions .primary');
       if (btn) { e.preventDefault(); btn.click(); }
+      else if (!answered && step?.heard != null) { e.preventDefault(); chooseOption(step.heard); }   // väljer det upplästa
       return;
     }
     if (e.key === 'Escape') return setView('home');

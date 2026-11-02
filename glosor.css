@@ -205,6 +205,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .opt.ok,.pal.ok{background:var(--ok-soft);border-color:var(--ok)}
 .opt.bad,.pal.bad{background:var(--bad-soft);border-color:var(--bad)}
 .opt.miss,.pal.miss{border-color:var(--ok);border-style:dashed}
+.opt.heard{background:var(--accent-soft);border-color:var(--accent)}
 .opt:disabled{cursor:default}
 .palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:14px}
 .pal{position:relative;max-width:none;width:100%;padding:10px 6px 6px}
