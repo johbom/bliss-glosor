@@ -200,6 +200,7 @@ pickHeads('synsEn', 'headEn');
 // kvar (index -1). Bara ord som användaren bett om.
 const EN_HEAD = {
   14688: 'he/she',   // BCI: "he,she,him,her,one" (sv. "man"). "he" och "she" är egna ord, och "one" togs för siffran
+  14716: 'his/her',  // BCI: "his,her,hers,one's" (sv. "sin") = he/she + hör till; "one's" var lika oklart
 };
 for (const [id, w] of Object.entries(EN_HEAD)) if (deck.has(+id)) deck.get(+id).headEn = [w, -1];
 
