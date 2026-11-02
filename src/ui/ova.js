@@ -194,13 +194,13 @@ function finish(ok, note) {
   card$.querySelectorAll('.actions,.hint,.say').forEach((n) => n.remove());   // svaret får en egen högtalarknapp
   if (step.kind === 'sentence') {
     answerSentence(step.m.nr, ok);
-    if (ok) say(tx('Rätt!', 'Correct!'));
+    say(ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt.', 'Not quite.'));
     card$.querySelector('.sentence').outerHTML = sentenceRow(step.m, true);   // luckan fylls i
     card$.insertAdjacentHTML('beforeend', sentenceFeedbackHTML(ok, note));
   } else {
     const ms = grade(step.c.id, ok);
-    // "Rätt!", och i "Vad betyder symbolen?" ordet, som inte lästs upp förut.
-    say([ok ? tx('Rätt!', 'Correct!') : '', step.mode === 'sym' ? step.c.word : ''].filter(Boolean).join(' '));
+    // "Rätt!" eller "Inte riktigt.", och i "Vad betyder symbolen?" ordet, som inte lästs upp förut.
+    say([ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt.', 'Not quite.'), step.mode === 'sym' ? step.c.word : ''].filter(Boolean).join(' '));
     card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
     for (const { track, n, rank } of checkMilestones().reverse()) {
       const m = milestoneState(track);
