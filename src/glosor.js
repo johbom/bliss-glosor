@@ -915,13 +915,20 @@ function wordSVG(key, e, unit, cls = '', spaced = false) {
   return symbolSVG({ id: 'w:' + key, v: { e } }, unit, cls, SENTENCE_FRAME, spaced ? 400 : null);
 }
 
+/** Det som läses upp: ordet utan BCI:s parentes ("tro (verb)" → "tro") och med mellanslag för _ ("en_annan_gång"). */
+function speechText(word) {
+  let w = String(word || ''), prev;
+  do { prev = w; w = w.replace(/\s*-?\([^()]*\)\s*$/, ''); } while (w !== prev);
+  return w.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
 window.Glosor = {
   MODES, S, save, resetProgress, stats, streak, bestStreak, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
   exportBackup, readBackup, importBackup,
   sentenceCount, sentenceTotal, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
-  milestoneState, checkMilestones, rankOf, lang, setLang,
+  milestoneState, checkMilestones, rankOf, lang, setLang, speechText,
   sentenceDrafts: SHOW_DRAFTS, shuffle,
 };
 })();

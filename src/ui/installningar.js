@@ -1,11 +1,11 @@
 /**
- * Inställningar: språk, övningar, takt, säkerhetskopia och nollställning.
+ * Inställningar: språk, uppläsning, övningar, takt, säkerhetskopia och nollställning.
  */
 (() => {
 const {
   MODES, S, save, resetProgress, esc, exportBackup, readBackup, importBackup, lang,
 } = window.Glosor;
-const { tx, app, register, applyLang, switchLang } = window.GlosorUI;
+const { tx, app, register, applyLang, switchLang, canSpeak, say } = window.GlosorUI;
 
 function settings() {
   const modes = Object.entries(MODES).map(([k, label]) =>
@@ -17,6 +17,11 @@ function settings() {
         <label><input type="radio" name="lang" value="sv" ${lang() === 'sv' ? 'checked' : ''}> Svenska</label>
         <label><input type="radio" name="lang" value="en" ${lang() === 'en' ? 'checked' : ''}> English</label>
       </fieldset>
+      ${canSpeak ? `<fieldset><legend>${tx('Uppläsning', 'Read aloud')}</legend>
+        <label><input type="checkbox" id="speak" ${S.settings.speak ? 'checked' : ''}> ${tx('Läs upp ord och dikter', 'Read words and poems aloud')}</label>
+        <p class="small muted">${tx('Enhetens egen röst. På iPhone finns bättre röster under Inställningar → Hjälpmedel → Uppläst innehåll → Röster.',
+          'Uses the device’s own voice. On iPhone, better voices are under Settings → Accessibility → Spoken Content → Voices.')}</p>
+      </fieldset>` : ''}
       <fieldset><legend>${tx('Övningar', 'Exercises')}</legend>${modes}</fieldset>
       <fieldset><legend>${tx('Takt', 'Pace')}</legend>
         <label>${tx('Nya symboler per dag', 'New symbols per day')} <input type="number" id="npd" min="1" max="100" value="${S.settings.newPerDay}"></label>
@@ -121,6 +126,10 @@ register('settings', {
     }
     if (t.id === 'npd') S.settings.newPerDay = Math.max(1, Math.min(100, parseInt(t.value, 10) || 10));
     if (t.id === 'staff') S.settings.staff = t.checked;
+    if (t.id === 'speak') {
+      S.settings.speak = t.checked;
+      if (t.checked) say(tx('Uppläsningen är på.', 'Read aloud is on.'));   // provar rösten direkt, i trycket
+    }
     save();
   },
 });

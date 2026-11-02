@@ -8,7 +8,7 @@ const {
   formulaHTML, esc, startFocus, focusState, mergedNote, startSentences, sentenceState, nextSentence,
   answerSentence, wordSVG, milestoneState, checkMilestones,
 } = window.Glosor;
-const { tx, fmtN, app, setView, register, endModes, milestoneHTML, msUnit } = window.GlosorUI;
+const { tx, fmtN, app, setView, register, endModes, milestoneHTML, msUnit, say, sayBtn } = window.GlosorUI;
 
 let step = null, answered = false, sess = null;
 
@@ -28,6 +28,8 @@ function advance() {
   answered = false;
   if (step?.kind === 'intro') sess.fresh++;
   renderStep();
+  // Ordet läses upp när det syns – i "Vad betyder symbolen?" först efter svaret.
+  if (step?.c && step.kind !== 'sentence' && step.mode !== 'sym') say(step.c.word);
   window.scrollTo(0, 0);   // nästa kort börjar överst, även om man bläddrat ner i förra
 }
 
@@ -46,7 +48,7 @@ function introHTML(c) {
   const users = c.users.length ? `<p class="small muted" style="margin-top:8px">${tx(`Ingår i ${c.users.length} andra ord.`, `Part of ${c.users.length} other words.`)}</p>` : '';
   return `<div class="kicker">${kind}</div>
     <div class="stage">${symbolSVG(c, 9)}</div>
-    <div class="word">${esc(c.word)}</div>
+    <div class="word">${esc(c.word)}${sayBtn(c.word)}</div>
     ${c.others.length ? `<div class="syns">${esc(c.others.join(', '))}</div>` : ''}
     <div style="margin-top:6px">${classChip(c)}</div>
     ${c.raw.length ? `<p class="small muted" style="margin-top:12px">${tx('Byggs av:', 'Built from:')}</p>${formulaHTML(c)}` : formulaHTML(c)}
@@ -79,14 +81,14 @@ function quizHTML() {
   }
   if (mode === 'word') {
     return `<div class="kicker">${MODES.word}</div><p class="prompt">${tx('Vilken symbol betyder', 'Which symbol means')}</p>
-      <div class="word">${esc(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
+      <div class="word">${esc(c.word)}${sayBtn(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
       <div class="opts">${step.options.map((o, i) => `<button type="button" class="opt" data-opt="${i}" aria-label="${tx('Alternativ', 'Option')} ${i + 1}"><span class="k">${i + 1}</span>${symbolSVG(o, 4.5)}</button>`).join('')}</div>
       <div class="hint">${tx('Tangent 1–4 väljer', 'Keys 1–4 choose')}</div>`;
   }
   const pal = step.palette.map((o, i) =>
     `<button type="button" class="chip pal${step.mode === 'parts' && step.sel.includes(o.id) ? ' on' : ''}" data-pal="${i}">${i < 9 ? `<span class="k">${i + 1}</span>` : ''}${symbolSVG(o, 3.4)}<span>${esc(o.word)}</span></button>`).join('');
   if (mode === 'parts') {
-    return `<div class="kicker">${MODES.parts}</div><p class="prompt">${tx(`Vilka delar består <b>${esc(c.word)}</b> av?`, `Which parts is <b>${esc(c.word)}</b> made of?`)}</p>
+    return `<div class="kicker">${MODES.parts}</div><p class="prompt">${tx(`Vilka delar består <b>${esc(c.word)}</b> av?`, `Which parts is <b>${esc(c.word)}</b> made of?`)}${sayBtn(c.word)}</p>
       <div class="stage">${symbolSVG(c, 9)}</div>
       <p class="small muted">${partsCountText(c)}</p>
       ${mergedNote(c)}
@@ -94,7 +96,7 @@ function quizHTML() {
       <div class="actions"><span class="hint">${tx('Siffror markerar · Enter kontrollerar', 'Numbers select · Enter checks')}</span><button type="button" class="primary" data-act="check">${tx('Kontrollera', 'Check')}</button></div>`;
   }
   return `<div class="kicker">${MODES.build}</div><p class="prompt">${tx('Bygg symbolen för', 'Build the symbol for')}</p>
-    <div class="word">${esc(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
+    <div class="word">${esc(c.word)}${sayBtn(c.word)}</div><div style="margin-top:4px">${classChip(c)}</div>
     <div class="strip" id="strip" data-empty="${tx('Välj delar nedan', 'Choose parts below')}">${step.sel.map((id, i) => `<button type="button" class="chip" data-unsel="${i}" title="${tx('Ta bort', 'Remove')}">${symbolSVG(card(id), 3.4)}<span>${esc(card(id).word)}</span></button>`).join('')}</div>
     <p class="small muted" style="margin-top:6px">${c.optInd ? tx(`${c.parts.length} delar (operatorn valfri).`, `${c.parts.length} parts (indicator optional).`) : tx(`${c.parts.length} delar.`, `${c.parts.length} parts.`)}</p>
     <div class="palette">${pal}</div>
@@ -175,7 +177,7 @@ function feedbackHTML(ok, ms, note = '') {
   const { c } = step;
   return `<div class="feedback ${ok ? 'good' : 'wrong'}">
     <h3>${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</h3>
-    <div class="row" style="align-items:flex-end">${step.mode === 'sym' ? '' : symbolSVG(c, 5)}<div><div class="word" style="font-size:22px">${esc(c.word)}</div>${classChip(c)}</div></div>
+    <div class="row" style="align-items:flex-end">${step.mode === 'sym' ? '' : symbolSVG(c, 5)}<div><div class="word" style="font-size:22px">${esc(c.word)}${sayBtn(c.word)}</div>${classChip(c)}</div></div>
     ${note ? `<p class="small" style="margin-top:6px">${note}</p>` : ''}
     ${formulaHTML(c, 2.8)}
     ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
@@ -189,13 +191,14 @@ function finish(ok, note) {
   answered = true;
   ok ? sess.right++ : sess.wrong++;
   const card$ = document.getElementById('card');
-  card$.querySelectorAll('.actions,.hint').forEach((n) => n.remove());
+  card$.querySelectorAll('.actions,.hint,.say').forEach((n) => n.remove());   // svaret får en egen högtalarknapp
   if (step.kind === 'sentence') {
     answerSentence(step.m.nr, ok);
     card$.querySelector('.sentence').outerHTML = sentenceRow(step.m, true);   // luckan fylls i
     card$.insertAdjacentHTML('beforeend', sentenceFeedbackHTML(ok, note));
   } else {
     const ms = grade(step.c.id, ok);
+    if (step.mode === 'sym') say(step.c.word);
     card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
     for (const { track, n, rank } of checkMilestones().reverse()) {
       const m = milestoneState(track);

@@ -3,8 +3,8 @@
  *
  * Vanliga skript, inga ES-moduler: då fungerar sidan även när den öppnas direkt från disken
  * (file://), där webbläsare blockerar moduler. Ordningen i glosor.html: logiken (src/glosor.js,
- * src/glosor-poesi.js), sedan den här filen, sedan de delar som vyerna delar (milstolpar.js,
- * detalj.js) och sist en fil per vy. Allt gemensamt nås via window.GlosorUI.
+ * src/glosor-poesi.js), sedan den här filen, sedan de delar som vyerna delar (tal.js,
+ * milstolpar.js, detalj.js) och sist en fil per vy. Allt gemensamt nås via window.GlosorUI.
  *
  * En vy registrerar sig med register(namn, vy). Alla fält är valfria:
  *   render()      ritar vyn (setView)

@@ -7,7 +7,7 @@ const {
   S, save, card, symbolSVG, esc, poemOptions, poemLabel,
 } = window.Glosor;
 const UI = window.GlosorUI;
-const { tx, app, register, showDetail } = UI;
+const { tx, app, register, showDetail, say, sayAll, speakOn, stop, SPEAKER } = UI;
 
 // Varje magnet får en egen lutning, som följer med när den flyttas – så ser kylskåpsdörren lagom stökig ut.
 const poem = { words: [], opts: null, hist: [], done: false, seq: 0, image: null, shown: null };
@@ -48,7 +48,8 @@ function poesi() {
            <button type="button" class="ghost" id="poem-edit">${tx('Skriv vidare', 'Keep writing')}</button>`
         : `<button type="button" class="primary" id="poem-done" ${poem.words.length ? '' : 'disabled'}>${tx('Färdig', 'Done')}</button>
            <button type="button" class="ghost" id="poem-undo" ${poem.hist.length ? '' : 'disabled'}>${tx('↶ Ångra', '↶ Undo')}</button>
-           <button type="button" class="ghost" id="poem-shuffle">${tx('Nya ord', 'New words')}</button>`}</div>
+           <button type="button" class="ghost" id="poem-shuffle">${tx('Nya ord', 'New words')}</button>`}
+        ${speakOn() && poem.words.length ? `<button type="button" class="ghost" id="poem-say">${SPEAKER} ${tx('Läs upp', 'Read aloud')}</button>` : ''}</div>
       ${poem.done && poem.shown ? `<figure class="poem-picture"><img src="${poem.shown}" alt="${tx('Dikten som bild', 'The poem as a picture')}" />
         <figcaption class="small muted">${tx('Håll in eller högerklicka på bilden för att spara den.', 'Press and hold or right-click the picture to save it.')}</figcaption></figure>` : ''}
     </section>`;
@@ -62,6 +63,7 @@ function placeWord(id, at = poem.words.length) {
   poem.hist.push({ key, opts: poem.opts });
   poem.words.splice(at, 0, { id, key, ...jitter() });
   newOpts(id);
+  say(poemLabel(card(id)));
   return key;
 }
 function removeWord(i) {
@@ -401,6 +403,11 @@ register('poesi', {
     if (t.dataset.placed != null) return showDetail(poem.words[+t.dataset.placed].id), true;
     if (t.id === 'poem-done') { poem.done = true; poesi(); prepareImage(); return true; }
     if (t.id === 'poem-save') return savePoem(), true;
+    if (t.id === 'poem-say') {
+      // Ord för ord: magneten som läses lyser upp.
+      sayAll(poem.words.map((w) => ({ text: poemLabel(card(w.id)), el: () => document.querySelector(`#poem [data-key="${w.key}"]`) })));
+      return true;
+    }
     if (t.dataset.fridge) {
       S.settings.fridge = t.dataset.fridge;
       save();
@@ -410,7 +417,7 @@ register('poesi', {
       return true;
     }
     if (t.id === 'poem-edit') { poem.done = false; forgetImage(); poesi(); return true; }
-    if (t.id === 'poem-clear') { Object.assign(poem, { words: [], hist: [], done: false }); forgetImage(); newOpts(); poesi(); return true; }
+    if (t.id === 'poem-clear') { stop(); Object.assign(poem, { words: [], hist: [], done: false }); forgetImage(); newOpts(); poesi(); return true; }
     if (t.id === 'poem-undo') { undoWord(); poesi(); return true; }
     if (t.id === 'poem-shuffle') { poem.opts = []; newOpts(poem.words.length ? poem.words[poem.words.length - 1].id : null); poesi(); return true; }
     return false;
