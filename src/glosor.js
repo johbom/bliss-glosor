@@ -259,6 +259,8 @@ const everyday = new Set();
 const atomOrder = [...deck.values()].filter((c) => !c.parts.length)
   .sort((a, b) => (everyday.has(b.id) - everyday.has(a.id)) || b.score - a.score);
 const priority = (c) => c.score + (everyday.has(c.id) ? EVERYDAY_BONUS : 0);
+// Ord som ska läras efter ett annat, oavsett frekvens: lunch (måltid + två) väntar på frukost (måltid + ett).
+const TEACH_AFTER = { 15405: 12898 };
 
 // ---- "Utan operatorn": samma ritning utan indikatorn ovanpå ----
 // vara (12639) = H2 + W2 + handlingsindikatorn; utan indikatorn är ritningen exakt
@@ -460,6 +462,7 @@ function unlockedCompounds() {
   for (const c of deck.values()) {
     if (!c.parts.length || S.cards[c.id]) continue;
     if (!c.parts.every((p) => boxOf(p) >= UNLOCK_BOX)) continue;
+    if (TEACH_AFTER[c.id] && !S.cards[TEACH_AFTER[c.id]]) continue;
     if (c.hasTextPart && ![...c.shapes].every((code) => !ATOM_SHAPES.has(code) || knownShapes().has(code))) continue;
     out.push(c);
   }
