@@ -20,6 +20,11 @@
 <body>
 <div class="statusbar" aria-hidden="true"></div>
 <header>
+  <!-- Allmänna arvsfondens logotyp, liten, allra överst (se fundLogo() i src/ui/app.js för reglerna). -->
+  <div class="fund-top"><picture>
+    <source srcset="logo/arvsfonden-negativ.png" media="(prefers-color-scheme: dark)">
+    <img id="fund-top" src="logo/arvsfonden-positiv.png" width="1200" height="289" alt="Med stöd från Allmänna arvsfonden">
+  </picture></div>
   <h1 id="app-title">Bliss-glosor</h1>
   <nav>
     <button type="button" data-view="home" aria-current="true">Start</button>

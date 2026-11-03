@@ -99,6 +99,9 @@ h2{font-size:17px;margin-bottom:12px}
 /* Allmänna arvsfondens logotyp: luft runt om på minst en halv logotyp (logotypen är 64 px hög). */
 .fund-logo{display:flex;justify-content:center;padding:32px 0}
 .fund-logo img{display:block;width:266px;max-width:100%;height:auto}
+/* Den lilla överst: 28 px hög, en egen rad i sidhuvudet med 14 px luft (en halv logotyp) under. */
+.fund-top{flex-basis:100%;order:-1;padding-bottom:14px}
+.fund-top img{display:block;height:28px;width:auto}
 .promo-link{display:inline-block;margin-top:10px;padding:8px 16px;border-radius:10px;background:var(--accent);color:var(--accent-ink)!important;font-weight:700;text-decoration:none}
 .promo-link:hover{filter:brightness(1.08)}
 .milestone{display:grid;gap:8px;padding:14px 16px;margin-bottom:16px;border-radius:12px;background:var(--accent-soft)}
