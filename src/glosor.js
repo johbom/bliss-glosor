@@ -203,6 +203,15 @@ const EN_HEAD = {
   14716: 'his/her',  // BCI: "his,her,hers,one's" (sv. "sin") = he/she + hör till; "one's" var lika oklart
 };
 for (const [id, w] of Object.entries(EN_HEAD)) if (deck.has(+id)) deck.get(+id).headEn = [w, -1];
+// Svenska huvudord som användaren valt framför det pickHeads ger. Ordet är en av BCI:s egna synonymer,
+// och de övriga står kvar. Två kort kan då heta likadant – det klarar övningarna (distractors(), twin).
+const SV_HEAD = {
+  15912: 'barn',   // BCI: "barn, avkomma" (offspring, child); pickHeads gav "avkomma" eftersom 13166 (child, kid) heter barn
+};
+for (const [id, w] of Object.entries(SV_HEAD)) {
+  const c = deck.get(+id);
+  if (c) c.headSv = [w, c.synsSv.indexOf(w)];
+}
 
 // Nivå (0 = grundtecken) och hur många ord som bygger på kortet, direkt eller indirekt.
 const levelMemo = new Map();
