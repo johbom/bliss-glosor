@@ -82,7 +82,17 @@ document.addEventListener('keydown', (e) => {
   views[current]?.key?.(e);
 });
 
-window.GlosorUI = { tx, fmtN, endModes, app, dlg, views, view: () => current, register, setView, applyLang, switchLang };
+/**
+ * Allmänna arvsfondens logotyp för projekt (logo/, hämtad från arvsfonden.se, oförändrad i färg och form).
+ * Svart text på ljus bakgrund, vit text i mörkt läge. Luften runt den (.fund-logo) är minst en halv logotyp,
+ * som Arvsfonden kräver.
+ */
+const fundLogo = () => `<div class="fund-logo"><picture>
+    <source srcset="logo/arvsfonden-negativ.png" media="(prefers-color-scheme: dark)">
+    <img src="logo/arvsfonden-positiv.png" width="1200" height="289" alt="${tx('Med stöd från Allmänna arvsfonden', 'Supported by the Swedish Inheritance Fund (Allmänna arvsfonden)')}">
+  </picture></div>`;
+
+window.GlosorUI = { tx, fmtN, endModes, app, dlg, views, view: () => current, register, setView, applyLang, switchLang, fundLogo };
 
 // Start när alla vyer har registrerat sig (skripten i slutet av <body> körs före DOMContentLoaded).
 // Har dokumentet redan laddats (sidan infogad i efterhand): starta direkt efter de övriga skripten.

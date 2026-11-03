@@ -3,7 +3,7 @@
  */
 (() => {
 const { lang } = window.Glosor;
-const { tx, app, register } = window.GlosorUI;
+const { tx, app, register, fundLogo } = window.GlosorUI;
 
 // ---------------------------------------------------------------- om
 const APP_VERSION = '1.0 · BCI-AV 2026-07-25';
@@ -36,6 +36,7 @@ function aboutEn(lic) {
     <p>Made by John Säbom.</p>
     <p>Developed with support from the Swedish Inheritance Fund (Allmänna Arvsfonden) in the project BlissmAiker 2026, run by
       Sunderby folkhögskola, Furuboda folkhögskola, Blisshuset and RISE.</p>
+    ${fundLogo()}
     <p>The symbols are drawn with BlissEngine and the WinBliss drawing engine, created by P-O Hedvall and Jonas Paulsson, which BCI has
       used to standardise the Blissymbols. BlissEngine was created at Furuboda folkhögskola in a project funded by the Swedish Inheritance Fund (Allmänna Arvsfonden).</p>
     <p>A big thank you to Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), who works so hard in the
@@ -123,6 +124,7 @@ function about() {
     <p>Skapat av John Säbom.</p>
     <p>Utvecklat med stöd av Allmänna Arvsfonden i projektet BlissmAiker 2026 som drivs av Sunderby folkhögskola,
       Furuboda folkhögskola, Blisshuset och RISE.</p>
+    ${fundLogo()}
     <p>Symbolerna är ritade med BlissEngine och ritmotorn WinBliss, skapat av P-O Hedvall och Jonas Paulsson, och som BCI har
       använt för att standardisera Blissymbolerna. BlissEngine skapades på Furuboda folkhögskola inom ett projekt med stöd från Allmänna Arvsfonden.</p>
     <p>Ett stort tack till Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), som arbetar så hårt

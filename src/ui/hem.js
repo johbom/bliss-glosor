@@ -6,7 +6,7 @@
 const {
   stats, streak, bestStreak, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts,
 } = window.Glosor;
-const { tx, app, setView, register, milestoneHTML } = window.GlosorUI;
+const { tx, app, setView, register, milestoneHTML, fundLogo } = window.GlosorUI;
 
 // ---------------------------------------------------------------- start
 function home() {
@@ -44,7 +44,8 @@ function home() {
       <div class="bar"><i style="width:${pct(st.atoms, st.atomTotal)}%"></i></div>
       <div class="small muted">${tx(`Sammansatta ord: ${st.compounds} av ${st.compoundTotal}`, `Compound words: ${st.compounds} of ${st.compoundTotal}`)}</div>
       <div class="bar"><i style="width:${pct(st.compounds, st.compoundTotal)}%"></i></div>
-    </section>`;
+    </section>
+    <section class="panel">${fundLogo()}</section>`;
 }
 
 function minePanel() {

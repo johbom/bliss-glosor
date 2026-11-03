@@ -17,6 +17,7 @@ källorna nedan, och dela det som bygger på BCI:s material under samma licens
 | Ritmotorn BlissEngine | ingår inte i appen; symbolerna är ritade i förväg med originalmotorn (`src/vendor/bliss-ritningar.js`) | © AnyCom AB – BlissEngine av P-O Hedvall och Jonas Paulsson – ritmotorn ur WinBliss (1997–2007), överförd till webben 2026 | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.sv) |
 | Ordfrekvenser (ordningen inom en nivå) | inbakade i `src/vendor/bliss-derivations.js` | SUC 3.0-statistik, Språkbanken Text, Göteborgs universitet | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.sv) |
 | Typsnittet Atkinson Hyperlegible | `fonts/` | © 2020 Braille Institute of America, Inc. | [SIL Open Font License 1.1](fonts/OFL.txt) |
+| Allmänna arvsfondens logotyp för projekt | `logo/` | © Allmänna arvsfonden | Visas för att projektet har stöd från Arvsfonden, enligt [deras regler](https://www.arvsfonden.se/projekt/nar-ni-driver-projekt/logotyp-for-projekt). Får inte ändras i färg eller form och omfattas inte av appens licenser |
 | Glosprogrammets egen kod | `glosor.html`, `src/glosor.js`, `glosor-sw.js`, `glosor.webmanifest`, `scripts/build-*.js` | © 2026 John Säbom | [MIT](LICENSE) |
 
 ## BCI:s källhänvisning

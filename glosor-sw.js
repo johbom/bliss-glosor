@@ -12,7 +12,7 @@
  * Alla hämtningar går förbi webbläsarens vanliga HTTP-cache (cache: 'reload' /
  * 'no-cache') — annars kan "färsk kopia" bli samma gamla fil igen.
  */
-const VERSION = 'glosor-v29';
+const VERSION = 'glosor-v30';
 const SHELL = [
   'glosor.html',
   'glosor.css',
@@ -34,6 +34,8 @@ const SHELL = [
   'src/vendor/bliss-derivations.js',
   'src/vendor/bliss-meningar.js',
   'icons/icon.svg',
+  'logo/arvsfonden-positiv.png',
+  'logo/arvsfonden-negativ.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
   'icons/icon-maskable-512.png',
