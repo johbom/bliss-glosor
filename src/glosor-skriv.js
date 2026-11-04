@@ -132,6 +132,12 @@ function inflected(t, prev, l) {
 // ---- meningen ----
 const ARTICLES = { sv: new Set(['en', 'ett']), en: new Set(['a', 'an', 'the']) };
 const FUTURE = { sv: new Set(['ska', 'skall']), en: new Set(['will', 'shall']) };
+// Ord som brukar stå efter en preposition ("åt mig", "åt någon", "åt en vän").
+const OBJECTS = {
+  sv: new Set(('mig dig sig honom henne hen oss er dem någon något några alla ingen inget den det denna detta dessa ' +
+    'en ett min mitt mina din ditt dina sin sitt sina vår vårt våra er ert era hans hennes deras varandra').split(' ')),
+  en: new Set(('me you him her it us them someone somebody something everyone a an the my your his its our their').split(' ')),
+};
 // Samma ord, annan stavning än BCI:s glosa: "ska" är dagens form av BCI:s "skall" (shall, will).
 const SPELLING = { sv: { ska: 'skall' }, en: {} };
 const PUNCT = /^[\s"'«»“”‘’.,!?;:()[\]…–—-]+|[\s"'«»“”‘’.,!?;:()[\]…–—-]+$/g;
@@ -254,6 +260,17 @@ function writeWords(text, l = lang()) {
       const names = asName ? [] : exact.filter((x) => proper(x.c));
       const plain = exact.filter((x) => !names.includes(x));
       found = exact.length ? [...irr, ...plain, ...infl, ...names] : infl;
+      // Ett ord som BCI inte har men som också är en böjd form: "åt" = äta i dåtid, eller åt (någon) ≈ till.
+      // Synonymen först när ett objekt följer ("åt mig", "åt någon") och inget subjekt står före ("jag åt").
+      if (!exact.length && infl.length) {
+        const syn = synonyms(t.clean, l).filter((x) => x.deg >= SYN_SURE && !x.form);
+        if (syn.length) {
+          const next = toks[i + 1];
+          const objNext = !!next && (OBJECTS[l].has(next.clean) || /^\p{Lu}/u.test(next.text));
+          const subjBefore = l === 'sv' ? LEMMA?.contextPrefers(prev) === 'V' : false;
+          found = objNext && !subjBefore ? [...syn, ...infl] : [...infl, ...syn];
+        }
+      }
       out.push({ text: t.text, options: [] });
     }
     const w = out[out.length - 1];
