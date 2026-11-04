@@ -188,6 +188,32 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .blank{display:inline-flex;align-items:center;justify-content:center;width:64px;height:118px;margin:8px 26px 0;
   border:2px dashed var(--accent);border-radius:10px;color:var(--accent);font-size:28px;font-weight:700;background:var(--accent-soft)}
 .feedback .sentence{justify-content:flex-start;padding-bottom:0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Skriv en mening: skrivfältet och orden i Bliss. Tryck på ett ord för att välja ett annat (.write-pick). */
+.write-in{display:block;width:100%;box-sizing:border-box;font:inherit;font-size:20px;line-height:1.4;padding:10px 12px;
+  border:1px solid var(--rule);border-radius:10px;background:var(--panel-2);color:var(--ink);resize:vertical}
+.write-in:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.write-empty{margin:14px 0}
+.sentence.write{justify-content:flex-start;gap:4px 0}
+.ww{position:relative;margin:0;display:flex;flex-direction:column;align-items:center;background:none;border:2px solid transparent;
+  border-radius:10px;padding:0 0 4px;color:inherit;font:inherit}
+button.ww{cursor:pointer}
+button.ww:hover{border-color:var(--rule)}
+.ww[aria-expanded="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.ww figcaption{font-size:14px;color:var(--dim);margin-top:-4px;padding:0 6px}
+.ww.saying{border-color:var(--accent)}
+.ww.saying .sym,.ww.saying figcaption{color:var(--accent)}
+.ww-more{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.ww-text{display:flex;align-items:center;min-height:110px;padding:0 14px;font-style:italic;color:var(--dim);font-size:17px}
+.ww.txt figcaption{visibility:hidden}
+.ww.skip{justify-content:center;min-height:110px;padding:0 6px}
+.ww-skip{font-size:15px;color:var(--dim);text-decoration:line-through;opacity:.75}
+.ww-wait{display:flex;align-items:center;justify-content:center;width:70px;height:110px;color:var(--dim);font-size:22px}
+.ww-none{display:flex;align-items:center;min-height:56px;font-size:12px;color:var(--dim);font-style:italic}
+.write-pick{margin:8px 0 4px;padding:10px 12px;border-radius:10px;background:var(--panel-2)}
+.write-pick .formula{margin:6px 0 8px}
+.write-pick .chip{background:var(--panel);border:2px solid transparent}
+.write-pick .chip[aria-pressed="true"]{border-color:var(--accent)}
 .bare-form{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 8px}
 .bare-label{font-size:13px;color:var(--dim)}
 .merged-note{font-size:13px;color:var(--dim);margin:2px 0 6px;padding-left:10px;border-left:3px solid var(--accent-soft)}
@@ -337,6 +363,8 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
   .opts{grid-template-columns:1fr 1fr;gap:8px}
   /* Meningen i 3/4 storlek, så att en vanlig mening ryms på en rad; luckan och avståndet i samma skala. */
   .sentence:not(.glossed) .sw .sym{height:102px;width:auto}
+  .sentence.write .ww .sym{height:96px;width:auto}
+  .ww-text,.ww.skip{min-height:90px}
   .blank{width:48px;height:88px;margin:6px 19px 0;font-size:22px}
   .word{font-size:24px}
   .panel{padding:16px}

@@ -1,5 +1,5 @@
 /**
- * Startsidan: dagens pass, Mina ord, meningar, kylskåpspoesi, milstolpar och statistik (med dagar i rad).
+ * Startsidan: dagens pass, Mina ord, meningar (med skrivfältet), kylskåpspoesi, milstolpar och statistik (med dagar i rad).
  * Inställningarna har en egen flik (installningar.js).
  */
 (() => {
@@ -71,6 +71,8 @@ function sentencesPanel() {
       <div class="head"><h2>${tx('Meningar', 'Sentences')}</h2>
         <button type="button" class="primary" id="sentences" ${n ? '' : 'disabled'}>${tx('Öva meningar', 'Practise sentences')}${n ? ` (${n})` : ''}</button></div>
       <p class="small muted">${tx('Välj ordet som saknas.', 'Choose the missing word.')}${more}${sentenceDrafts ? tx(' <b>Utkast visas</b> (granskningsläge).', ' <b>Drafts shown</b> (review mode).') : ''}</p>
+      <div class="row" style="margin-top:10px"><button type="button" class="ghost" id="write-open">${tx('Skriv en egen mening', 'Write your own sentence')}</button>
+        <span class="small muted">${tx('Skriv med bokstäver – det blir Bliss.', 'Type with letters – it becomes Bliss.')}</span></div>
     </section>`;
 }
 

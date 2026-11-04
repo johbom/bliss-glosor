@@ -931,8 +931,17 @@ function answerSentence(nr, ok) {
 const SENTENCE_FRAME = [-60, 2060];
 // spaced: ett helt symbolavstånd (800 = en ruta, himmel till jord) mellan orden i en mening – halva på var sida.
 function wordSVG(key, e, unit, cls = '', spaced = false) {
-  return symbolSVG({ id: 'w:' + key, v: { e } }, unit, cls, SENTENCE_FRAME, spaced ? 400 : null);
+  return frameSVG('w:' + key, unit, cls, spaced);
 }
+/** En färdig ritning (nyckel i RITNINGAR) i meningarnas gemensamma ram – även skrivfältets ord. */
+function frameSVG(key, unit, cls = '', spaced = false) {
+  return symbolSVG({ id: key, v: { e: [] } }, unit, cls, SENTENCE_FRAME, spaced ? 400 : null);
+}
+/** Lägg till färdiga ritningar (de böjda formerna i src/vendor/bliss-former.js, som laddas när de behövs). */
+function addDrawings(more) {
+  for (const [k, body] of Object.entries(more || {})) { RITNINGAR[k] = body; bodyCache.delete(k); }
+}
+const hasDrawing = (key) => Object.prototype.hasOwnProperty.call(RITNINGAR, key);
 
 /**
  * Det som läses upp: ordet utan BCI:s parentes ("tro (verb)" → "tro"), med mellanslag för _ ("en_annan_gång")
@@ -950,6 +959,7 @@ window.Glosor = {
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
   exportBackup, readBackup, importBackup,
   sentenceCount, sentenceTotal, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
+  frameSVG, addDrawings, hasDrawing, splitSyns,
   milestoneState, checkMilestones, rankOf, lang, setLang, speechText,
   sentenceDrafts: SHOW_DRAFTS, shuffle,
 };
