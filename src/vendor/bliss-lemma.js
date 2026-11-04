@@ -223,7 +223,7 @@ const RULES = [
   { suf: 'or', add: ['a'], keys: ['plural'], pos: 'N', pri: 12 },
   { suf: 'ar', add: ['', 'e', 'a', '*e'], keys: ['plural'], pos: 'N', pri: 12 },
   { suf: 'er', add: ['', 'e', '*e'], keys: ['plural'], pos: 'N', pri: 4.5 },
-  { suf: 'en', add: [''], keys: ['definite_form'], pos: 'N', pri: 13, genus: true },
+  { suf: 'en', add: ['', '*e'], keys: ['definite_form'], pos: 'N', pri: 13, genus: true },   // bilen; öknen -> öken
   { suf: 'et', add: ['', '*e'], keys: ['definite_form'], pos: 'N', pri: 13 },        // huset; fönstret -> fönster
   { suf: 't', add: [''], keys: ['definite_form'], pos: 'N', pri: 14, vowelEnd: true }, // äpplet -> äpple, hjärtat -> hjärta (inte högt -> hög)
   { suf: 'n', add: [''], keys: ['definite_form'], pos: 'N', pri: 14, nStem: true }, // flickan -> flicka, äpplen -> äpple

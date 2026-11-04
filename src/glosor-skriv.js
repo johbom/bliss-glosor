@@ -131,30 +131,50 @@ function inflected(t, prev, l) {
 
 // ---- meningen ----
 const ARTICLES = { sv: new Set(['en', 'ett']), en: new Set(['a', 'an', 'the']) };
-const FUTURE = { sv: new Set(['ska', 'skall']), en: new Set(['will']) };
+const FUTURE = { sv: new Set(['ska', 'skall']), en: new Set(['will', 'shall']) };
+// Samma ord, annan stavning än BCI:s glosa: "ska" är dagens form av BCI:s "skall" (shall, will).
+const SPELLING = { sv: { ska: 'skall' }, en: {} };
 const PUNCT = /^[\s"'«»“”‘’.,!?;:()[\]…–—-]+|[\s"'«»“”‘’.,!?;:()[\]…–—-]+$/g;
 
-/** Alternativen för ett ord, utan dubletter: { id, form, key } eller { skip: true }. */
+/** Alternativen för ett ord, utan dubletter: { id, form, key }, { skip: true } eller { text: true }. */
 function optionsList(list) {
   const seen = new Set(), out = [];
   for (const o of list) {
-    const k = o.skip ? 'skip' : formKey(o.c.id, o.form);
+    const k = o.skip ? 'skip' : o.text ? 'text' : formKey(o.c.id, o.form);
     if (seen.has(k)) continue;
     seen.add(k);
-    out.push(o.skip ? { skip: true, key: 'skip' } : { id: o.c.id, form: o.form || null, key: k });
+    out.push(o.skip ? { skip: true, key: k } : o.text ? { text: true, key: k } : { id: o.c.id, form: o.form || null, key: k });
   }
   return out;
 }
 
 /**
+ * Ord som BCI inte har: symboler vars glosa börjar likadant ("tystnar" -> tyst, tystnad). Bara förslag –
+ * ordet visas som text tills man själv väljer ett av dem.
+ */
+function similar(word, l) {
+  if (word.length < 4) return [];
+  const pre = word.slice(0, Math.max(4, word.length - 3));
+  const hits = [];
+  for (const [k, ids] of indexFor(l)) {
+    if (!k.startsWith(pre) || /[()]/.test(k)) continue;
+    for (const id of ids.keys()) hits.push({ c: deck.get(id), k });
+  }
+  hits.sort((a, b) => a.k.length - b.k.length || b.c.freq - a.c.freq);
+  const seen = new Set();
+  return hits.filter((h) => !seen.has(h.c.id) && seen.add(h.c.id)).slice(0, 8);
+}
+
+/**
  * Texten som Bliss: [{ text, options }] – ett ord eller en fras ("tycker om") per post, i skriven ordning.
- * options tom = ingen symbol (visas som text). Det första alternativet är förvalt.
+ * Det första alternativet är förvalt. guess: ordet finns inte hos BCI; först "som text", sedan förslag.
+ * future: "ska"/"will" – hoppar man över ordet får nästa handlingsord framtidsformen (alternativet futureAt).
  */
 function writeWords(text, l = lang()) {
   const raw = String(text || '').split(/\s+/).filter(Boolean);
   const toks = raw.map((r) => ({ raw: r.replace(/["'«»“”‘’)\]]+$/, ''), text: r.replace(PUNCT, '') || r, clean: norm(r.replace(PUNCT, '')) }));
   const out = [];
-  let futureNext = false;
+  let futureFrom = -1;
   for (let i = 0; i < toks.length; i++) {
     const t = toks[i];
     if (!t.clean) continue;
@@ -178,7 +198,7 @@ function writeWords(text, l = lang()) {
       out.push({ text: toks.slice(i, i + phrase.n).map((x) => x.text).join(' '), options: [] });
       i += phrase.n - 1;
     } else {
-      const exact = lookup(t.clean, l).map((c) => ({ c }));
+      const exact = [...lookup(t.clean, l), ...(SPELLING[l][t.clean] ? lookup(SPELLING[l][t.clean], l) : [])].map((c) => ({ c }));
       const infl = inflected(t.clean, prev, l);
       // Oregelbundna verbformer (såg, var, åt) före samma ord som substantiv – utom efter en artikel
       // eller ett räkneord ("en såg"). Det andra finns kvar som alternativ.
@@ -194,29 +214,54 @@ function writeWords(text, l = lang()) {
     }
     const w = out[out.length - 1];
     const last = i === toks.length - 1;
-    if (!phrase && FUTURE[l].has(t.clean) && !last) {
-      // "ska läsa": framtid på nästa handlingsord, som i meningsövningen ("Barnet ska läsa en bok").
-      w.options = optionsList([{ skip: true }, ...found]);
-      w.future = true;
-      futureNext = true;
-      continue;
-    }
     if (!phrase && ARTICLES[l].has(t.clean) && !last) {
-      w.options = optionsList([{ skip: true }, ...found]);
+      // Artikeln före en sak: BCI:s artikel (en, ett = a, an) först, sedan ordets andra betydelser
+      // ("ett" = siffran 1). Den kan också hoppas över, som i meningsövningen.
+      const isArticle = (x) => x.c.synsEn.some((s) => ['a', 'an', 'the'].includes(norm(s)));
+      w.options = optionsList([...found.filter(isArticle), ...found, { skip: true }]);
       continue;
     }
-    if (futureNext) {
+    if (!phrase && FUTURE[l].has(t.clean) && !last) {
+      // "ska läsa": BCI:s skall + läsa, eller – hoppar man över "ska" – läsa med framtidsformen,
+      // som i meningsövningen ("Barnet ska läsa en bok").
+      w.options = optionsList([...found, { skip: true }]);
+      w.future = true;
+      futureFrom = out.length - 1;
+      continue;
+    }
+    if (futureFrom >= 0) {
       const verbs = found.filter((x) => x.c.v.c === 'RED' && !x.form);
-      found = [...verbs.map((x) => ({ c: x.c, form: 'future_action' })), ...found];
-      futureNext = false;
+      w.options = optionsList([...found, ...verbs.map((x) => ({ c: x.c, form: 'future_action' }))]);
+      const at = w.options.findIndex((o) => o.form === 'future_action');
+      if (at >= 0) { w.futureFrom = futureFrom; w.futureAt = at; }
+      futureFrom = -1;
+      continue;
     }
     w.options = optionsList(found);
+    if (!w.options.length && !phrase) {
+      const sim = similar(t.clean, l);
+      if (sim.length) { w.options = optionsList([{ text: true }, ...sim]); w.guess = true; }
+    }
   }
   return out;
 }
 
-/** Ordet som ett alternativ står för, för knappar och uppläsning: "katt", med formen bredvid i vyn. */
-const optionLabel = (o) => (o.skip ? '' : deck.get(o.id).word);
+/**
+ * Det valda alternativet för varje ord. picks(i) = det man själv valt (index) eller undefined.
+ * Hoppar man över "ska" och inte valt något annat för verbet efter, får verbet framtidsformen.
+ */
+function chosenOptions(words, picks = () => undefined) {
+  const res = [];
+  words.forEach((w, i) => {
+    let j = picks(i);
+    if (j == null) j = w.futureFrom != null && res[w.futureFrom]?.skip ? w.futureAt : 0;
+    res.push(w.options[Math.min(j, w.options.length - 1)] || null);
+  });
+  return res;
+}
 
-Object.assign(G, { writeWords, formKey, formName, optionLabel, WRITE_FORMS: FORMS });
+/** Ordet som ett alternativ står för, för knappar och uppläsning: "katt", med formen bredvid i vyn. */
+const optionLabel = (o) => (o.skip || o.text ? '' : deck.get(o.id).word);
+
+Object.assign(G, { writeWords, chosenOptions, formKey, formName, optionLabel, WRITE_FORMS: FORMS });
 })();

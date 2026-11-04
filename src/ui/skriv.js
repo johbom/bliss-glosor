@@ -6,7 +6,7 @@
  */
 (() => {
 const {
-  card, esc, writeWords, formName, optionLabel, frameSVG, addDrawings, hasDrawing,
+  card, esc, writeWords, chosenOptions, formName, optionLabel, frameSVG, addDrawings, hasDrawing,
 } = window.Glosor;
 const UI = window.GlosorUI;
 const { tx, app, register, say, sayAll, speakOn, stop, SPEAKER } = UI;
@@ -26,10 +26,10 @@ function loadForms() {
 }
 
 const pickKey = (i, w) => `${i}:${w.text.toLowerCase()}`;
-const chosen = (i) => {
-  const w = st.words[i];
-  return w.options[Math.min(st.picks.get(pickKey(i, w)) || 0, w.options.length - 1)];
-};
+// Valet för varje ord (räknas om när något ändras: "ska" påverkar verbet efter).
+let choice = [];
+const recount = () => { choice = chosenOptions(st.words, (i) => st.picks.get(pickKey(i, st.words[i]))); };
+const chosen = (i) => choice[i];
 /** Ritningen för ett alternativ, eller null medan böjningarna laddas. */
 const drawn = (o, unit, spaced = false) => (hasDrawing(o.key) ? frameSVG(o.key, unit, '', spaced) : null);
 const loadingBox = () => `<span class="ww-wait">${forms === 'error' ? '?' : '…'}</span>`;
@@ -40,10 +40,12 @@ function wordHTML(w, i) {
     return `<figure class="ww txt" data-wi="${i}"><span class="ww-text" title="${tx('Ingen symbol för ordet', 'No symbol for this word')}">${esc(w.text)}</span>${cap}</figure>`;
   }
   const o = chosen(i), open = st.sel === i, many = w.options.length > 1;
-  const attrs = `type="button" class="ww${o.skip ? ' skip' : ''}" data-w="${i}" data-wi="${i}" aria-expanded="${open}"`
+  const attrs = `type="button" class="ww" data-w="${i}" data-wi="${i}" aria-expanded="${open}"`
     + ` aria-label="${esc(w.text)}${many ? ` – ${tx('välj ett annat ord', 'choose another word')}` : ''}"`;
-  const body = o.skip ? `<span class="ww-skip">${esc(w.text)}</span>` : drawn(o, 5.4, true) || loadingBox();
-  return `<button ${attrs}>${body}${o.skip ? '' : cap}${many ? '<i class="ww-more" aria-hidden="true"></i>' : ''}</button>`;
+  const body = o.skip ? `<span class="ww-skip">${esc(w.text)}</span>`
+    : o.text ? `<span class="ww-text">${esc(w.text)}</span>` : drawn(o, 5.4, true) || loadingBox();
+  const cls = o.skip ? ' skip' : o.text ? ' txt' : '';
+  return `<button ${attrs.replace('class="ww"', `class="ww${cls}"`)}>${body}${o.skip ? '' : cap}${many ? '<i class="ww-more" aria-hidden="true"></i>' : ''}</button>`;
 }
 
 function pickerHTML() {
@@ -54,20 +56,23 @@ function pickerHTML() {
   const opts = w.options.map((o, j) => {
     let note = o.form ? formName(o.form) : '';
     // Samma ord på flera symboler: BCI:s övriga glosor skiljer dem åt.
-    if (!note && !o.skip && labels.filter((l) => l === labels[j]).length > 1) note = card(o.id).others.slice(0, 2).join(', ');
-    const pic = o.skip ? `<span class="ww-none">${tx('utan symbol', 'no symbol')}</span>` : drawn(o, 3.2) || loadingBox();
-    const label = o.skip ? tx('Hoppa över', 'Leave out') : labels[j];
+    if (!note && o.id != null && labels.filter((l) => l === labels[j]).length > 1) note = card(o.id).others.slice(0, 2).join(', ');
+    const pic = o.skip || o.text ? `<span class="ww-none">${tx('utan symbol', 'no symbol')}</span>` : drawn(o, 3.2) || loadingBox();
+    const label = o.skip ? (w.future ? tx('Hoppa över – framtid på verbet', 'Leave out – future on the verb') : tx('Hoppa över', 'Leave out'))
+      : o.text ? tx('Som text', 'As text') : labels[j];
     return `<button type="button" class="chip" data-wopt="${j}" aria-pressed="${o.key === cur.key}">${pic}<span>${esc(label)}</span>${note ? `<small class="note">${esc(note)}</small>` : ''}</button>`;
   }).join('');
-  const more = cur.skip ? '' : `<button type="button" class="linklike" data-detail="${cur.id}">${tx('Mer om symbolen', 'More about the symbol')}</button>`;
+  const more = cur.id == null ? '' : `<button type="button" class="linklike" data-detail="${cur.id}">${tx('Mer om symbolen', 'More about the symbol')}</button>`;
   return `<div class="write-pick" role="group" aria-label="${tx(`Välj för ”${esc(w.text)}”`, `Choose for “${esc(w.text)}”`)}">
-      <p class="small muted">${tx(`Välj för ”${esc(w.text)}”:`, `Choose for “${esc(w.text)}”:`)}</p>
+      <p class="small muted">${w.guess
+        ? tx(`BCI har inte ordet ”${esc(w.text)}”. Ord som börjar likadant:`, `BCI does not have the word “${esc(w.text)}”. Words that start the same:`)
+        : tx(`Välj för ”${esc(w.text)}”:`, `Choose for “${esc(w.text)}”:`)}</p>
       <div class="formula">${opts}</div>${more}</div>`;
 }
 
 function outHTML() {
   if (!st.words.length) return `<p class="small muted write-empty">${tx('Det du skriver visas här i Bliss.', 'What you write is shown here in Bliss.')}</p>`;
-  const unknown = st.words.filter((w) => !w.options.length).length;
+  const unknown = st.words.some((w, i) => !w.options.length || chosen(i)?.text);
   return `<div class="sentence write">${st.words.map(wordHTML).join('')}</div>
     ${unknown ? `<p class="small muted">${tx('Ord utan symbol visas som text.', 'Words without a symbol are shown as text.')}</p>` : ''}
     ${forms === 'error' ? `<p class="small muted">${tx('Böjningarna kunde inte laddas. Försök igen när du har nät.', 'The inflected forms could not be loaded. Try again when you are online.')}</p>` : ''}
@@ -78,6 +83,7 @@ const actionsHTML = () => `${speakOn() && st.words.length ? `<button type="butto
 
 function parse() {
   st.words = writeWords(st.text);
+  recount();
   if (st.sel != null && !st.words[st.sel]?.options.length) st.sel = null;
 }
 /** Rita om allt utom skrivfältet, så att markören står kvar där man skriver. */
@@ -128,6 +134,7 @@ register('skriv', {
     if (t.dataset.wopt != null) {
       const i = st.sel, j = +t.dataset.wopt, o = st.words[i].options[j];
       st.picks.set(pickKey(i, st.words[i]), j);
+      recount();
       st.sel = null;
       if (!o.skip) say(optionLabel(o));
       update();
