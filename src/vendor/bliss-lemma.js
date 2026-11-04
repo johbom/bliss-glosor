@@ -278,27 +278,31 @@ function analyze(token, senses) {
     const stem = t.slice(0, t.length - r.suf.length);
     if (stem.length < 1) continue;
     for (const add of r.add) {
-      let lemma;
-      if (add === '*e') { lemma = syncope(stem); if (!lemma) continue; }
-      else lemma = stem + add;
-      if (lemma.length < 2 || lemma === t) continue;
-      let keys = r.keys;
-      let extra = {};
-      if (r.possessive) extra.possessive = true;
-      if (r.genus) {
-        // "-en": ett-ord -> bestämd plural, annars bestämd singular (genus finns inte i BCI-AV)
-        if (NEUTER.has(lemma)) keys = ['plural', 'definite_form'];
-        else extra.ambiguous = true;
+      let lemma0;
+      if (add === '*e') { lemma0 = syncope(stem); if (!lemma0) continue; }
+      else lemma0 = stem + add;
+      // dubbelteckning i böjningen: rummet -> rum, mannen -> man
+      const lemmas = add === '' && r.pos === 'N' && /(mm|nn)$/.test(lemma0) ? [lemma0, lemma0.slice(0, -1)] : [lemma0];
+      for (const lemma of lemmas) {
+        if (lemma.length < 2 || lemma === t) continue;
+        let keys = r.keys;
+        let extra = {};
+        if (r.possessive) extra.possessive = true;
+        if (r.genus) {
+          // "-en": ett-ord -> bestämd plural, annars bestämd singular (genus finns inte i BCI-AV)
+          if (NEUTER.has(lemma)) keys = ['plural', 'definite_form'];
+          else extra.ambiguous = true;
+        }
+        if (r.vowelEnd && !/[aeiouyåäö]$/.test(lemma)) continue;
+        if (r.nStem) {
+          // flickan (stam på -a) = bestämd singular; stam på -e: ett-ord (äpple -> äpplen) = plural,
+          // annars en-ord (läraren, pojken) = bestämd singular; fågeln/cykeln (-el/-en/-er) = bestämd singular
+          if (/e$/.test(lemma)) keys = NEUTER.has(lemma) ? ['plural'] : ['definite_form'];
+          else if (/(el|en|er)$/.test(lemma)) keys = ['definite_form'];
+          else if (!/a$/.test(lemma)) continue;
+        }
+        take(lemma, keys, r.pos, `${r.pos}:-${r.suf}`, r.pri, extra);
       }
-      if (r.vowelEnd && !/[aeiouyåäö]$/.test(lemma)) continue;
-      if (r.nStem) {
-        // flickan (stam på -a) = bestämd singular; stam på -e: ett-ord (äpple -> äpplen) = plural,
-        // annars en-ord (läraren, pojken) = bestämd singular; fågeln/cykeln (-el/-en/-er) = bestämd singular
-        if (/e$/.test(lemma)) keys = NEUTER.has(lemma) ? ['plural'] : ['definite_form'];
-        else if (/(el|en|er)$/.test(lemma)) keys = ['definite_form'];
-        else if (!/a$/.test(lemma)) continue;
-      }
-      take(lemma, keys, r.pos, `${r.pos}:-${r.suf}`, r.pri, extra);
     }
   }
   out.sort((a, b) => a.pri - b.pri);

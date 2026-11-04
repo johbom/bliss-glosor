@@ -189,7 +189,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   border:2px dashed var(--accent);border-radius:10px;color:var(--accent);font-size:28px;font-weight:700;background:var(--accent-soft)}
 .feedback .sentence{justify-content:flex-start;padding-bottom:0}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-/* Skriv en mening: skrivfältet och orden i Bliss. Tryck på ett ord för att välja ett annat (.write-pick). */
+/* Skriv en mening: skrivfältet och orden i Bliss. Håll in på ett ord för att välja ett annat (.write-pop). */
 .write-in{display:block;width:100%;box-sizing:border-box;font:inherit;font-size:20px;line-height:1.4;padding:10px 12px;
   border:1px solid var(--rule);border-radius:10px;background:var(--panel-2);color:var(--ink);resize:vertical}
 .write-in:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
@@ -210,10 +210,24 @@ button.ww:hover{border-color:var(--rule)}
 .ww-skip{font-size:15px;color:var(--dim);text-decoration:line-through;opacity:.75}
 .ww-wait{display:flex;align-items:center;justify-content:center;width:70px;height:110px;color:var(--dim);font-size:22px}
 .ww-none{display:flex;align-items:center;min-height:56px;font-size:12px;color:var(--dim);font-style:italic}
-.write-pick{margin:8px 0 4px;padding:10px 12px;border-radius:10px;background:var(--panel-2)}
-.write-pick .formula{margin:6px 0 8px}
-.write-pick .chip{background:var(--panel);border:2px solid transparent}
-.write-pick .chip[aria-pressed="true"]{border-color:var(--accent)}
+#write-out{position:relative}
+.ww{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+.ww-note{font-size:11px;color:var(--accent);font-style:italic;margin-top:-2px}
+/* Rutan med alternativen, intill ordet man håller in på. Pilen (--ax) pekar på ordet. */
+.write-pop{position:absolute;z-index:20;left:0;top:0;width:max-content;max-width:min(360px,100%);box-sizing:border-box;
+  background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:8px 10px 10px;
+  box-shadow:0 10px 30px rgba(0,0,0,.18);visibility:hidden}
+.write-pop.shown{visibility:visible}
+.write-pop::before{content:"";position:absolute;left:calc(var(--ax,50%) - 8px);top:-8px;width:14px;height:14px;
+  background:var(--panel);border-left:1px solid var(--rule);border-top:1px solid var(--rule);transform:rotate(45deg)}
+.write-pop.above::before{top:auto;bottom:-8px;transform:rotate(225deg)}
+.pop-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.pop-close{background:none;border:0;font-size:24px;line-height:1;color:var(--dim);padding:0 4px;cursor:pointer}
+.pop-opts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+.pop-opts .chip{background:var(--panel-2);border:2px solid transparent;cursor:pointer}
+.pop-opts .chip[aria-pressed="true"]{border-color:var(--accent)}
+.write-hint{position:absolute;z-index:15;background:var(--ink);color:var(--panel);font-size:13px;padding:4px 10px;
+  border-radius:999px;white-space:nowrap;pointer-events:none}
 .bare-form{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 8px}
 .bare-label{font-size:13px;color:var(--dim)}
 .merged-note{font-size:13px;color:var(--dim);margin:2px 0 6px;padding-left:10px;border-left:3px solid var(--accent-soft)}

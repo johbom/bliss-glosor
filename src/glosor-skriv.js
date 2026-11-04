@@ -24,7 +24,7 @@ const FORMS = { RED: ['past_action', 'future_action'], YELLOW: ['plural'], BLUE:
 const formKey = (id, form) => (form ? `f:${id}:${form}` : String(id));
 const canForm = (c, form) => !form || (FORMS[c.v.c] || []).includes(form);
 const FORM_NAME = {
-  past_action: ['dåtid', 'past'], future_action: ['framtid', 'future'], plural: ['plural', 'plural'],
+  action: ['handling', 'action'], past_action: ['dåtid', 'past'], future_action: ['framtid', 'future'], plural: ['plural', 'plural'],
 };
 const formName = (form) => (FORM_NAME[form] ? FORM_NAME[form][lang() === 'en' ? 1 : 0] : '');
 
@@ -136,16 +136,60 @@ const FUTURE = { sv: new Set(['ska', 'skall']), en: new Set(['will', 'shall']) }
 const SPELLING = { sv: { ska: 'skall' }, en: {} };
 const PUNCT = /^[\s"'«»“”‘’.,!?;:()[\]…–—-]+|[\s"'«»“”‘’.,!?;:()[\]…–—-]+$/g;
 
-/** Alternativen för ett ord, utan dubletter: { id, form, key }, { skip: true } eller { text: true }. */
+/**
+ * Alternativen för ett ord, utan dubletter: { id, form, key }, { skip: true } eller { text: true }.
+ * via: synonymen (BCI:s ord) när symbolen hittats genom synonymordlistan ("brand" ≈ eld).
+ */
 function optionsList(list) {
   const seen = new Set(), out = [];
   for (const o of list) {
     const k = o.skip ? 'skip' : o.text ? 'text' : formKey(o.c.id, o.form);
     if (seen.has(k)) continue;
     seen.add(k);
-    out.push(o.skip ? { skip: true, key: k } : o.text ? { text: true, key: k } : { id: o.c.id, form: o.form || null, key: k });
+    out.push(o.skip ? { skip: true, key: k } : o.text ? { text: true, key: k }
+      : { id: o.c.id, form: o.form || null, key: k, ...(o.via ? { via: o.via } : {}), ...(o.derived ? { derived: true } : {}) });
   }
   return out;
+}
+
+// ---- härledda verb (src/vendor/bliss-harledda.js) ----
+// Verb som BCI inte har men som är bildade av ett BCI-ord: tystna <- tystnad. I Bliss blir ordet ett
+// verb med handlingsindikatorn ovanpå; formerna (handling, dåtid, framtid) är ritade i förväg.
+/** [{ c, form, derived: true, sure }] för ett verb eller dess böjda form (tystnar, tystnade). */
+function derived(t, l) {
+  const H = window.BLISS_HARLEDDA;
+  if (l !== 'sv' || !H) return [];
+  const cardsOf = (v) => (H[v] || []).map(([id, sure]) => ({ c: deck.get(id), sure: !!sure, derived: true })).filter((x) => x.c);
+  const out = cardsOf(t).map((x) => ({ ...x, form: 'action' }));
+  if (LEMMA) {
+    for (const a of LEMMA.analyze(t, (k) => cardsOf(k).map((x) => ({ c: 'RED', x })))) {
+      if (a.pos !== 'V') continue;
+      const form = a.keys.includes('past_action') ? 'past_action' : 'action';
+      for (const s of a.senses) out.push({ ...s.x, form });
+    }
+  }
+  return out;
+}
+
+// ---- synonymordlistan (Swesaurus, src/vendor/bliss-synonymer.js) ----
+// Ord som BCI inte har -> BCI-ord med samma betydelse. Bara svenska. Synonymen används direkt när
+// Swesaurus är säker (grad minst SYN_SURE), annars är ordet text och synonymen ett förslag.
+const SYN_SURE = 80;
+/** [{ c, form, via, deg }] för ett ord eller dess böjda form ("bränder" -> brand -> eld, plural). */
+function synonyms(t, l) {
+  const SYN = window.BLISS_SYNONYMER;
+  if (l !== 'sv' || !SYN) return [];
+  const cardsOf = (w) => (SYN[w] || []).flatMap(([to, deg]) => lookup(to, l).map((c) => ({ c, via: to, deg })));
+  const out = cardsOf(t);
+  if (LEMMA) {
+    const seen = new Map();
+    const senses = (k) => { if (!seen.has(k)) seen.set(k, cardsOf(k)); return seen.get(k).map((x) => ({ c: x.c.v.c, x })); };
+    for (const a of LEMMA.analyze(t, senses)) {
+      const form = toForm(a.keys);
+      for (const s of a.senses) out.push({ ...s.x, form: canForm(s.x.c, form) ? form : null });
+    }
+  }
+  return out.sort((a, b) => b.deg - a.deg);
 }
 
 /**
@@ -229,19 +273,23 @@ function writeWords(text, l = lang()) {
       futureFrom = out.length - 1;
       continue;
     }
+    if (!found.length && !phrase) {
+      // BCI har inte ordet: synonymer och härledda verb (säkra först, annars efter "som text"),
+      // sist ord som börjar likadant.
+      const syn = synonyms(t.clean, l), der = derived(t.clean, l);
+      const list = [...syn.filter((x) => x.deg >= SYN_SURE), ...der.filter((x) => x.sure), { text: true }, ...syn, ...der,
+        ...similar(t.clean, l)];
+      if (list.length > 1) { found = list; w.guess = true; }
+    }
     if (futureFrom >= 0) {
-      const verbs = found.filter((x) => x.c.v.c === 'RED' && !x.form);
-      w.options = optionsList([...found, ...verbs.map((x) => ({ c: x.c, form: 'future_action' }))]);
+      const verbs = found.filter((x) => x.c && ((x.c.v.c === 'RED' && !x.form) || (x.derived && x.form === 'action')));
+      w.options = optionsList([...found, ...verbs.map((x) => ({ ...x, form: 'future_action' }))]);
       const at = w.options.findIndex((o) => o.form === 'future_action');
       if (at >= 0) { w.futureFrom = futureFrom; w.futureAt = at; }
       futureFrom = -1;
       continue;
     }
     w.options = optionsList(found);
-    if (!w.options.length && !phrase) {
-      const sim = similar(t.clean, l);
-      if (sim.length) { w.options = optionsList([{ text: true }, ...sim]); w.guess = true; }
-    }
   }
   return out;
 }
