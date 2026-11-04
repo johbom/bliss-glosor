@@ -6,26 +6,26 @@
 @font-face{font-family:"Atkinson Hyperlegible";font-style:normal;font-weight:700;font-display:swap;src:url(fonts/atkinson-hyperlegible-700-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:"Atkinson Hyperlegible";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-400i-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
 @font-face{font-family:"Atkinson Hyperlegible";font-style:italic;font-weight:400;font-display:swap;src:url(fonts/atkinson-hyperlegible-400i-latin-ext.woff2) format("woff2");unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C4,U+2113,U+2C60-2C7F,U+A720-A7FF}
-/* Färgerna följer Furubodas webbplats: blågrönt, ljusblå och gula runda knappar med marinblå text, på en
+/* Färgerna följer Furubodas webbplats: blågrönt, ljusblå och ljusgula runda knappar med marinblå text, på en
    neutralt grå bakgrund. --dim är Furubodas grå något mörkare, så att liten text läses lätt även på grått. */
 :root{
   --ink:#242723; --dim:#5C5C5C; --panel:#FFFFFF; --panel-2:#F1F9FE; --bg:#EEEEEE;
   --accent:#087BA1; --accent-ink:#FFFFFF; --accent-soft:#D2E2EC; --rule:#CCCCCC;
-  --btn:#FCBE27; --btn-ink:#022134; --btn-2:#D2E2EC; --btn-2-ink:#022134;
+  --btn:#FEE7C0; --btn-ink:#022134; --btn-2:#D2E2EC; --btn-2-ink:#022134;
   --ok:#2E7D46; --ok-soft:#DDF0E2; --bad:#B23A3A; --bad-soft:#F6DEDE; --staff:#D9D5CA;
   --c-YELLOW:#E9C23B; --c-RED:#D9534F; --c-GREEN:#4CAF6A; --c-BLUE:#4A7FD0; --c-WHITE:#C8C6C0; --c-GRAY:#8E8E8E;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --ink:#ECECEE; --dim:#A3A8AC; --panel:#1E2428; --panel-2:#253038; --bg:#151A1D;
   --accent:#5CB8DB; --accent-ink:#022134; --accent-soft:#1D3A4A; --rule:#3A454D;
-  --btn:#FCBE27; --btn-ink:#022134; --btn-2:#1D3A4A; --btn-2-ink:#ECECEE;
+  --btn:#FEE7C0; --btn-ink:#022134; --btn-2:#1D3A4A; --btn-2-ink:#ECECEE;
   --ok:#6FBF8A; --ok-soft:#1E3326; --bad:#E07B7B; --bad-soft:#3A2224; --staff:#34373C;
   color-scheme:dark;
 }}
 :root[data-theme="dark"]{
   --ink:#ECECEE; --dim:#A3A8AC; --panel:#1E2428; --panel-2:#253038; --bg:#151A1D;
   --accent:#5CB8DB; --accent-ink:#022134; --accent-soft:#1D3A4A; --rule:#3A454D;
-  --btn:#FCBE27; --btn-ink:#022134; --btn-2:#1D3A4A; --btn-2-ink:#ECECEE;
+  --btn:#FEE7C0; --btn-ink:#022134; --btn-2:#1D3A4A; --btn-2-ink:#ECECEE;
   --ok:#6FBF8A; --ok-soft:#1E3326; --bad:#E07B7B; --bad-soft:#3A2224; --staff:#34373C;
   color-scheme:dark;
 }
