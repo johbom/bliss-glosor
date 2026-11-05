@@ -13,7 +13,7 @@ const CONTACT = 'john.s@tfhuk.com';   // felrapporter och förslag
 const FLYER_URL = 'https://johbom.github.io/bliss-glosor/informationsblad/Bliss-glosor-informationsblad.pdf';
 // QR-koden till appen – genererad av scripts/build-qr.py (samma adress som på informationsbladet).
 const QR = { url: 'https://johbom.github.io/bliss-glosor/', size: 37, d: 'M4 4h7v1h-7zM12 4h3v1h-3zM17 4h1v1h-1zM22 4h1v1h-1zM26 4h7v1h-7zM4 5h1v1h-1zM10 5h1v1h-1zM13 5h5v1h-5zM20 5h1v1h-1zM26 5h1v1h-1zM32 5h1v1h-1zM4 6h1v1h-1zM6 6h3v1h-3zM10 6h1v1h-1zM12 6h2v1h-2zM16 6h3v1h-3zM21 6h1v1h-1zM26 6h1v1h-1zM28 6h3v1h-3zM32 6h1v1h-1zM4 7h1v1h-1zM6 7h3v1h-3zM10 7h1v1h-1zM13 7h5v1h-5zM19 7h1v1h-1zM21 7h3v1h-3zM26 7h1v1h-1zM28 7h3v1h-3zM32 7h1v1h-1zM4 8h1v1h-1zM6 8h3v1h-3zM10 8h1v1h-1zM14 8h1v1h-1zM16 8h1v1h-1zM18 8h1v1h-1zM22 8h1v1h-1zM24 8h1v1h-1zM26 8h1v1h-1zM28 8h3v1h-3zM32 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM17 9h2v1h-2zM20 9h3v1h-3zM26 9h1v1h-1zM32 9h1v1h-1zM4 10h7v1h-7zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h7v1h-7zM13 11h2v1h-2zM18 11h2v1h-2zM22 11h2v1h-2zM4 12h1v1h-1zM6 12h1v1h-1zM10 12h2v1h-2zM13 12h1v1h-1zM16 12h4v1h-4zM22 12h3v1h-3zM27 12h1v1h-1zM30 12h1v1h-1zM32 12h1v1h-1zM6 13h2v1h-2zM12 13h2v1h-2zM15 13h3v1h-3zM19 13h3v1h-3zM23 13h2v1h-2zM26 13h2v1h-2zM31 13h2v1h-2zM4 14h2v1h-2zM8 14h1v1h-1zM10 14h2v1h-2zM13 14h4v1h-4zM19 14h1v1h-1zM23 14h1v1h-1zM27 14h1v1h-1zM29 14h2v1h-2zM32 14h1v1h-1zM5 15h1v1h-1zM8 15h1v1h-1zM12 15h6v1h-6zM19 15h2v1h-2zM22 15h1v1h-1zM24 15h3v1h-3zM29 15h1v1h-1zM4 16h3v1h-3zM10 16h2v1h-2zM14 16h2v1h-2zM17 16h1v1h-1zM20 16h1v1h-1zM23 16h1v1h-1zM26 16h2v1h-2zM32 16h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM8 17h1v1h-1zM11 17h1v1h-1zM15 17h2v1h-2zM19 17h2v1h-2zM23 17h2v1h-2zM26 17h2v1h-2zM31 17h2v1h-2zM4 18h3v1h-3zM9 18h3v1h-3zM13 18h1v1h-1zM15 18h1v1h-1zM17 18h4v1h-4zM22 18h3v1h-3zM27 18h2v1h-2zM32 18h1v1h-1zM5 19h2v1h-2zM9 19h1v1h-1zM11 19h3v1h-3zM16 19h1v1h-1zM18 19h1v1h-1zM20 19h1v1h-1zM25 19h1v1h-1zM28 19h1v1h-1zM6 20h2v1h-2zM10 20h4v1h-4zM16 20h3v1h-3zM20 20h1v1h-1zM24 20h4v1h-4zM32 20h1v1h-1zM6 21h1v1h-1zM9 21h1v1h-1zM11 21h1v1h-1zM13 21h9v1h-9zM23 21h2v1h-2zM26 21h2v1h-2zM30 21h3v1h-3zM4 22h2v1h-2zM7 22h1v1h-1zM10 22h3v1h-3zM19 22h1v1h-1zM21 22h1v1h-1zM23 22h2v1h-2zM29 22h1v1h-1zM32 22h1v1h-1zM6 23h1v1h-1zM9 23h1v1h-1zM12 23h2v1h-2zM17 23h1v1h-1zM19 23h2v1h-2zM24 23h1v1h-1zM26 23h3v1h-3zM4 24h3v1h-3zM8 24h1v1h-1zM10 24h1v1h-1zM12 24h1v1h-1zM15 24h1v1h-1zM17 24h1v1h-1zM19 24h2v1h-2zM23 24h7v1h-7zM31 24h1v1h-1zM12 25h5v1h-5zM19 25h3v1h-3zM23 25h2v1h-2zM28 25h3v1h-3zM32 25h1v1h-1zM4 26h7v1h-7zM12 26h4v1h-4zM17 26h3v1h-3zM21 26h2v1h-2zM24 26h1v1h-1zM26 26h1v1h-1zM28 26h1v1h-1zM32 26h1v1h-1zM4 27h1v1h-1zM10 27h1v1h-1zM14 27h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM22 27h3v1h-3zM28 27h1v1h-1zM32 27h1v1h-1zM4 28h1v1h-1zM6 28h3v1h-3zM10 28h1v1h-1zM13 28h1v1h-1zM16 28h3v1h-3zM20 28h1v1h-1zM23 28h7v1h-7zM32 28h1v1h-1zM4 29h1v1h-1zM6 29h3v1h-3zM10 29h1v1h-1zM14 29h1v1h-1zM18 29h2v1h-2zM22 29h2v1h-2zM25 29h1v1h-1zM28 29h3v1h-3zM32 29h1v1h-1zM4 30h1v1h-1zM6 30h3v1h-3zM10 30h1v1h-1zM12 30h2v1h-2zM15 30h1v1h-1zM17 30h1v1h-1zM19 30h1v1h-1zM22 30h2v1h-2zM25 30h1v1h-1zM28 30h1v1h-1zM31 30h2v1h-2zM4 31h1v1h-1zM10 31h1v1h-1zM15 31h3v1h-3zM19 31h1v1h-1zM22 31h1v1h-1zM24 31h2v1h-2zM28 31h2v1h-2zM4 32h7v1h-7zM12 32h2v1h-2zM15 32h1v1h-1zM17 32h1v1h-1zM19 32h1v1h-1zM24 32h1v1h-1zM27 32h1v1h-1zM29 32h1v1h-1zM32 32h1v1h-1z' };
-/** Överst på Om-sidan: QR-kod och en knapp som delar länken till appen. */
+/** QR-kod och en knapp som delar länken till appen. */
 function shareHTML() {
   const short = QR.url.replace(/^https:\/\//, '').replace(/\/$/, '');
   return `<div class="share">
@@ -21,184 +21,112 @@ function shareHTML() {
       <div>
         <p class="share-title">${tx('Dela appen', 'Share the app')}</p>
         <p class="small muted">${tx('Skanna koden med mobilkameran.', 'Scan the code with a phone camera.')}</p>
-        <p class="share-url">${short}</p>
+        <p class="share-url">${short.split('/').map((x, i, a) => `<span>${x}${i < a.length - 1 ? '/' : ''}</span>`).join('')}</p>
         <button type="button" class="primary" id="share-app">${tx('Dela länken', 'Share the link')}</button>
       </div>
     </div>`;
 }
-/** Om-sidan på engelska (samma innehåll som den svenska). */
-function aboutEn(lic) {
-  return `<section class="panel prose">
-    ${shareHTML()}
-    <h2>About Bliss Vocabulary</h2>
-    <p>Bliss Vocabulary (Bliss-glosor in Swedish) is a free vocabulary trainer for Blissymbolics. You learn the basic characters first,
-      then the words built from them, and review them at ever longer intervals. The English words and explanations are BCI's own.</p>
-    <p>Made by John Säbom.</p>
-    <p>Developed with support from the Swedish Inheritance Fund (Allmänna Arvsfonden) in the project BlissmAiker 2026, run by
-      Sunderby folkhögskola, Furuboda folkhögskola, Blisshuset and RISE.</p>
-    ${fundLogo()}
-    <p>The symbols are drawn with BlissEngine and the WinBliss drawing engine, created by P-O Hedvall and Jonas Paulsson, which BCI has
-      used to standardise the Blissymbols. BlissEngine was created at Furuboda folkhögskola in a project funded by the Swedish Inheritance Fund (Allmänna Arvsfonden).</p>
-    <p>A big thank you to Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), who works so hard in the
-      Bliss projects and on spreading and developing Bliss.</p>
+const linkCard = (url, title, text, cls = '') => `<a class="link-card${cls}" href="${url}" target="_blank" rel="noopener">
+    <b>${title}</b><span>${text}</span><span class="link-url">${url.replace(/^https:\/\/(www\.)?/, '').replace(/\/$/, '')}</span></a>`;
 
-    <h3>Links</h3>
-    <div class="links">
-      <a class="link-card" href="https://blisshuset.com" target="_blank" rel="noopener">
-        <b>Blisshuset</b>
-        <span>The Blisshuset association, based at Sunderby folkhögskola. Products with Blissymbols – bracelets, chopping boards, pictures and much more.</span>
-        <span class="link-url">blisshuset.com</span>
-      </a>
-      <a class="link-card" href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">
-        <b>Sunderby folkhögskola</b>
-        <span>Home of the Blisshuset association. The school runs Blisskursen.</span>
-        <span class="link-url">sunderbyfolkhogskola.se</span>
-      </a>
-      <a class="link-card" href="https://furuboda.org" target="_blank" rel="noopener">
-        <b>Föreningen Furuboda</b>
-        <span>The organisation behind Furuboda folkhögskola, where BlissEngine was created.</span>
-        <span class="link-url">furuboda.org</span>
-      </a>
-      <a class="link-card" href="https://www.ri.se/en" target="_blank" rel="noopener">
-        <b>RISE Research Institutes of Sweden</b>
-        <span>Sweden's research institute, working to strengthen industry's competitiveness and renew the public sector.</span>
-        <span class="link-url">ri.se</span>
-      </a>
-    </div>
-
-    <h3>Install as an app</h3>
-    <ul>
-      <li><b>iPhone and iPad:</b> open the app's web address in Safari, tap the Share button and choose <i>Add to Home Screen</i>.</li>
-      <li><b>Android:</b> open the address in Chrome and choose <i>Install app</i> in the menu.</li>
-      <li><b>Computer:</b> in Chrome or Edge, click the install icon in the address bar.</li>
-    </ul>
-    <p>Installed, it also works offline.</p>
-
-    <h3>Information sheet</h3>
-    <div class="flyer">
-      <div class="flyer-doc" aria-hidden="true"><span>PDF</span></div>
-      <div>
-        <p>An A4 page with a QR code to the app – to print or pass on. In Swedish.</p>
-        <a class="promo-link" href="${FLYER_URL}" target="_blank" rel="noopener">Download the information sheet (PDF, 47 kB, Swedish)</a>
-      </div>
-    </div>
-
-    <h3>Privacy</h3>
-    <p>No data collection, accounts, statistics, ads or cookies. Your progress is stored only on your device –
-      use <i>Backup</i> under Settings to move it.</p>
-
-    <h3>The parts of the symbols</h3>
-    <p>The parts come from BCI's vocabulary BCI-AV, for example <i>amphibian</i> = animal + water + land. Where BCI's text
-      is ambiguous, the text is shown instead of a symbol. The linking has not been reviewed by BCI.</p>
-
-    <h3>Mistakes and suggestions</h3>
-    <p>Found a mistake or have a suggestion? Write to</p>
-    <p class="contact"><a href="mailto:${CONTACT}?subject=Bliss-glosor" id="contact-addr">${CONTACT}</a>
-      <button type="button" class="ghost" id="copy-contact">Copy the address</button></p>
-    <p class="small muted">Say which word it concerns.</p>
-
-    <h3>Sources and licences</h3>
-    <div class="lic">
-      ${lic('The Blissymbols, the BCI-AV vocabulary, glosses and derivations', '© Blissymbolics Communication International (BCI); Blissymbolics © C.K. Bliss', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/')}
-      ${lic('Swedish translations of the explanations', 'John Säbom, based on BCI material', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/')}
-      ${lic('The BlissEngine drawing engine', '© AnyCom AB – BlissEngine by P-O Hedvall and Jonas Paulsson – the drawing engine from WinBliss (1997–2007), brought to the web in 2026', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/')}
-      ${lic('Word frequencies', 'SUC 3.0 statistics, Språkbanken Text, University of Gothenburg', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/')}
-      ${lic('The Atkinson Hyperlegible typeface', '© 2020 Braille Institute of America', 'SIL Open Font License 1.1', 'https://openfontlicense.org')}
-      ${lic('The app’s own code', '© 2026 John Säbom', 'MIT', 'https://opensource.org/license/mit')}
-    </div>
-    <p style="margin-top:10px">Free to use and share. Anyone building on BCI's material must credit it and share under CC BY-SA 4.0:</p>
-    <blockquote>Parts herein © Blissymbolics Communication International (BCI), distributed under the Creative Commons BY-SA 4.0 licence.</blockquote>
-    <p class="small muted">More at <a href="https://www.blissymbolics.org" target="_blank" rel="noopener">blissymbolics.org</a>.
-      Version ${APP_VERSION}.</p>
-  </section>`;
-}
+/**
+ * Om-sidan som kort, i den ordning man letar: vad appen är, dela den, tips, länkar, installera, integritet,
+ * fel och förslag, källor och licenser. Samma innehåll på svenska och engelska (sv/en per stycke).
+ */
 function about() {
+  const en = lang() === 'en';
+  const L = (sv, e) => (en ? e : sv);
   const lic = (what, who, name, url) => `<div><b>${what}</b><span class="who">${who}</span> ·
     <a href="${url}" target="_blank" rel="noopener">${name}</a></div>`;
-  if (lang() === 'en') { app.innerHTML = aboutEn(lic); return; }
-  app.innerHTML = `<section class="panel prose">
-    ${shareHTML()}
-    <h2>Om Bliss-glosor</h2>
-    <p>Bliss-glosor är ett gratis glosprogram för Blissymbolik. Du lär dig först grundtecknen, sedan orden som byggs av dem,
-      och repeterar dem med allt längre mellanrum.</p>
-    <p>Skapat av John Säbom.</p>
-    <p>Utvecklat med stöd av Allmänna Arvsfonden i projektet BlissmAiker 2026 som drivs av Sunderby folkhögskola,
-      Furuboda folkhögskola, Blisshuset och RISE.</p>
-    ${fundLogo()}
-    <p>Symbolerna är ritade med BlissEngine och ritmotorn WinBliss, skapat av P-O Hedvall och Jonas Paulsson, och som BCI har
-      använt för att standardisera Blissymbolerna. BlissEngine skapades på Furuboda folkhögskola inom ett projekt med stöd från Allmänna Arvsfonden.</p>
-    <p>Ett stort tack till Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), som arbetar så hårt
-      i Blissprojekten och med att sprida och utveckla Bliss.</p>
+  const deed = en ? '' : 'deed.sv';
+  app.innerHTML = `<div class="about">
+    <h2 class="page-title">${L('Om Bliss-glosor', 'About Bliss Vocabulary')}</h2>
+    <section class="panel prose">
+      <p>${L('Bliss-glosor är ett gratis glosprogram för Blissymbolik. Du lär dig orden, deras delar och hur de byggs, och repeterar dem med allt längre mellanrum.',
+        'Bliss Vocabulary (Bliss-glosor in Swedish) is a free vocabulary trainer for Blissymbolics. You learn the words, their parts and how they are built, and review them at ever longer intervals. The English words and explanations are BCI’s own.')}</p>
+      <p>${L('Skapat av John Säbom.', 'Made by John Säbom.')}</p>
+      <p>${L('Utvecklat med stöd av Allmänna Arvsfonden i projektet BlissmAiker 2026 som drivs av Sunderby folkhögskola, Furuboda folkhögskola, Blisshuset och RISE.',
+        'Developed with support from the Swedish Inheritance Fund (Allmänna Arvsfonden) in the project BlissmAiker 2026, run by Sunderby folkhögskola, Furuboda folkhögskola, Blisshuset and RISE.')}</p>
+      ${fundLogo()}
+      <p>${L('Symbolerna är ritade med BlissEngine och ritmotorn WinBliss, skapat av P-O Hedvall och Jonas Paulsson, och som BCI har använt för att standardisera Blissymbolerna. BlissEngine skapades på Furuboda folkhögskola inom ett projekt med stöd från Allmänna Arvsfonden.',
+        'The symbols are drawn with BlissEngine and the WinBliss drawing engine, created by P-O Hedvall and Jonas Paulsson, which BCI has used to standardise the Blissymbols. BlissEngine was created at Furuboda folkhögskola in a project funded by the Swedish Inheritance Fund (Allmänna Arvsfonden).')}</p>
+      <p>${L('Ett stort tack till Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), som arbetar så hårt i Blissprojekten och med att sprida och utveckla Bliss.',
+        'A big thank you to Håkan Larsson (<a href="mailto:logopedhakan@gmail.com">logopedhakan@gmail.com</a>), who works so hard in the Bliss projects and on spreading and developing Bliss.')}</p>
+    </section>
 
-    <h3>Länkar</h3>
-    <div class="links">
-      <a class="link-card" href="https://blisshuset.com" target="_blank" rel="noopener">
-        <b>Blisshuset</b>
-        <span>Föreningen Blisshuset finns på Sunderby folkhögskola. Produkter med Blissymboler – armband, skärbrädor, tavlor och mycket mer.</span>
-        <span class="link-url">blisshuset.com</span>
-      </a>
-      <a class="link-card" href="https://sunderbyfolkhogskola.se" target="_blank" rel="noopener">
-        <b>Sunderby folkhögskola</b>
-        <span>Här finns Föreningen Blisshuset. Skolan driver Blisskursen.</span>
-        <span class="link-url">sunderbyfolkhogskola.se</span>
-      </a>
-      <a class="link-card" href="https://furuboda.org" target="_blank" rel="noopener">
-        <b>Föreningen Furuboda</b>
-        <span>Huvudman för Furuboda folkhögskola, där BlissEngine skapades.</span>
-        <span class="link-url">furuboda.org</span>
-      </a>
-      <a class="link-card" href="https://www.ri.se" target="_blank" rel="noopener">
-        <b>RISE Research Institutes of Sweden</b>
-        <span>Sveriges forskningsinstitut, som arbetar för näringslivets konkurrenskraft och den offentliga sektorns förnyelse.</span>
-        <span class="link-url">ri.se</span>
-      </a>
-    </div>
+    <section class="panel">${shareHTML()}</section>
 
-    <h3>Installera som app</h3>
-    <ul>
-      <li><b>iPhone och iPad:</b> öppna appens webbadress i Safari, tryck på Dela-knappen och välj <i>Lägg till på hemskärmen</i>.</li>
-      <li><b>Android:</b> öppna adressen i Chrome och välj <i>Installera app</i> i menyn.</li>
-      <li><b>Dator:</b> i Chrome eller Edge, klicka på installationsikonen i adressfältet.</li>
-    </ul>
-    <p>Installerad fungerar den även utan internet.</p>
+    <section class="panel prose">
+      <h3>${L('Tips', 'Tip')}</h3>
+      ${linkCard('https://logopedhakan.github.io/Blissverktyg/start.html', L('Blissverktyget (WinBliss²)', 'The Bliss tool (WinBliss²)'),
+        L('Skriv med Bliss, skapa symboler och ordlistor, gör bildspel och gravyrkort, utforska formfamiljer och öva med Hänga gubbe. Från AnyCom AB, som också gjort ritmotorn i den här appen.',
+          'Write in Bliss, create symbols and word lists, make slideshows and engraving cards, explore shape families and practise with Hangman. From AnyCom AB, who also made the drawing engine in this app.'), ' tip')}
+    </section>
 
-    <h3>Informationsblad</h3>
-    <div class="flyer">
-      <div class="flyer-doc" aria-hidden="true"><span>PDF</span></div>
-      <div>
-        <p>Ett A4 med QR-kod till appen – att skriva ut eller skicka vidare.</p>
-        <a class="promo-link" href="${FLYER_URL}" target="_blank" rel="noopener">Ladda ner informationsbladet (PDF, 47 kB)</a>
+    <section class="panel prose">
+      <h3>${L('Länkar', 'Links')}</h3>
+      <div class="links">
+        ${linkCard('https://blisshuset.com', 'Blisshuset', L('Föreningen Blisshuset finns på Sunderby folkhögskola. Produkter med Blissymboler – armband, skärbrädor, tavlor och mycket mer.',
+          'The Blisshuset association, based at Sunderby folkhögskola. Products with Blissymbols – bracelets, chopping boards, pictures and much more.'))}
+        ${linkCard('https://sunderbyfolkhogskola.se', 'Sunderby folkhögskola', L('Här finns Föreningen Blisshuset. Skolan driver Blisskursen.', 'Home of the Blisshuset association. The school runs Blisskursen.'))}
+        ${linkCard('https://furuboda.org', 'Föreningen Furuboda', L('Huvudman för Furuboda folkhögskola, där BlissEngine skapades.', 'The organisation behind Furuboda folkhögskola, where BlissEngine was created.'))}
+        ${linkCard(en ? 'https://www.ri.se/en' : 'https://www.ri.se', 'RISE Research Institutes of Sweden', L('Sveriges forskningsinstitut, som arbetar för näringslivets konkurrenskraft och den offentliga sektorns förnyelse.',
+          'Sweden’s research institute, working to strengthen industry’s competitiveness and renew the public sector.'))}
       </div>
-    </div>
+    </section>
 
-    <h3>Integritet</h3>
-    <p>Inga uppgifter samlas in – inga konton, ingen statistik, ingen reklam, inga cookies. Framstegen sparas bara på din enhet;
-      flytta dem med <i>Säkerhetskopia</i> under Inställningar.</p>
+    <section class="panel prose">
+      <h3>${L('Installera som app', 'Install as an app')}</h3>
+      <ul class="steps">
+        <li><b>${L('iPhone och iPad', 'iPhone and iPad')}</b><span>${L('Öppna appens webbadress i Safari, tryck på Dela-knappen och välj <i>Lägg till på hemskärmen</i>.', 'Open the app’s web address in Safari, tap the Share button and choose <i>Add to Home Screen</i>.')}</span></li>
+        <li><b>Android</b><span>${L('Öppna adressen i Chrome och välj <i>Installera app</i> i menyn.', 'Open the address in Chrome and choose <i>Install app</i> in the menu.')}</span></li>
+        <li><b>${L('Dator', 'Computer')}</b><span>${L('I Chrome eller Edge, klicka på installationsikonen i adressfältet.', 'In Chrome or Edge, click the install icon in the address bar.')}</span></li>
+      </ul>
+      <p>${L('Installerad fungerar den även utan internet.', 'Installed, it also works offline.')}</p>
+      <h3>${L('Informationsblad', 'Information sheet')}</h3>
+      <div class="flyer">
+        <div class="flyer-doc" aria-hidden="true"><span>PDF</span></div>
+        <div>
+          <p>${L('Ett A4 med QR-kod till appen – att skriva ut eller skicka vidare.', 'An A4 page with a QR code to the app – to print or pass on. In Swedish.')}</p>
+          <a class="ghost-link" href="${FLYER_URL}" target="_blank" rel="noopener">${L('Ladda ner informationsbladet (PDF, 47 kB)', 'Download the information sheet (PDF, 47 kB, Swedish)')}</a>
+        </div>
+      </div>
+    </section>
 
-    <h3>Symbolernas delar</h3>
-    <p>Delarna kommer ur BCI:s ordförråd BCI-AV, till exempel <i>amfibie</i> = djur + vatten + mark. Där BCI:s text är
-      tvetydig visas texten i stället för en symbol. Kopplingen och de svenska översättningarna är inte granskade av BCI.</p>
+    <section class="panel prose">
+      <h3>${L('Integritet', 'Privacy')}</h3>
+      <p>${L('Inga uppgifter samlas in – inga konton, ingen statistik, ingen reklam, inga cookies. Framstegen sparas bara på din enhet; flytta dem med <i>Säkerhetskopia</i> under Inställningar.',
+        'No data collection, accounts, statistics, ads or cookies. Your progress is stored only on your device – use <i>Backup</i> under Settings to move it.')}</p>
+      <h3>${L('Symbolernas delar', 'The parts of the symbols')}</h3>
+      <p>${L('Delarna kommer ur BCI:s ordförråd BCI-AV, till exempel <i>amfibie</i> = djur + vatten + mark. Där BCI:s text är tvetydig visas texten i stället för en symbol. Kopplingen och de svenska översättningarna är inte granskade av BCI.',
+        'The parts come from BCI’s vocabulary BCI-AV, for example <i>amphibian</i> = animal + water + land. Where BCI’s text is ambiguous, the text is shown instead of a symbol. The linking has not been reviewed by BCI.')}</p>
+    </section>
 
-    <h3>Fel och förslag</h3>
-    <p>Hittat ett fel eller har ett förslag? Skriv till</p>
-    <p class="contact"><a href="mailto:${CONTACT}?subject=Bliss-glosor" id="contact-addr">${CONTACT}</a>
-      <button type="button" class="ghost" id="copy-contact">Kopiera adressen</button></p>
-    <p class="small muted">Ange vilket ord det gäller.</p>
+    <section class="panel prose">
+      <h3>${L('Fel och förslag', 'Mistakes and suggestions')}</h3>
+      <p>${L('Hittat ett fel eller har ett förslag? Skriv till', 'Found a mistake or have a suggestion? Write to')}</p>
+      <p class="contact"><a href="mailto:${CONTACT}?subject=Bliss-glosor" id="contact-addr">${CONTACT}</a>
+        <button type="button" class="ghost" id="copy-contact">${L('Kopiera adressen', 'Copy the address')}</button></p>
+      <p class="small muted">${L('Ange vilket ord det gäller.', 'Say which word it concerns.')}</p>
+    </section>
 
-    <h3>Källor och licenser</h3>
-    <div class="lic">
-      ${lic('Blissymbolerna, ordförrådet BCI-AV, glosor och härledningar', '© Blissymbolics Communication International (BCI); Blissymbolics © C.K. Bliss', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/deed.sv')}
-      ${lic('Svenska översättningar av förklaringarna', 'John Säbom, byggt på BCI:s material', 'CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/deed.sv')}
-      ${lic('Ritmotorn BlissEngine', '© AnyCom AB – BlissEngine av P-O Hedvall och Jonas Paulsson – ritmotorn ur WinBliss (1997–2007), överförd till webben 2026', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/deed.sv')}
-      ${lic('Ordfrekvenser', 'SUC 3.0-statistik, Språkbanken Text, Göteborgs universitet', 'CC BY 4.0', 'https://creativecommons.org/licenses/by/4.0/deed.sv')}
-      ${lic('Typsnittet Atkinson Hyperlegible', '© 2020 Braille Institute of America', 'SIL Open Font License 1.1', 'https://openfontlicense.org')}
-      ${lic('Glosprogrammets egen kod', '© 2026 John Säbom', 'MIT', 'https://opensource.org/license/mit')}
-    </div>
-    <p style="margin-top:10px">Fri att använda och sprida. Den som bygger vidare på BCI:s material ska ange källan och dela under CC BY-SA 4.0:</p>
-    <blockquote>Parts herein © Blissymbolics Communication International (BCI), distributed under the Creative Commons BY-SA 4.0 licence.</blockquote>
-    <p class="small muted">Mer på <a href="https://www.blissymbolics.org/index.php/sv/licensiering" target="_blank" rel="noopener">blissymbolics.org</a>.
-      Version ${APP_VERSION}.</p>
-  </section>`;
+    <section class="panel prose">
+      <h3>${L('Källor och licenser', 'Sources and licences')}</h3>
+      <div class="lic">
+        ${lic(L('Blissymbolerna, ordförrådet BCI-AV, glosor och härledningar', 'The Blissymbols, the BCI-AV vocabulary, glosses and derivations'), '© Blissymbolics Communication International (BCI); Blissymbolics © C.K. Bliss', 'CC BY-SA 4.0', `https://creativecommons.org/licenses/by-sa/4.0/${deed}`)}
+        ${lic(L('Svenska översättningar av förklaringarna', 'Swedish translations of the explanations'), L('John Säbom, byggt på BCI:s material', 'John Säbom, based on BCI material'), 'CC BY-SA 4.0', `https://creativecommons.org/licenses/by-sa/4.0/${deed}`)}
+        ${lic(L('Ritmotorn BlissEngine', 'The BlissEngine drawing engine'), L('© AnyCom AB – BlissEngine av P-O Hedvall och Jonas Paulsson – ritmotorn ur WinBliss (1997–2007), överförd till webben 2026', '© AnyCom AB – BlissEngine by P-O Hedvall and Jonas Paulsson – the drawing engine from WinBliss (1997–2007), brought to the web in 2026'), 'CC BY 4.0', `https://creativecommons.org/licenses/by/4.0/${deed}`)}
+        ${lic(L('Ordfrekvenser och verb i skrivfältet', 'Word frequencies and verbs in the writing field'), L('SUC 3.0-statistik, Språkbanken Text, Göteborgs universitet', 'SUC 3.0 statistics, Språkbanken Text, University of Gothenburg'), 'CC BY 4.0', `https://creativecommons.org/licenses/by/4.0/${deed}`)}
+        ${lic(L('Synonymer i skrivfältet', 'Synonyms in the writing field'), L('Swesaurus, Språkbanken Text, Göteborgs universitet', 'Swesaurus, Språkbanken Text, University of Gothenburg'), 'CC BY 4.0', `https://creativecommons.org/licenses/by/4.0/${deed}`)}
+        ${lic(L('Typsnittet Atkinson Hyperlegible', 'The Atkinson Hyperlegible typeface'), '© 2020 Braille Institute of America', 'SIL Open Font License 1.1', 'https://openfontlicense.org')}
+        ${lic(L('Glosprogrammets egen kod', 'The app’s own code'), '© 2026 John Säbom', 'MIT', 'https://opensource.org/license/mit')}
+      </div>
+      <p style="margin-top:10px">${L('Fri att använda och sprida. Den som bygger vidare på BCI:s material ska ange källan och dela under CC BY-SA 4.0:', 'Free to use and share. Anyone building on BCI’s material must credit it and share under CC BY-SA 4.0:')}</p>
+      <blockquote>Parts herein © Blissymbolics Communication International (BCI), distributed under the Creative Commons BY-SA 4.0 licence.</blockquote>
+      <p class="small muted">${L('Mer på', 'More at')} <a href="${en ? 'https://www.blissymbolics.org' : 'https://www.blissymbolics.org/index.php/sv/licensiering'}" target="_blank" rel="noopener">blissymbolics.org</a>.
+        Version ${APP_VERSION}.</p>
+    </section>
+  </div>`;
 }
 
 /** Dela-menyn där den finns (mobil), annars kopiera länken. */

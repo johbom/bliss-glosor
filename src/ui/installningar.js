@@ -1,5 +1,5 @@
 /**
- * Inställningar: språk, uppläsning, övningar, takt, säkerhetskopia och nollställning.
+ * Inställningar: språk, uppläsning, övningar, ordning, takt, visning, säkerhetskopia och nollställning.
  */
 (() => {
 const {
@@ -7,45 +7,55 @@ const {
 } = window.Glosor;
 const { tx, app, register, applyLang, switchLang, canSpeak, say } = window.GlosorUI;
 
+/**
+ * Inställningarna som grupperade kort. Kryssrutorna är riktiga kryssrutor (skärmläsare, tangentbord), ritade
+ * som strömbrytare (.switch); hela raden är tryckyta. Antalet nya ord per dag ändras med − och +.
+ */
 function settings() {
-  const modes = Object.entries(MODES).map(([k, label]) =>
-    `<label><input type="checkbox" data-mode="${k}" ${S.settings.modes[k] ? 'checked' : ''}> ${label}</label>`).join('');
+  const sw = (attrs, label, help = '') => `<label class="set-row"><span class="set-text">${label}${help ? `<small>${help}</small>` : ''}</span>
+      <input type="checkbox" class="switch" ${attrs}></label>`;
+  const radio = (name, value, on, label, help = '') => `<label class="set-row"><span class="set-text">${label}${help ? `<small>${help}</small>` : ''}</span>
+      <input type="radio" name="${name}" value="${value}" ${on ? 'checked' : ''}></label>`;
+  const modes = Object.entries(MODES).map(([k, label]) => sw(`data-mode="${k}" ${S.settings.modes[k] ? 'checked' : ''}`, label)).join('');
+  const group = (title, body, help = '') => `<section class="set-group"><h3>${title}</h3><div class="set-card">${body}</div>${help ? `<p class="set-help">${help}</p>` : ''}</section>`;
   app.innerHTML = `
-    <section class="panel settings">
-      <h2>${tx('Inställningar', 'Settings')}</h2>
-      <fieldset><legend>${tx('Språk', 'Language')}</legend>
-        <label><input type="radio" name="lang" value="sv" ${lang() === 'sv' ? 'checked' : ''}> Svenska</label>
-        <label><input type="radio" name="lang" value="en" ${lang() === 'en' ? 'checked' : ''}> English</label>
-      </fieldset>
-      ${canSpeak ? `<fieldset><legend>${tx('Uppläsning', 'Read aloud')}</legend>
-        <label><input type="checkbox" id="speak" ${S.settings.speak ? 'checked' : ''}> ${tx('Läs upp ord och dikter', 'Read words and poems aloud')}</label>
-        <p class="small muted">${tx('Enhetens egen röst. På iPhone finns bättre röster under Inställningar → Hjälpmedel → Uppläst innehåll → Röster.',
-          'Uses the device’s own voice. On iPhone, better voices are under Settings → Accessibility → Spoken Content → Voices.')}</p>
-      </fieldset>` : ''}
-      <fieldset><legend>${tx('Övningar', 'Exercises')}</legend>${modes}</fieldset>
-      <fieldset><legend>${tx('Ordning', 'Order')}</legend>
-        <label><input type="radio" name="track" value="core" ${S.settings.track === 'core' ? 'checked' : ''}> ${tx('Vardagsord först', 'Everyday words first')}</label>
-        <label><input type="radio" name="track" value="basics" ${S.settings.track !== 'core' ? 'checked' : ''}> ${tx('Från grunden – grundtecknen först', 'From the basics – basic characters first')}</label>
-        <p class="small muted">${tx('Gäller nya ord. Det du redan lärt dig finns kvar.', 'Applies to new words. What you have already learned stays.')}</p>
-      </fieldset>
-      <fieldset><legend>${tx('Takt', 'Pace')}</legend>
-        <label>${tx('Nya symboler per dag', 'New symbols per day')} <input type="number" id="npd" min="1" max="100" value="${S.settings.newPerDay}"></label>
-        <label><input type="checkbox" id="staff" ${S.settings.staff ? 'checked' : ''}> ${tx('Visa himmels- och jordlinje', 'Show sky and earth lines')}</label>
-      </fieldset>
-      <fieldset class="backup"><legend>${tx('Säkerhetskopia', 'Backup')}</legend>
-        <p class="small muted">${tx('Framstegen finns bara på den här enheten (på iPhone raderas de med appen). Spara en kopia då och då.',
-          'Progress is stored only on this device (on iPhone it is deleted with the app). Save a copy now and then.')}</p>
-        <div class="row">
-          <button type="button" class="ghost" id="backup-save">${tx('Spara säkerhetskopia', 'Save backup')}</button>
-          <button type="button" class="ghost" id="backup-load">${tx('Läs in säkerhetskopia', 'Load backup')}</button>
-          <input type="file" id="backup-file" accept=".json,application/json" hidden>
-        </div>
-        <div class="backup-msg small" id="backupmsg" role="status"></div>
-      </fieldset>
-      <p class="small muted">${tx('Grundtecknen kommer först. Ett sammansatt ord låses upp när du kan dess delar. Rätt svar ger längre intervall (10 min → 1 dag → … → 90 dagar), fel svar börjar om.',
-        'Basic characters come first. A compound word unlocks when you know its parts. Right answers give longer intervals (10 min → 1 day → … → 90 days); a wrong answer starts over.')}</p>
-      <div style="margin-top:10px" id="resetbox"><button type="button" class="danger" id="reset">${tx('Nollställ framsteg', 'Reset progress')}</button></div>
-    </section>`;
+    <div class="settings">
+      <h2 class="page-title">${tx('Inställningar', 'Settings')}</h2>
+      ${group(tx('Språk', 'Language'), `<div class="set-row seg" role="radiogroup" aria-label="${tx('Språk', 'Language')}">
+          <label><input type="radio" name="lang" value="sv" ${lang() === 'sv' ? 'checked' : ''}><span>Svenska</span></label>
+          <label><input type="radio" name="lang" value="en" ${lang() === 'en' ? 'checked' : ''}><span>English</span></label></div>`)}
+      ${canSpeak ? group(tx('Uppläsning', 'Read aloud'), sw(`id="speak" ${S.settings.speak ? 'checked' : ''}`, tx('Läs upp ord och dikter', 'Read words and poems aloud')),
+        tx('Enhetens egen röst. På iPhone finns bättre röster under Inställningar → Hjälpmedel → Uppläst innehåll → Röster.',
+          'Uses the device’s own voice. On iPhone, better voices are under Settings → Accessibility → Spoken Content → Voices.')) : ''}
+      ${group(tx('Övningar', 'Exercises'), modes, tx('Minst en övning är alltid påslagen.', 'At least one exercise is always on.'))}
+      ${group(tx('Ordning', 'Order'),
+        radio('track', 'core', S.settings.track === 'core', tx('Vardagsord först', 'Everyday words first'), tx('Jag, vilja, mer, hjälp … – grundtecknen när ett ord behöver dem', 'I, want, more, help … – basic characters when a word needs them'))
+        + radio('track', 'basics', S.settings.track !== 'core', tx('Från grunden', 'From the basics'), tx('Grundtecknen först, sedan orden som byggs av dem', 'Basic characters first, then the words built from them')),
+        tx('Gäller nya ord. Det du redan lärt dig finns kvar.', 'Applies to new words. What you have already learned stays.'))}
+      ${group(tx('Takt', 'Pace'), `<div class="set-row"><label class="set-text" for="npd">${tx('Nya ord per dag', 'New words per day')}</label>
+          <span class="stepper"><button type="button" data-step="-1" aria-label="${tx('Färre', 'Fewer')}">−</button>
+            <input type="number" id="npd" min="1" max="100" inputmode="numeric" value="${S.settings.newPerDay}">
+            <button type="button" data-step="1" aria-label="${tx('Fler', 'More')}">+</button></span></div>`,
+        tx('Ett sammansatt ord låses upp när du kan dess delar. Rätt svar ger längre mellanrum (10 min → 1 dag → … → 90 dagar), fel svar börjar om.',
+          'A compound word unlocks when you know its parts. Right answers give longer intervals (10 min → 1 day → … → 90 days); a wrong answer starts over.'))}
+      ${group(tx('Visning', 'Display'), sw(`id="staff" ${S.settings.staff ? 'checked' : ''}`, tx('Visa himmels- och jordlinje', 'Show sky and earth lines'), tx('Hjälplinjerna som visar symbolernas storlek och läge', 'The guide lines that show the symbols’ size and position')))}
+      <section class="set-group backup"><h3>${tx('Säkerhetskopia', 'Backup')}</h3>
+        <div class="set-card set-pad">
+          <p class="small muted">${tx('Framstegen finns bara på den här enheten (på iPhone raderas de med appen). Spara en kopia då och då.',
+            'Progress is stored only on this device (on iPhone it is deleted with the app). Save a copy now and then.')}</p>
+          <div class="row">
+            <button type="button" class="ghost" id="backup-save">${tx('Spara säkerhetskopia', 'Save backup')}</button>
+            <button type="button" class="ghost" id="backup-load">${tx('Läs in säkerhetskopia', 'Load backup')}</button>
+            <input type="file" id="backup-file" accept=".json,application/json" hidden>
+          </div>
+          <div class="backup-msg small" id="backupmsg" role="status"></div>
+        </div></section>
+      <section class="set-group"><h3>${tx('Börja om', 'Start over')}</h3>
+        <div class="set-card set-pad" id="resetbox">
+          <p class="small muted">${tx('Tar bort allt du lärt dig. Inställningarna och Mina ord finns kvar.', 'Removes everything you have learned. Settings and My words stay.')}</p>
+          <button type="button" class="danger-btn" id="reset">${tx('Nollställ framsteg', 'Reset progress')}</button>
+        </div></section>
+    </div>`;
 }
 
 // ---------------------------------------------------------------- säkerhetskopia
@@ -120,6 +130,13 @@ register('settings', {
     }
     if (t.id === 'reset-yes') { resetProgress(); settings(); return true; }
     if (t.id === 'reset-no') { settings(); return true; }
+    if (t.dataset.step) {
+      const inp = document.getElementById('npd');
+      inp.value = Math.max(1, Math.min(100, (parseInt(inp.value, 10) || 10) + +t.dataset.step));
+      S.settings.newPerDay = +inp.value;
+      save();
+      return true;
+    }
     return false;
   },
   change(t) {
