@@ -217,6 +217,14 @@ button.ww:hover{border-color:var(--rule)}
 #write-out{position:relative}
 .ww{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
 .ww-note{font-size:12px;color:var(--accent);font-style:italic;margin-top:-2px}
+/* Första gången: hur vill du börja? (hem.js trackChoice) */
+.track-opts{display:grid;gap:10px}
+.track-opt{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:14px 16px;border-radius:14px;
+  background:var(--panel-2);border:2px solid var(--rule);color:var(--ink);font:inherit;cursor:pointer}
+.track-opt b{font-size:18px}
+.track-opt span{font-size:15px;color:var(--dim);line-height:1.4}
+.track-opt:hover{border-color:var(--accent)}
+.for-goal{margin:2px 0 4px;color:var(--accent);font-size:15px}
 /* Efter ett fel: valet och det rätta bredvid varandra, och delarna som skiljer dem (ova.js compareHTML). */
 .compare{margin-top:12px;padding-top:10px;border-top:1px solid var(--rule)}
 .cmp-pair{display:flex;gap:10px;flex-wrap:wrap}

@@ -45,10 +45,12 @@ function progressBar() {
     <span>${sess.right} ${tx('rätt', 'right')} · ${sess.wrong} ${tx('fel', 'wrong')} <button type="button" class="ghost" id="quit" style="padding:4px 10px;margin-left:8px">${tx('Avsluta', 'Quit')}</button></span></div>`;
 }
 
-function introHTML(c) {
+function introHTML(c, goal = null) {
   const kind = c.parts.length ? tx('Nytt ord', 'New word') : tx('Nytt grundtecken', 'New basic character');
+  // Vardagsord först: delen lärs för att ett ord behöver den.
+  const forGoal = goal ? `<p class="for-goal">${tx(`Behövs för ordet <b>${esc(goal.word)}</b>.`, `Needed for the word <b>${esc(goal.word)}</b>.`)}</p>` : '';
   const users = c.users.length ? `<p class="small muted" style="margin-top:8px">${tx(`Ingår i ${c.users.length} andra ord.`, `Part of ${c.users.length} other words.`)}</p>` : '';
-  return `<div class="kicker">${kind}</div>
+  return `<div class="kicker">${kind}</div>${forGoal}
     <div class="stage">${symbolSVG(c, 9)}</div>
     <div class="word">${esc(c.word)}${sayBtn(c.word)}</div>
     ${c.others.length ? `<div class="syns">${esc(c.others.join(', '))}</div>` : ''}
@@ -202,7 +204,7 @@ function renderStep() {
       <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till start', 'Back home')}</button><button type="button" class="primary" data-act="more">${tx('Lär 5 nya till', 'Learn 5 more')}</button></div></section>`;
     return;
   }
-  const body = step.kind === 'intro' ? introHTML(step.c) : step.kind === 'sentence' ? sentenceHTML() : quizHTML();
+  const body = step.kind === 'intro' ? introHTML(step.c, step.goal) : step.kind === 'sentence' ? sentenceHTML() : quizHTML();
   app.innerHTML = progressBar() + `<section class="panel" id="card">${body}</section>`;
 }
 

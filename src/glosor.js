@@ -373,6 +373,7 @@ const bestStreak = () => S.streak.best || 0;
 function defaults() {
   return {
     cards: {},
+    // settings.track (sätts när man väljer): 'core' = vardagsord först (CORE), 'basics' = från grunden; saknas = som 'basics'.
     settings: { modes: { sym: true, word: true, parts: true, build: true }, newPerDay: 10, staff: true, lang: null },
     day: { date: today(), n: 0, extra: 0 },
     alt: false,
@@ -507,9 +508,51 @@ function toggleMine(id) {
 const FREQ_STEPS = [[300, 100], [600, 50], [1000, 20]];
 const minFreq = () => (FREQ_STEPS.find(([n]) => introduced().length < n) || [0, 0])[1];
 
+// ---- Spåret "Vardagsord först" ----
+// Kärnord: de ord som används mest när man kommunicerar med AKK (jag, vill, mer, sluta, hjälp …), i den
+// ordning de lärs ut. Ett ord i taget: först de delar som saknas (i alla led, grundtecken och indikatorer
+// när ordet behöver dem), sedan själva ordet när delarna klarats en gång. Bara BCI-id, inga nya ord.
+const CORE = [
+  // de första: vem, vilja, mer eller sluta, hjälp, ja och nej
+  14916, 18465, 18035, 15733, 15654, 17268, 14704, 18294, 15722,
+  // tycka och göra
+  15210, 14463, 12615, 13906, 13882, 18031, 16747, 16728, 13860, 14685, 13383, 14440, 13131, 16200, 17009,
+  // personer, platser och saker
+  15662, 14157, 14401, 14885, 17747, 14377, 18209,
+  // känslor och hur man mår
+  14676, 16702, 12377, 12347, 15955, 27146, 16973,
+  // frågor, platser, småord
+  18228, 18245, 18236, 18234, 14708, 17707, 17983, 13869, 12350, 24844, 15922, 17533, 14702, 12835, 15221, 24011,
+];
+const coreTrack = () => S.settings.track === 'core';
+/** Första delen (i alla led) som inte påbörjats, annars ordet självt. */
+function nextNeeded(c) {
+  for (const p of new Set(c.parts)) if (!S.cards[p]) return nextNeeded(deck.get(p));
+  return c;
+}
+/** { c: ordet att lära nu, goal: kärnordet det behövs för } eller null när kärnorden är klara. */
+function pickCore() {
+  for (const id of CORE) {
+    const goal = deck.get(id);
+    if (!goal || S.cards[id]) continue;
+    const c = nextNeeded(goal);
+    if (c.parts.length && !c.parts.every((p) => boxOf(p) >= UNLOCK_BOX)) continue;   // delarna först, sedan ordet
+    return { c, goal };
+  }
+  return null;
+}
+/** Kärnordet som lärs härnäst (visas på startsidan), eller null. */
+const nextGoal = () => (coreTrack() ? CORE.map((id) => deck.get(id)).find((c) => c && !S.cards[c.id]) || null : null);
+
+let newGoal = null;   // kärnordet som det senast valda nya ordet behövs för (intro-kortet visar det)
 function pickNew() {
+  newGoal = null;
   const chosen = mineCards().find((c) => !S.cards[c.id]);
   if (chosen) return chosen;
+  if (coreTrack()) {
+    const core = pickCore();
+    if (core) { newGoal = core.goal === core.c ? null : core.goal; return core.c; }
+  }
   const atom = nextAtom();
   const all = unlockedCompounds();
   const comps = atom ? all.filter((c) => everyday.has(c.id) || c.freq >= minFreq()) : all;   // utan grundtecken kvar: ingen gräns
@@ -781,7 +824,9 @@ function nextStep() {
   }
   if (id == null) id = due[0];
   if (id == null) return null;
-  return makeStep(id, kind);
+  const step = makeStep(id, kind);
+  if (kind === 'intro' && newGoal) step.goal = newGoal;
+  return step;
 }
 
 /** Mina ord / fri repetition: nästa ord i kön (inte samma som nyss om det går); ej påbörjade ord visas först som introduktion. */
@@ -1015,7 +1060,7 @@ window.Glosor = {
   MODES, S, save, resetProgress, stats, streak, bestStreak, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
-  noteConfusion, confusedPairs, answerPair, compareParts,
+  noteConfusion, confusedPairs, answerPair, compareParts, nextGoal, CORE,
   exportBackup, readBackup, importBackup,
   sentenceCount, sentenceTotal, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
   frameSVG, addDrawings, hasDrawing, splitSyns,

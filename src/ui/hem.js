@@ -6,6 +6,7 @@
 (() => {
 const {
   stats, streak, bestStreak, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts, confusedPairs,
+  S, save, nextGoal,
 } = window.Glosor;
 const { tx, app, setView, register, milestoneHTML, fundLogo } = window.GlosorUI;
 
@@ -20,9 +21,25 @@ const WHY = {
 };
 
 // ---------------------------------------------------------------- start
+/** Första gången: hur vill man börja? Valet kan ändras under Inställningar → Takt. */
+function trackChoice() {
+  const opt = (k, title, text) => `<button type="button" class="track-opt" data-track="${k}"><b>${title}</b><span>${text}</span></button>`;
+  return `<section class="panel">
+      <div class="head"><h2>${tx('Hur vill du börja?', 'How do you want to start?')}</h2></div>
+      <div class="track-opts">
+        ${opt('core', tx('Vardagsord först', 'Everyday words first'),
+          tx('Ord som jag, vill, mer och hjälp. Grundtecknen lärs in när ett ord behöver dem.', 'Words like I, want, more and help. The basic characters are learned when a word needs them.'))}
+        ${opt('basics', tx('Från grunden', 'From the basics'),
+          tx('Grundtecknen först, sedan orden som byggs av dem.', 'The basic characters first, then the words built from them.'))}
+      </div>
+      <p class="small muted" style="margin-top:8px">${tx('Du kan byta under Inställningar.', 'You can change this in Settings.')}</p>
+    </section>`;
+}
+
 function home() {
+  if (!reviewCount() && !S.settings.track) { app.innerHTML = trackChoice(); return; }
   const st = stats();
-  const atom = nextAtom();
+  const atom = nextAtom(), goal = nextGoal();
   const pct = (a, b) => (b ? (100 * a / b).toFixed(1) : 0);
   const work = st.due + st.newLeft;
   const learnt = reviewCount();
@@ -37,7 +54,8 @@ function home() {
             : locked('review', tx('Repetera det du lärt dig', 'Review what you have learned'))}
         ${work && learnt ? `<button type="button" class="ghost" id="review">${tx('Repetera fritt', 'Free review')}</button>` : ''}
         ${work ? '' : `<button type="button" class="ghost" id="more">${tx('Lär 5 nya till', 'Learn 5 more')}</button>`}
-        ${atom ? `<span class="small muted">${tx('Nästa grundtecken:', 'Next basic character:')}</span>${chip(atom, 2.6)}` : ''}
+        ${goal ? `<span class="small muted">${tx('Nästa ord:', 'Next word:')}</span>${chip(goal, 2.6)}`
+          : atom ? `<span class="small muted">${tx('Nästa grundtecken:', 'Next basic character:')}</span>${chip(atom, 2.6)}` : ''}
       </div>
       ${work || learnt ? '' : whyBox('review')}
       ${pairsRow()}
@@ -116,6 +134,13 @@ register('home', {
   click(t) {
     if (t.id === 'go-list') return setView('list'), true;
     if (t.id === 'poem-open') return setView('poesi'), true;
+    if (t.dataset.track) {
+      S.settings.track = t.dataset.track;
+      save();
+      document.getElementById('start') || home();
+      document.getElementById('start')?.click();   // valet startar första passet direkt
+      return true;
+    }
     if (t.dataset.why && WHY[t.dataset.why]) {
       const box = document.getElementById(`why-${t.dataset.why}`);
       if (box) box.textContent = WHY[t.dataset.why]();

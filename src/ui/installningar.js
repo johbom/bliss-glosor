@@ -23,6 +23,11 @@ function settings() {
           'Uses the device’s own voice. On iPhone, better voices are under Settings → Accessibility → Spoken Content → Voices.')}</p>
       </fieldset>` : ''}
       <fieldset><legend>${tx('Övningar', 'Exercises')}</legend>${modes}</fieldset>
+      <fieldset><legend>${tx('Ordning', 'Order')}</legend>
+        <label><input type="radio" name="track" value="core" ${S.settings.track === 'core' ? 'checked' : ''}> ${tx('Vardagsord först', 'Everyday words first')}</label>
+        <label><input type="radio" name="track" value="basics" ${S.settings.track !== 'core' ? 'checked' : ''}> ${tx('Från grunden – grundtecknen först', 'From the basics – basic characters first')}</label>
+        <p class="small muted">${tx('Gäller nya ord. Det du redan lärt dig finns kvar.', 'Applies to new words. What you have already learned stays.')}</p>
+      </fieldset>
       <fieldset><legend>${tx('Takt', 'Pace')}</legend>
         <label>${tx('Nya symboler per dag', 'New symbols per day')} <input type="number" id="npd" min="1" max="100" value="${S.settings.newPerDay}"></label>
         <label><input type="checkbox" id="staff" ${S.settings.staff ? 'checked' : ''}> ${tx('Visa himmels- och jordlinje', 'Show sky and earth lines')}</label>
@@ -120,6 +125,7 @@ register('settings', {
   change(t) {
     if (t.id === 'backup-file') return loadBackupFile(t);
     if (t.name === 'lang') return switchLang(t.value);
+    if (t.name === 'track') S.settings.track = t.value;
     if (t.dataset.mode) {
       S.settings.modes[t.dataset.mode] = t.checked;
       if (!Object.values(S.settings.modes).some(Boolean)) { S.settings.modes[t.dataset.mode] = true; t.checked = true; }
