@@ -62,6 +62,7 @@ function home() {
     </section>
     ${minePanel()}
     ${sentencesPanel()}
+    ${boardPanel()}
     ${poemPanel()}
     <section class="panel">
       ${milestoneHTML()}
@@ -116,6 +117,14 @@ function sentencesPanel() {
       ${n ? '' : whyBox('sentences')}
       <div class="row" style="margin-top:10px"><button type="button" class="ghost" id="write-open">${tx('Skriv en egen mening', 'Write your own sentence')}</button>
         <span class="small muted">${tx('Skriv med bokstäver – det blir Bliss.', 'Type with letters – it becomes Bliss.')}</span></div>
+    </section>`;
+}
+
+function boardPanel() {
+  return `<section class="panel">
+      <div class="head"><h2>${tx('Kommunikationstavla', 'Communication board')}</h2>
+        <button type="button" class="primary" id="board-open">${tx('Öppna tavlan', 'Open the board')}</button></div>
+      <p class="small muted">${tx('Peka på symboler – det blir en mening som kan läsas upp.', 'Point at symbols – they become a sentence that can be read aloud.')}</p>
     </section>`;
 }
 
