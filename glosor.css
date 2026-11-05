@@ -191,6 +191,9 @@ h2{font-size:17px;margin-bottom:12px}
 .share .qr{flex:none;width:140px;height:140px;border-radius:10px;background:#fff;display:block;box-shadow:0 0 0 1px var(--rule)}
 @media (max-width:520px){.share{gap:14px;align-items:flex-start}.share .qr{width:112px;height:112px}.share .primary{padding:10px 18px;font-size:16px}}
 .about .prose h3:first-child{margin-top:0}
+/* Om-sidans kort lika breda; bara textraderna hålls till en bekväm längd. */
+.about .panel.prose{max-width:none}
+.about .prose p,.about .prose li,.about .prose blockquote{max-width:72ch}
 .link-card.tip{background:var(--accent-soft);border:2px solid var(--accent)}
 .steps{list-style:none;padding:0!important;display:grid;gap:8px}
 .steps li{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border-radius:12px;background:var(--panel-2)}
