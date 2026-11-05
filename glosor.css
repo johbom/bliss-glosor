@@ -172,7 +172,7 @@ h2{font-size:17px;margin-bottom:12px}
 .contact .ghost{padding:6px 12px;font-size:14px}
 .head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
 .head h2{margin:0}
-.star{color:var(--c-YELLOW);font-size:13px;line-height:1}
+.star{position:absolute;top:6px;right:8px;color:var(--accent);font-size:16px;line-height:1}
 .tabs{display:flex;gap:4px;margin-bottom:10px}
 .tabs button{background:none;border:1px solid var(--rule);border-radius:999px;padding:4px 12px;font-size:14px;color:var(--dim)}
 .tabs button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent);color:var(--ink)}
@@ -353,7 +353,20 @@ button.ww:hover{border-color:var(--rule)}
 .cls-GRAY::before{background:var(--c-GRAY)}
 
 /* pass */
-.progress{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:14px;color:var(--dim)}
+/* Fokusläge (app.js setView): under ett pass syns bara Arvsfondens lilla logotyp överst. */
+body.focus header h1,body.focus header nav,body.focus .lang-toggle{display:none}
+body.focus .fund-top{padding-bottom:4px}
+.progress{margin-bottom:12px}
+.progress-top{display:flex;align-items:center;gap:12px}
+.quit{flex:none;background:var(--panel);color:var(--ink);border:0;border-radius:999px;padding:8px 16px;font-size:15px;font-weight:700;box-shadow:var(--shadow)}
+.quit:hover{box-shadow:inset 0 0 0 2px var(--accent)}
+.pbar{flex:1;height:12px;border-radius:6px;background:var(--panel);overflow:hidden;box-shadow:inset 0 0 0 1px var(--rule)}
+.pbar i{display:block;height:100%;background:var(--accent);border-radius:6px;transition:width .3s ease}
+@media (prefers-reduced-motion: reduce){.pbar i{transition:none}}
+.score{flex:none;display:flex;gap:6px;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.sc{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;background:var(--panel)}
+.sc.ok{color:var(--ok)} .sc.bad{color:var(--bad)}
+.progress-text{font-size:14px;color:var(--dim);margin:6px 2px 0}
 .kicker{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);font-weight:700}
 .prompt{font-size:20px;margin:4px 0 6px}
 .word{font-size:28px;font-weight:700}
@@ -374,8 +387,9 @@ button.ww:hover{border-color:var(--rule)}
 .pal.on{border-color:var(--accent);background:var(--accent-soft)}
 .strip{min-height:96px;border:2px dashed var(--rule);border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px}
 .strip:empty::before{content:attr(data-empty);color:var(--dim);font-size:14px;padding:0 6px}
-.feedback{margin-top:16px;padding:14px;border-radius:12px;background:var(--panel-2)}
-.feedback.good{background:var(--ok-soft)} .feedback.wrong{background:var(--bad-soft)}
+/* Svaret: lugn ruta med en färgad kant – rätt/fel med färg och ord står i listen nedanför (#card .actions). */
+.feedback{margin-top:16px;padding:14px 16px;border-radius:12px;background:var(--panel-2);border-left:5px solid var(--rule)}
+.feedback.good{border-left-color:var(--ok)} .feedback.wrong{border-left-color:var(--bad)}
 .feedback h3{font-size:17px;margin-bottom:4px}
 .actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:16px}
 /* I kortet sitter knapparna i en list som fastnar i skärmens nederkant när kortet är längre än
@@ -394,21 +408,31 @@ button.ww:hover{border-color:var(--rule)}
 #card .actions.result .hint{margin:0 0 0 12px}
 #card .actions.result .verdict{margin-right:auto}
 @media (hover:none),(max-width:520px){.hint{display:none}}   /* tangentbordstips: inte på pekskärm eller smal skärm */
+@media (hover:none){.opt .k,.pal .k{display:none}}   /* siffrorna är tangentbordets genvägar */
 
 /* ordlista */
 .search{width:100%;font:inherit;padding:10px 12px;border:1px solid var(--rule);border-radius:10px;background:var(--panel-2);color:var(--ink);margin-bottom:12px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
-.grid .chip{max-width:none;width:100%}
-.dots{display:flex;gap:2px;justify-content:center;margin-top:2px}
-.dots i{width:6px;height:6px;border-radius:50%;background:var(--rule)}
-.dots i.f{background:var(--accent)}
+.grid .chip{position:relative;max-width:none;width:100%;padding:8px 8px 10px;gap:4px}
+.grid .chip > span:not(.lvl):not(.star){font-size:15px}
+/* Hur väl ordet sitter (detalj.js stageHTML): Ny → Övas → Lärd → Kan, allt starkare blågrönt. */
+.lvl{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;line-height:1.5;white-space:nowrap}
+.lvl-none{color:var(--dim);font-weight:400;padding:0}
+.lvl-new{background:var(--panel);color:var(--dim);box-shadow:inset 0 0 0 1px var(--rule)}
+.lvl-practising{background:var(--accent-soft);color:var(--btn-2-ink)}
+.lvl-learned{background:var(--panel);color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.lvl-known{background:var(--accent);color:var(--accent-ink)}
+.detail-stage{margin-top:12px;display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 dialog{margin:auto;border:0;border-radius:16px;padding:22px;max-width:min(640px,calc(100vw - 32px));width:100%;background:var(--panel);color:var(--ink)}
 dialog::backdrop{background:rgba(0,0,0,.4)}
 .say{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;padding:0;margin-left:8px;vertical-align:middle;
   border:1px solid var(--rule);border-radius:50%;background:var(--panel);color:var(--accent)}
 .say:hover{border-color:var(--accent)}
 #poem-say svg{vertical-align:-4px}
-.close{float:right;background:none;border:0;font-size:22px;line-height:1;color:var(--dim)}
+/* Stängknappen följer med när man bläddrar i rutan. */
+.dlg-bar{position:sticky;top:-22px;z-index:2;display:flex;justify-content:flex-end;height:0}
+.close{background:var(--panel);border:0;border-radius:50%;width:40px;height:40px;font-size:24px;line-height:1;color:var(--ink);box-shadow:var(--shadow),0 0 0 1px var(--rule);margin:-8px -8px 0 0}
+.close:hover{box-shadow:0 0 0 2px var(--accent)}
 /* kylskåpspoesi */
 .fridge{position:relative;border-radius:18px;padding:18px 26px 18px 16px;
   background:linear-gradient(165deg,#FBFBF9 0%,#ECEDE9 55%,#E2E3DE 100%);

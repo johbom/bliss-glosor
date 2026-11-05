@@ -34,15 +34,27 @@ function advance() {
   window.scrollTo(0, 0);   // nästa kort börjar överst, även om man bläddrat ner i förra
 }
 
+/** Överst i passet: Avsluta, en stapel för hur långt man kommit, rätt och fel – och vad som är kvar i text. */
 function progressBar() {
   const st = stats(), f = focusState(), m = sentenceState();
-  const left = m ? tx(`Meningar · ${m.left} av ${m.total} kvar`, `Sentences · ${m.left} of ${m.total} left`)
+  const answered = sess.right + sess.wrong;
+  const left = m ? m.left : f ? f.left : st.due + st.newLeft;
+  const total = m ? m.total : f ? f.total : answered + left;
+  const done = Math.max(0, total - left);
+  const text = m ? tx(`Meningar · ${m.left} av ${m.total} kvar`, `Sentences · ${m.left} of ${m.total} left`)
     : f?.pairs ? tx(`Förväxlade ord · ${f.left} av ${f.total} kvar`, `Mixed-up words · ${f.left} of ${f.total} left`)
     : f?.review ? tx(`Repetition · ${f.left} av ${f.total} kvar`, `Review · ${f.left} of ${f.total} left`)
     : f ? tx(`Mina ord · ${f.left} av ${f.total} kvar`, `My words · ${f.left} of ${f.total} left`)
       : tx(`${st.due} att repetera · ${st.newLeft} nya kvar`, `${st.due} to review · ${st.newLeft} new left`);
-  return `<div class="progress"><span>${left}</span>
-    <span>${sess.right} ${tx('rätt', 'right')} · ${sess.wrong} ${tx('fel', 'wrong')} <button type="button" class="ghost" id="quit" style="padding:4px 10px;margin-left:8px">${tx('Avsluta', 'Quit')}</button></span></div>`;
+  const pct = total ? (100 * done / total).toFixed(1) : 0;
+  return `<div class="progress">
+      <div class="progress-top">
+        <button type="button" class="quit" id="quit">${tx('Avsluta', 'Quit')}</button>
+        <div class="pbar" role="progressbar" aria-label="${tx('Hur långt du kommit', 'How far you have come')}" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}"><i style="width:${pct}%"></i></div>
+        <span class="score"><span class="sc ok">${sess.right}<span class="sr-only"> ${tx('rätt', 'right')}</span><b aria-hidden="true">✓</b></span><span class="sc bad">${sess.wrong}<span class="sr-only"> ${tx('fel', 'wrong')}</span><b aria-hidden="true">✗</b></span></span>
+      </div>
+      <p class="progress-text">${text}</p>
+    </div>`;
 }
 
 function introHTML(c, goal = null) {
@@ -148,7 +160,7 @@ function compareHTML(rightId, chosenId, pics = null) {
 function sentenceFeedbackHTML(ok, note) {
   const { m } = step;
   return `<div class="feedback ${ok ? 'good' : 'wrong'}">
-    <h3>${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</h3>
+    <h3 class="sr-only">${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</h3>
     <p class="word" style="font-size:20px">${esc(tx(m.sv, m.en || m.sv))}</p>
     ${note ? `<p class="small" style="margin-top:4px">${note}</p>` : ''}
     ${sentenceRow(m, true, true)}
@@ -211,7 +223,7 @@ function renderStep() {
 function feedbackHTML(ok, ms, note = '') {
   const { c } = step;
   return `<div class="feedback ${ok ? 'good' : 'wrong'}">
-    <h3>${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</h3>
+    <h3 class="sr-only">${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</h3>
     <div class="row" style="align-items:flex-end">${step.mode === 'sym' ? '' : symbolSVG(c, 5)}<div><div class="word" style="font-size:22px">${esc(c.word)}${sayBtn(c.word)}</div>${classChip(c)}</div></div>
     ${note ? `<p class="small" style="margin-top:6px">${note}</p>` : ''}
     ${formulaHTML(c, 2.8)}

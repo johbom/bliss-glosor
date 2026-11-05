@@ -142,7 +142,7 @@ async function saveImage() {
   const url = URL.createObjectURL(file);
   // Bilden visas också i en ruta, så att den alltid går att spara för hand (håll in eller högerklicka).
   const { dlg } = UI;
-  dlg.innerHTML = `<button type="button" class="close" data-act="close" aria-label="${tx('Stäng', 'Close')}">×</button>
+  dlg.innerHTML = `<div class="dlg-bar"><button type="button" class="close" data-act="close" aria-label="${tx('Stäng', 'Close')}">×</button></div>
     <img class="board-img" src="${url}" alt="${esc(boardText(st.ids))}">
     <p class="small muted" style="margin-top:8px">${tx('Håll in på bilden (eller högerklicka) för att spara eller dela den.', 'Press and hold the image (or right-click) to save or share it.')}</p>`;
   dlg.dataset.id = '';

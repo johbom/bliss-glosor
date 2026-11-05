@@ -449,6 +449,9 @@ function dayState() {
 }
 const newLeft = () => { const d = dayState(); return Math.max(0, S.settings.newPerDay + d.extra - d.n); };
 const boxOf = (id) => (S.cards[id] ? S.cards[id].b : -1);
+/** Hur väl ett ord sitter, i fyra steg (för ordlistan och detaljrutan): 'new' (låda 0), 'practising' (1–2),
+ *  'learned' (LEARNED_BOX–5, rätt igen efter minst ett dygn), 'known' (6–7). null = inte påbörjat. */
+const stageOf = (id) => { const b = boxOf(id); return b < 0 ? null : b === 0 ? 'new' : b < LEARNED_BOX ? 'practising' : b < 6 ? 'learned' : 'known'; };
 const introduced = () => Object.keys(S.cards).map(Number).filter((id) => deck.has(id));
 
 /** När nästa ord ska repeteras (ms från nu), eller null. */
@@ -1060,7 +1063,7 @@ window.Glosor = {
   MODES, S, save, resetProgress, stats, streak, bestStreak, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
-  noteConfusion, confusedPairs, answerPair, compareParts, nextGoal, CORE,
+  noteConfusion, confusedPairs, answerPair, compareParts, nextGoal, CORE, stageOf,
   exportBackup, readBackup, importBackup,
   sentenceCount, sentenceTotal, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
   frameSVG, addDrawings, hasDrawing, splitSyns,

@@ -35,6 +35,8 @@ function register(name, v) { views[name] = v; }
 
 function setView(v) {
   current = v;
+  // Fokusläge under ett pass: menyn och rubriken göms, så att kortet får plats. Avsluta leder tillbaka.
+  document.body.classList.toggle('focus', v === 'session');
   document.querySelectorAll('header nav button').forEach((b) => b.setAttribute('aria-current', String(b.dataset.view === v)));
   views[v]?.render?.();
   if (views[v]?.top) window.scrollTo(0, 0);
