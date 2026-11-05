@@ -6,19 +6,19 @@
 const {
   MODES, S, save, stats, nextStep, grade, checkParts, fmtInterval, card, symbolSVG, classChip,
   formulaHTML, esc, startFocus, focusState, mergedNote, startSentences, sentenceState, nextSentence,
-  answerSentence, wordSVG, milestoneState, checkMilestones,
+  answerSentence, wordSVG, milestoneState, checkMilestones, noteConfusion, answerPair, compareParts, chip,
 } = window.Glosor;
 const { tx, fmtN, app, setView, register, endModes, milestoneHTML, msUnit, say, sayBtn, speakOn, stop } = window.GlosorUI;
 
 let step = null, answered = false, sess = null;
 
 // ---------------------------------------------------------------- pass
-/** kind: undefined = vanligt pass, 'mine' = Mina ord, 'sentences' = meningar. */
+/** kind: undefined = vanligt pass, 'mine' = Mina ord, 'review' = fri repetition, 'pairs' = förväxlade ord, 'sentences' = meningar. */
 function startSession(kind) {
   endModes();
-  if (kind === 'mine' || kind === 'review') startFocus(kind);
+  if (kind === 'mine' || kind === 'review' || kind === 'pairs') startFocus(kind);
   if (kind === 'sentences') startSentences();
-  sess = { right: 0, wrong: 0, fresh: 0, mine: kind === 'mine', review: kind === 'review', sentences: kind === 'sentences' };
+  sess = { right: 0, wrong: 0, fresh: 0, mine: kind === 'mine', review: kind === 'review', pairs: kind === 'pairs', sentences: kind === 'sentences' };
   setView('session');
   advance();
 }
@@ -37,6 +37,7 @@ function advance() {
 function progressBar() {
   const st = stats(), f = focusState(), m = sentenceState();
   const left = m ? tx(`Meningar · ${m.left} av ${m.total} kvar`, `Sentences · ${m.left} of ${m.total} left`)
+    : f?.pairs ? tx(`Förväxlade ord · ${f.left} av ${f.total} kvar`, `Mixed-up words · ${f.left} of ${f.total} left`)
     : f?.review ? tx(`Repetition · ${f.left} av ${f.total} kvar`, `Review · ${f.left} of ${f.total} left`)
     : f ? tx(`Mina ord · ${f.left} av ${f.total} kvar`, `My words · ${f.left} of ${f.total} left`)
       : tx(`${st.due} att repetera · ${st.newLeft} nya kvar`, `${st.due} to review · ${st.newLeft} new left`);
@@ -122,6 +123,26 @@ function sentenceHTML() {
     <div class="hint">${tx('Tangent 1–4 väljer', 'Keys 1–4 choose')}</div>`;
 }
 
+/**
+ * Efter ett fel: det man valde och det rätta bredvid varandra, och vad som skiljer dem åt – med BCI:s
+ * egna delar (compareParts). Inget sägs om skillnaden när den inte går att utläsa ur delarna.
+ */
+function compareHTML(rightId, chosenId, pics = null) {
+  const r = card(rightId), w = card(chosenId);
+  if (!r || !w || r === w) return '';
+  const d = compareParts(r, w);
+  // pics: ritningarna som de syns i övningen (meningarnas böjda former), annars ordens egna symboler.
+  const col = (c, label, cls, pic) => `<figure class="cmp-col ${cls}"><figcaption>${label}</figcaption>${pic || symbolSVG(c, 4.4)}<b>${esc(c.word)}</b></figure>`;
+  const has = (c, ids) => (ids.length ? `<div class="cmp-has"><span class="small"><b>${esc(c.word)}</b> ${tx('har', 'has')}</span>${ids.map((id) => chip(card(id), 2.4)).join('')}</div>` : '');
+  let diff = '';
+  if (d.unknown || d.atoms) diff = '';
+  else if (d.sameParts) diff = `<p class="small">${tx('Samma delar – skillnaden är hur de är placerade.', 'Same parts – the difference is how they are placed.')}</p>`;
+  else if (d.sameSet) diff = `<p class="small">${tx('Samma slags delar, men olika många av dem.', 'The same kinds of parts, but a different number of them.')}</p>`;
+  else diff = has(r, d.onlyA) + has(w, d.onlyB);
+  return `<div class="compare"><div class="cmp-pair">${col(w, tx('Du valde', 'You chose'), 'bad', pics?.[0])}${col(r, tx('Rätt', 'Right'), 'ok', pics?.[1])}</div>
+    ${diff ? `<p class="small muted cmp-head">${tx('Det som skiljer:', 'What differs:')}</p>${diff}` : ''}</div>`;
+}
+
 function sentenceFeedbackHTML(ok, note) {
   const { m } = step;
   return `<div class="feedback ${ok ? 'good' : 'wrong'}">
@@ -129,6 +150,8 @@ function sentenceFeedbackHTML(ok, note) {
     <p class="word" style="font-size:20px">${esc(tx(m.sv, m.en || m.sv))}</p>
     ${note ? `<p class="small" style="margin-top:4px">${note}</p>` : ''}
     ${sentenceRow(m, true, true)}
+    ${step.wrongAt != null ? compareHTML(step.options[step.answer].id, step.wrongId,
+    [step.options[step.wrongAt], step.options[step.answer]].map((o) => wordSVG(`${m.nr}-a${o.id}`, o.e, 4.4))) : ''}
   </div>
   <div class="actions result ${ok ? 'good' : 'wrong'}"><span class="verdict" aria-hidden="true">${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</span>
     <span class="hint">${tx('Enter = fortsätt', 'Enter = continue')}</span><button type="button" class="primary" data-act="next">${tx('Fortsätt →', 'Continue →')}</button></div>`;
@@ -151,6 +174,14 @@ function renderStep() {
       <p class="muted">${tx('Fri repetition flyttar inte orden i schemat.', 'Free review does not move words in the schedule.')}</p>
       ${milestoneHTML()}
       <div class="actions"><button type="button" class="ghost" data-act="home">${tx('Till start', 'Back home')}</button><button type="button" class="primary" data-act="review">${tx('Repetera fler', 'Review more')}</button></div></section>`;
+    return;
+  }
+  if (!step && sess.pairs) {
+    app.innerHTML = `<section class="panel"><div class="kicker">${tx('Förväxlade ord – klart', 'Mixed-up words – done')}</div>
+      <p class="prompt">${tx(`Du har hållit isär alla par${sess.wrong ? `, efter ${sess.wrong} fel på vägen` : ' direkt'}.`,
+        `You have told all the pairs apart${sess.wrong ? `, after ${sess.wrong} mistakes along the way` : ' straight away'}.`)}</p>
+      <p class="muted">${tx('Ett par försvinner när du hållit isär det några gånger.', 'A pair disappears once you have told it apart a few times.')}</p>
+      <div class="actions"><button type="button" class="primary" data-act="home">${tx('Till start', 'Back home')}</button></div></section>`;
     return;
   }
   if (!step && sess.mine) {
@@ -183,7 +214,8 @@ function feedbackHTML(ok, ms, note = '') {
     ${note ? `<p class="small" style="margin-top:6px">${note}</p>` : ''}
     ${formulaHTML(c, 2.8)}
     ${c.expl ? `<p class="expl">${esc(c.expl)}</p>` : ''}
-    <p class="small muted" style="margin-top:6px">${tx('Kommer igen', 'Comes back')} ${fmtInterval(ms)}.</p>
+    ${step.wrongId != null ? compareHTML(c.id, step.wrongId) : ''}
+    ${ms == null ? '' : `<p class="small muted" style="margin-top:6px">${tx('Kommer igen', 'Comes back')} ${fmtInterval(ms)}.</p>`}
   </div>
   <div class="actions result ${ok ? 'good' : 'wrong'}"><span class="verdict" aria-hidden="true">${ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt', 'Not quite')}</span>
     <span class="hint">${tx('Enter = fortsätt', 'Enter = continue')}</span><button type="button" class="primary" data-act="next">${tx('Fortsätt →', 'Continue →')}</button></div>`;
@@ -200,7 +232,8 @@ function finish(ok, note) {
     card$.querySelector('.sentence').outerHTML = sentenceRow(step.m, true);   // luckan fylls i
     card$.insertAdjacentHTML('beforeend', sentenceFeedbackHTML(ok, note));
   } else {
-    const ms = grade(step.c.id, ok);
+    // Förväxlade ord flyttar inte ordet i repetitionsschemat.
+    const ms = step.pair ? (answerPair(step.pair, ok), null) : grade(step.c.id, ok);
     // "Rätt!" eller "Inte riktigt.", och i "Vad betyder symbolen?" ordet, som inte lästs upp förut.
     say([ok ? tx('Rätt!', 'Correct!') : tx('Inte riktigt.', 'Not quite.'), step.mode === 'sym' ? step.c.word : '']);
     card$.insertAdjacentHTML('beforeend', feedbackHTML(ok, ms, note));
@@ -232,9 +265,15 @@ function chooseOption(i) {
   btns.forEach((b) => { b.disabled = true; b.classList.remove('heard'); });   // svaret visas i rött/grönt, inte som uppläst
   const ok = i === step.answer;
   btns[i].classList.add(ok ? 'ok' : 'bad');
-  if (!ok) btns[step.answer].classList.add('miss');
-  const chosen = step.kind === 'sentence' ? (card(step.options[i].id)?.word || '') : step.options[i].word;
-  finish(ok, ok ? '' : tx(`Du valde <b>${esc(chosen)}</b>.`, `You chose <b>${esc(chosen)}</b>.`));
+  if (!ok) {
+    btns[step.answer].classList.add('miss');
+    step.wrongId = step.options[i].id;
+    step.wrongAt = i;
+    if (!step.pair) noteConfusion(step.options[step.answer].id, step.wrongId);   // övningen Förväxlade ord räknar själv
+  }
+  // Med jämförelsen (compareHTML) syns valet där; utan den (ord utan ritning) som text.
+  const chosen = card(step.options[i].id)?.word || step.options[i].word || '';
+  finish(ok, ok || card(step.options[i].id) ? '' : tx(`Du valde <b>${esc(chosen)}</b>.`, `You chose <b>${esc(chosen)}</b>.`));
 }
 
 function togglePal(i) {
@@ -280,6 +319,7 @@ register('session', {
     if (t.id === 'start') return startSession(), true;
     if (t.id === 'focus' || t.dataset.act === 'focus') return startSession('mine'), true;
     if (t.id === 'review' || t.dataset.act === 'review') return startSession('review'), true;
+    if (t.id === 'pairs') return startSession('pairs'), true;
     if (t.id === 'sentences' || t.dataset.act === 'sentences') return startSession('sentences'), true;
     if (t.id === 'more' || t.dataset.act === 'more') { S.day.extra += 5; save(); startSession(); return true; }
     if (t.dataset.act === 'next') return advance(), true;

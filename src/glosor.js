@@ -380,6 +380,7 @@ function defaults() {
     milestone: 0,       // högsta nådda milstolpe, lärda ord – försvinner inte om ett ord glöms
     milestoneAtoms: 0,  // högsta nådda milstolpe, lärda grundtecken
     streak: { last: null, n: 0, best: 0 },   // dagar i rad med minst ett svar: senaste övningsdagen, antal, rekord
+    confused: {},       // förväxlade ord: "<lägre id>-<högre id>" -> 1–3 (se noteConfusion)
   };
 }
 /** Sparat läge kompletterat med standardvärden (nya inställningar i senare versioner). */
@@ -698,8 +699,9 @@ const recent = [];
 let focus = null;
 const REVIEW_SIZE = 20;
 function startFocus(kind = 'mine') {
-  const review = kind === 'review';
-  focus = { queue: review ? reviewPick(REVIEW_SIZE) : shuffle(mineCards().map((c) => c.id)), total: 0, review };
+  const review = kind === 'review', pairs = kind === 'pairs';
+  const queue = review ? reviewPick(REVIEW_SIZE) : pairs ? shuffle(confusedPairs()) : shuffle(mineCards().map((c) => c.id));
+  focus = { queue, total: 0, review, pairs };
   focus.total = focus.queue.length;
   recent.length = 0;
 }
@@ -710,7 +712,62 @@ function reviewPick(n) {
 }
 const reviewCount = () => introduced().length;
 const endFocus = () => { focus = null; };
-const focusState = () => (focus ? { left: focus.queue.length, total: focus.total, review: focus.review } : null);
+const focusState = () => (focus ? { left: focus.queue.length, total: focus.total, review: focus.review, pairs: focus.pairs } : null);
+
+// ---------------------------------------------------------------- förväxlingar
+// Ord man blandat ihop: fel svar i Symbol → ord, Ord → symbol och meningarna sparar paret (rätt ord och
+// det man valde). Övningen "Förväxlade ord" visar paret med bara de två som alternativ. Rätt svar räknar
+// ned, fel svar upp (högst PAIR_MAX); vid 0 är paret klart. Påverkar inte repetitionsschemat.
+const PAIR_MAX = 3;
+const pairKey = (a, b) => (a < b ? `${a}-${b}` : `${b}-${a}`);
+const pairIds = (k) => k.split('-').map(Number);
+function noteConfusion(a, b) {
+  a = +a; b = +b;
+  if (a === b || !deck.has(a) || !deck.has(b) || deck.get(a).word === deck.get(b).word) return;
+  const k = pairKey(a, b);
+  S.confused[k] = Math.min(PAIR_MAX, (S.confused[k] || 0) + 1);
+  save();
+}
+const confusedPairs = () => Object.keys(S.confused || {}).filter((k) => S.confused[k] > 0 && pairIds(k).every((id) => deck.has(id)))
+  .sort((x, y) => S.confused[y] - S.confused[x]);
+function answerPair(k, ok) {
+  if (focus?.pairs) {
+    const i = focus.queue.indexOf(k);
+    if (i >= 0) { focus.queue.splice(i, 1); if (!ok) focus.queue.push(k); }
+  }
+  const n = (S.confused[k] || 0) + (ok ? -1 : 1);
+  if (n > 0) S.confused[k] = Math.min(PAIR_MAX, n); else delete S.confused[k];
+  practiced();
+  save();
+}
+function pairStep() {
+  const k = focus.queue.find((x) => !recent.includes(x)) ?? focus.queue[0];
+  recent.push(k);
+  if (recent.length > 2) recent.shift();
+  const [a, b] = pairIds(k).map((id) => deck.get(id));
+  const c = Math.random() < 0.5 ? a : b;
+  const mode = Math.random() < 0.5 ? 'sym' : 'word';
+  const options = shuffle([a, b]);
+  return { kind: 'quiz', mode, c, options, answer: options.indexOf(c), pair: k };
+}
+
+/**
+ * Vad skiljer två ord åt, med BCI:s egna delar (ett grundtecken räknas som sin egen del):
+ * onlyA/onlyB = delar som bara finns i det ena; sameParts = exakt samma delar (då är skillnaden placeringen);
+ * sameSet = samma slags delar men olika många; atoms = båda är grundtecken. unknown: något ord har en del
+ * som bara finns som BCI-text – då sägs inget om skillnaden.
+ */
+function compareParts(a, b) {
+  const partsOf = (c) => (c.parts.length ? c.parts : [c.id]);
+  const pa = partsOf(a), pb = partsOf(b), sa = new Set(pa), sb = new Set(pb);
+  const onlyA = [...sa].filter((x) => !sb.has(x)), onlyB = [...sb].filter((x) => !sa.has(x));
+  const sorted = (x) => x.slice().sort((m, n) => m - n).join();
+  const same = !onlyA.length && !onlyB.length;
+  return {
+    onlyA, onlyB, atoms: !a.parts.length && !b.parts.length, unknown: a.hasTextPart || b.hasTextPart,
+    sameParts: same && sorted(pa) === sorted(pb), sameSet: same && sorted(pa) !== sorted(pb),
+  };
+}
 
 /** Nästa steg i passet: förfallna repetitioner först, sedan nya kort, null när dagens pass är klart. */
 function nextStep() {
@@ -730,6 +787,7 @@ function nextStep() {
 /** Mina ord / fri repetition: nästa ord i kön (inte samma som nyss om det går); ej påbörjade ord visas först som introduktion. */
 function focusStep() {
   if (!focus.queue.length) return null;
+  if (focus.pairs) return pairStep();
   const id = focus.queue.find((x) => !recent.includes(x)) ?? focus.queue[0];
   let kind = 'quiz';
   if (!S.cards[id]) { introduce(id, false); kind = 'intro'; }
@@ -957,6 +1015,7 @@ window.Glosor = {
   MODES, S, save, resetProgress, stats, streak, bestStreak, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
+  noteConfusion, confusedPairs, answerPair, compareParts,
   exportBackup, readBackup, importBackup,
   sentenceCount, sentenceTotal, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
   frameSVG, addDrawings, hasDrawing, splitSyns,

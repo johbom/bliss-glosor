@@ -5,7 +5,7 @@
  */
 (() => {
 const {
-  stats, streak, bestStreak, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts,
+  stats, streak, bestStreak, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts, confusedPairs,
 } = window.Glosor;
 const { tx, app, setView, register, milestoneHTML, fundLogo } = window.GlosorUI;
 
@@ -40,6 +40,7 @@ function home() {
         ${atom ? `<span class="small muted">${tx('Nästa grundtecken:', 'Next basic character:')}</span>${chip(atom, 2.6)}` : ''}
       </div>
       ${work || learnt ? '' : whyBox('review')}
+      ${pairsRow()}
     </section>
     ${minePanel()}
     ${sentencesPanel()}
@@ -59,6 +60,14 @@ function home() {
       <div class="bar"><i style="width:${pct(st.compounds, st.compoundTotal)}%"></i></div>
     </section>
     <section class="panel">${fundLogo()}</section>`;
+}
+
+/** Förväxlade ord: syns bara när det finns par att öva (fel svar sparar dem). */
+function pairsRow() {
+  const n = confusedPairs().length;
+  if (!n) return '';
+  return `<div class="row" style="margin-top:12px"><button type="button" class="ghost" id="pairs">${tx('Öva förväxlade ord', 'Practise mixed-up words')} (${n})</button>
+      <span class="small muted">${tx('Ord du har blandat ihop.', 'Words you have mixed up.')}</span></div>`;
 }
 
 function minePanel() {
