@@ -8,7 +8,7 @@ const {
   stats, streak, bestStreak, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts, confusedPairs,
   S, save, nextGoal,
 } = window.Glosor;
-const { tx, app, setView, register, milestoneHTML, fundLogo } = window.GlosorUI;
+const { tx, app, setView, register, milestoneHTML } = window.GlosorUI;
 
 /** En knapp som inte går att använda än. Den kan ändå väljas: trycket visar varför och vad som behövs. */
 const locked = (key, label) => `<button type="button" class="primary locked" data-why="${key}" aria-describedby="why-${key}">${label}</button>`;
@@ -77,8 +77,7 @@ function home() {
       <div class="bar"><i style="width:${pct(st.atoms, st.atomTotal)}%"></i></div>
       <div class="small muted">${tx(`Sammansatta ord: ${st.compounds} av ${st.compoundTotal}`, `Compound words: ${st.compounds} of ${st.compoundTotal}`)}</div>
       <div class="bar"><i style="width:${pct(st.compounds, st.compoundTotal)}%"></i></div>
-    </section>
-    <section class="panel">${fundLogo()}</section>`;
+    </section>`;
 }
 
 /** Förväxlade ord: syns bara när det finns par att öva (fel svar sparar dem). */
