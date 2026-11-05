@@ -35,35 +35,35 @@ function gridHTML() {
 }
 
 function outHTML() {
-  if (!st.ids.length) return `<p class="small muted board-empty">${tx('Din mening visas här.', 'Your sentence appears here.')}</p>`;
+  if (!st.ids.length) return `<p class="strip-empty">${tx('Tryck på symbolerna nedan – meningen byggs här.', 'Tap the symbols below – the sentence is built here.')}</p>`;
   return `<div class="board-sent">${st.ids.map((id, i) => {
     const c = card(id);
-    return `<figure class="bw" data-bi="${i}">${symbolSVG(c, 3.6)}<figcaption>${esc(boardLabel(c))}</figcaption></figure>`;
+    return `<figure class="bw" data-bi="${i}">${symbolSVG(c, 4.2)}<figcaption>${esc(boardLabel(c))}</figcaption></figure>`;
   }).join('')}</div>`;
 }
 const textHTML = () => esc(boardText(st.ids));
+// Säg är det viktigaste (gul, störst); de andra tre är lika stora bredvid eller under.
 const actionsHTML = () => {
   const none = st.ids.length ? '' : 'disabled';
-  return `${canSpeak ? `<button type="button" class="primary" id="board-say" ${none}>${SPEAKER} ${tx('Säg', 'Say')}</button>` : ''}
+  return `${canSpeak ? `<button type="button" class="primary say-main" id="board-say" ${none}>${SPEAKER} ${tx('Säg', 'Say')}</button>` : ''}
     <button type="button" class="ghost" id="board-back" ${none} aria-label="${tx('Ta bort sista ordet', 'Remove the last word')}">⌫ ${tx('Sista', 'Last')}</button>
     <button type="button" class="ghost" id="board-clear" ${none}>${tx('Rensa', 'Clear')}</button>
-    <button type="button" class="ghost" id="board-image" ${none}>${tx('Spara som bild', 'Save as image')}</button>`;
+    <button type="button" class="ghost" id="board-image" ${none} aria-label="${tx('Spara som bild', 'Save as image')}">${tx('Bild', 'Image')}</button>`;
 };
 
 function tavla() {
   const tabs = [...boardGroups(), { key: 'sok', name: tx('Sök', 'Search') }]
     .map((g) => `<button type="button" data-bgroup="${g.key}" aria-pressed="${st.group === g.key}">${esc(g.name)}</button>`).join('');
   app.innerHTML = `
+    <div class="tool-head"><h2 class="page-title">${tx('Kommunikationstavla', 'Communication board')}</h2>
+      <button type="button" class="ghost back" data-act="home">${tx('← Start', '← Home')}</button></div>
     <section class="panel board-top">
-      <div class="head"><h2>${tx('Kommunikationstavla', 'Communication board')}</h2>
-        <button type="button" class="ghost" data-act="home">${tx('← Start', '← Home')}</button></div>
-      <div id="board-out" aria-live="polite">${outHTML()}</div>
+      <div id="board-out" class="strip-out" aria-live="polite">${outHTML()}</div>
       <p class="board-text" id="board-text">${textHTML()}</p>
-      <div class="row" id="board-actions">${actionsHTML()}</div>
+      <div class="tool-actions" id="board-actions">${actionsHTML()}</div>
     </section>
     <section class="panel">
-      <p class="small muted" style="margin-bottom:8px">${tx('Tryck på symbolerna i den ordning du vill säga dem.', 'Tap the symbols in the order you want to say them.')}</p>
-      <div class="tabs board-tabs">${tabs}</div>
+      <div class="tabs board-tabs" aria-label="${tx('Grupper', 'Groups')}">${tabs}</div>
       ${st.group === 'sok' ? `<input class="search" id="board-q" type="search" placeholder="${tx('Sök symbol', 'Search symbol')}" value="${esc(st.q)}" style="margin-bottom:10px">` : ''}
       <div class="board-grid" id="board-grid">${gridHTML()}</div>
     </section>`;

@@ -77,14 +77,15 @@ function popHTML() {
 }
 
 function outHTML() {
-  if (!st.words.length) return `<p class="small muted write-empty">${tx('Det du skriver visas här i Bliss.', 'What you write is shown here in Bliss.')}</p>`;
+  if (!st.words.length) return `<p class="strip-empty">${tx('Det du skriver visas här i Bliss.', 'What you write is shown here in Bliss.')}</p>`;
   const unknown = st.words.some((w, i) => !w.options.length || chosen(i)?.text);
   return `<div class="sentence write">${st.words.map(wordHTML).join('')}</div>
     ${unknown ? `<p class="small muted">${tx('Ord utan symbol visas som text.', 'Words without a symbol are shown as text.')}</p>` : ''}
     ${forms === 'error' ? `<p class="small muted">${tx('Böjningarna kunde inte laddas. Försök igen när du har nät.', 'The inflected forms could not be loaded. Try again when you are online.')}</p>` : ''}
     ${st.sel != null ? popHTML() : ''}`;
 }
-const actionsHTML = () => `${speakOn() && st.words.length ? `<button type="button" class="ghost" id="write-say">${SPEAKER} ${tx('Läs upp', 'Read aloud')}</button>` : ''}
+// Läs upp är det viktigaste när meningen är skriven (gul); Rensa bredvid.
+const actionsHTML = () => `${speakOn() ? `<button type="button" class="primary say-main" id="write-say" ${st.words.length ? '' : 'disabled'}>${SPEAKER} ${tx('Läs upp', 'Read aloud')}</button>` : ''}
     <button type="button" class="ghost" id="write-clear" ${st.text ? '' : 'disabled'}>${tx('Rensa', 'Clear')}</button>`;
 
 function parse() {
@@ -143,16 +144,16 @@ function skriv() {
   loadForms();
   parse();
   app.innerHTML = `
+    <div class="tool-head"><h2 class="page-title">${tx('Skriv en mening', 'Write a sentence')}</h2>
+      <button type="button" class="ghost back" data-act="home">${tx('← Start', '← Home')}</button></div>
     <section class="panel">
-      <div class="head"><h2>${tx('Skriv en mening', 'Write a sentence')}</h2>
-        <button type="button" class="ghost" data-act="home">${tx('← Start', '← Home')}</button></div>
-      <p class="small muted" style="margin-bottom:10px">${tx('Skriv med bokstäver, så blir det Bliss. Tryck på ett ord med ▾ för att byta ord eller form.',
-        'Type with letters and it becomes Bliss. Tap a word marked ▾ to change the word or form.')}</p>
-      <label class="sr-only" for="write-in">${tx('Din mening', 'Your sentence')}</label>
+      <label class="field-label" for="write-in">${tx('Skriv med bokstäver, så blir det Bliss', 'Type with letters and it becomes Bliss')}</label>
       <textarea id="write-in" class="write-in" rows="2" autocapitalize="sentences" autocomplete="off" spellcheck="false"
         placeholder="${tx('Jag åt ett äpple.', 'I ate an apple.')}">${esc(st.text)}</textarea>
-      <div id="write-out" aria-live="polite">${outHTML()}</div>
-      <div class="row" id="write-actions">${actionsHTML()}</div>
+      <div id="write-out" class="strip-out" aria-live="polite">${outHTML()}</div>
+      <p class="small muted strip-help">${tx('Tryck på ett ord märkt <b>byt ▾</b> för att välja ett annat ord eller en annan form.',
+        'Tap a word marked <b>change ▾</b> to choose another word or form.')}</p>
+      <div class="tool-actions" id="write-actions">${actionsHTML()}</div>
     </section>`;
 }
 

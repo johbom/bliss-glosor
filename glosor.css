@@ -250,8 +250,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .write-in{display:block;width:100%;box-sizing:border-box;font:inherit;font-size:20px;line-height:1.4;padding:10px 12px;
   border:1px solid var(--rule);border-radius:10px;background:var(--panel-2);color:var(--ink);resize:vertical}
 .write-in:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.write-empty{margin:14px 0}
-.sentence.write{justify-content:flex-start;gap:4px 0}
+.sentence.write{justify-content:flex-start;gap:4px 0;padding:4px 0}
 .ww{position:relative;margin:0;display:flex;flex-direction:column;align-items:center;background:none;border:2px solid transparent;
   border-radius:10px;padding:0 0 4px;color:inherit;font:inherit}
 button.ww{cursor:pointer}
@@ -260,7 +259,7 @@ button.ww:hover{border-color:var(--rule)}
 .ww figcaption{font-size:14px;color:var(--dim);margin-top:-4px;padding:0 6px}
 .ww.saying{border-color:var(--accent)}
 .ww.saying .sym,.ww.saying figcaption{color:var(--accent)}
-.ww-more{margin-top:3px;padding:1px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;line-height:1.4}
+.ww-more{margin-top:2px;color:var(--accent);font-size:12px;font-weight:700;line-height:1.4}
 .ww-text{display:flex;align-items:center;min-height:110px;padding:0 14px;font-style:italic;color:var(--dim);font-size:17px}
 .ww.txt figcaption{visibility:hidden}
 .ww.skip{justify-content:center;min-height:110px;padding:0 6px}
@@ -330,16 +329,36 @@ button.ww:hover{border-color:var(--rule)}
   .tile-t{font-size:16px}
   .tile-s{font-size:13px}
 }
+/* Tavlan och skrivfältet (tavla.js, skriv.js): samma upplägg – rubrik, en yta där meningen byggs, knapparna under. */
+.tool-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+.tool-head .page-title{margin:4px 4px 0}
+.back{padding:8px 16px}
+.strip-out{position:relative;min-height:96px;padding:8px 10px;border-radius:14px;background:var(--panel-2);border:2px dashed transparent}
+.strip-out:has(.strip-empty){border-color:var(--rule);display:flex;align-items:center;justify-content:center}
+.strip-empty{color:var(--dim);font-size:16px;text-align:center;padding:10px}
+.strip-help{margin:8px 2px 0}
+.write-in + .strip-out{margin-top:12px}
+.field-label{display:block;font-weight:700;font-size:16px;margin:0 2px 8px}
+.tool-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.tool-actions .say-main{min-width:150px}
+@media (max-width:520px){
+  .tool-actions{display:grid;grid-template-columns:repeat(3,1fr)}
+  .tool-actions .say-main{grid-column:1 / -1;padding:14px}
+  .tool-actions .ghost{padding:10px 8px}
+  #write-actions{grid-template-columns:2fr 1fr}
+  #write-actions .say-main{grid-column:auto}
+}
 /* Kommunikationstavlan (ui/tavla.js). Meningen stannar överst när man bläddrar bland symbolerna. */
-.board-top{position:sticky;top:0;z-index:5;box-shadow:0 6px 14px -10px rgba(0,0,0,.35)}
-.board-empty{margin:6px 0 10px}
-.board-sent{display:flex;flex-wrap:wrap;gap:2px 4px;align-items:flex-end;min-height:72px;max-height:34vh;overflow-y:auto}
+.board-top{position:sticky;top:0;z-index:5;box-shadow:0 8px 18px -12px rgba(2,33,52,.45)}
+.board-sent{display:flex;flex-wrap:wrap;gap:2px 4px;align-items:flex-end;max-height:30vh;overflow-y:auto}
 .bw{margin:0;display:flex;flex-direction:column;align-items:center}
 .bw figcaption{font-size:14px;color:var(--dim);margin-top:-4px}
-.board-text{font-size:20px;font-weight:600;margin:6px 0 10px;min-height:1.4em}
-#board-actions{gap:8px}
-#board-actions button{padding:8px 16px;font-size:16px}
-.board-tabs{flex-wrap:wrap}
+@media (min-width:700px){.board-sent .sym{height:110px;width:auto}.board-sent .bw figcaption{font-size:16px}}
+.board-text{font-size:21px;font-weight:700;margin:10px 2px 12px;min-height:1.4em}
+.board-text:empty{display:none}
+.board-tabs{flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.board-tabs button{padding:7px 14px;font-size:15px;color:var(--ink);background:var(--panel)}
+.board-tabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
 .board-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
 .bkey{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:2px;min-height:112px;padding:6px 4px 8px;
   border-radius:12px;background:var(--panel-2);border:2px solid transparent;border-top:5px solid var(--rule);color:var(--ink);font:inherit;cursor:pointer}
