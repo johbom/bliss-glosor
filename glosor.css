@@ -9,7 +9,7 @@
 /* Färgerna följer Furubodas webbplats: blågrönt, ljusblå och ljusgula runda knappar med marinblå text, på en
    neutralt grå bakgrund. --dim är Furubodas grå något mörkare, så att liten text läses lätt även på grått. */
 :root{
-  --ink:#242723; --dim:#5C5C5C; --panel:#FFFFFF; --panel-2:#F1F9FE; --bg:#EEEEEE;
+  --ink:#242723; --dim:#5C5C5C; --panel:#FFFFFF; --panel-2:#F1F9FE; --bg:#E3E3E3;
   --accent:#087BA1; --accent-ink:#FFFFFF; --accent-soft:#D2E2EC; --rule:#CCCCCC;
   --btn:#FEE7C0; --btn-ink:#022134; --btn-2:#D2E2EC; --btn-2-ink:#022134;
   --ok:#2E7D46; --ok-soft:#DDF0E2; --bad:#B23A3A; --bad-soft:#F6DEDE; --staff:#D9D5CA;
