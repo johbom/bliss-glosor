@@ -68,7 +68,15 @@
 <script data-pwa>
   // PWA: service workern fungerar bara över http(s) — inte från file:// — och tyst fel är okej.
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
-    window.addEventListener('load', () => { navigator.serviceWorker.register('glosor-sw.js').catch(() => {}); });
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('glosor-sw.js').then((reg) => {
+        // På iPhone startar appen sällan om på riktigt – den vaknar ur bakgrunden. Leta efter en ny version då också.
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
+      }).catch(() => {});
+      // En ny version har tagit över medan appen är öppen: erbjud att ladda om (inte automatiskt – man kan vara mitt i något).
+      let had = !!navigator.serviceWorker.controller;
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) window.GlosorUI?.newVersion?.(); had = true; });
+    });
   }
 </script>
 </body>

@@ -94,7 +94,20 @@ const fundLogo = () => `<div class="fund-logo"><picture>
     <img src="logo/arvsfonden-positiv.png" width="1200" height="289" alt="${FUND_ALT()}">
   </picture></div>`;
 
-window.GlosorUI = { tx, fmtN, endModes, app, dlg, views, view: () => current, register, setView, applyLang, switchLang, fundLogo };
+/** En ny version av appen har laddats ner (glosor.html, service workern): en rad längst ner med knappen Uppdatera. */
+function newVersion() {
+  if (document.getElementById('new-version')) return;
+  const bar = document.createElement('div');
+  bar.id = 'new-version';
+  bar.className = 'new-version';
+  bar.setAttribute('role', 'status');
+  bar.innerHTML = `<span>${tx('En ny version av appen finns.', 'A new version of the app is available.')}</span>
+    <button type="button" class="primary">${tx('Uppdatera', 'Update')}</button>`;
+  bar.querySelector('button').addEventListener('click', () => location.reload());
+  document.body.appendChild(bar);
+}
+
+window.GlosorUI = { tx, fmtN, endModes, app, dlg, views, view: () => current, register, setView, applyLang, switchLang, fundLogo, newVersion };
 
 // Start när alla vyer har registrerat sig (skripten i slutet av <body> körs före DOMContentLoaded).
 // Har dokumentet redan laddats (sidan infogad i efterhand): starta direkt efter de övriga skripten.
