@@ -1,6 +1,6 @@
 /**
- * Skriv en egen mening: man skriver med bokstäver och ser det i Bliss. Håller man in på ett ord visas en
- * ruta intill det med andra ord med samma namn, andra böjningar, synonymer och härledda verb. Tolkningen görs i src/glosor-skriv.js; texten
+ * Skriv en egen mening: man skriver med bokstäver och ser det i Bliss. Ord som har alternativ har en synlig
+ * ▾-markering; ett vanligt tryck (eller Enter) öppnar en ruta intill ordet med andra ord med samma namn, andra böjningar, synonymer och härledda verb. Tolkningen görs i src/glosor-skriv.js; texten
  * ligger kvar så länge appen är öppen (sparas inte), som dikten i kylskåpspoesin.
  * De böjda formerna (src/vendor/bliss-former.js, ritade i förväg) laddas första gången vyn öppnas.
  */
@@ -47,9 +47,9 @@ function wordHTML(w, i) {
   const body = o.skip ? `<span class="ww-skip">${esc(w.text)}</span>`
     : o.text ? `<span class="ww-text">${esc(w.text)}</span>` : drawn(o, 5.4, true) || loadingBox();
   return `<button type="button" class="ww${cls}" data-w="${i}" data-wi="${i}" aria-haspopup="dialog" aria-expanded="${open}"`
-    + ` aria-label="${esc(w.text)}${many ? ` – ${tx('håll in för att byta', 'press and hold to change')}` : ''}">`
+    + ` aria-label="${esc(w.text)}${many ? ` – ${tx('tryck för att byta', 'tap to change')}` : ''}">`
     + `${body}${o.skip ? '' : cap}${note ? `<small class="ww-note">${esc(note)}</small>` : ''}`
-    + `${many ? '<i class="ww-more" aria-hidden="true"></i>' : ''}</button>`;
+    + `${many ? `<span class="ww-more" aria-hidden="true">${tx('byt', 'change')} ▾</span>` : ''}</button>`;
 }
 
 /** Rutan med alternativen, intill ordet (placePop flyttar den dit). */
@@ -133,41 +133,7 @@ function closePop(focusWord = false) {
   update();
   if (focusWord) document.querySelector(`#write-out [data-w="${i}"]`)?.focus();
 }
-/** Kort tryck på ett ord: en liten lapp om att hålla in (och ordet läses upp, om uppläsningen är på). */
-function hint(btn) {
-  const out = document.getElementById('write-out');
-  out.querySelector('.write-hint')?.remove();
-  const h = document.createElement('div');
-  h.className = 'write-hint';
-  h.textContent = tx('Håll in för att byta', 'Press and hold to change');
-  out.appendChild(h);
-  h.style.left = `${Math.max(0, Math.min(btn.offsetLeft + btn.offsetWidth / 2 - h.offsetWidth / 2, out.clientWidth - h.offsetWidth))}px`;
-  h.style.top = `${btn.offsetTop + btn.offsetHeight - 6}px`;
-  setTimeout(() => h.remove(), 1600);
-}
-
-// ---- håll in ----
-// Efter HOLD ms öppnas rutan (pekskärm, mus och penna). Högerklick och tangentbordet (Enter/mellanslag)
-// öppnar den också. Flyttar man fingret (rullar sidan) blir det inget.
-const HOLD = 450;
-let press = null;
-app.addEventListener('pointerdown', (e) => {
-  const b = e.target.closest?.('.ww[data-w]');
-  if (!b || UI.view() !== 'skriv' || e.button > 0) return;
-  clearTimeout(press?.timer);
-  press = { i: +b.dataset.w, x: e.clientX, y: e.clientY, fired: false };
-  press.timer = setTimeout(() => { press.fired = true; navigator.vibrate?.(8); openPop(press.i); }, HOLD);
-});
-app.addEventListener('pointermove', (e) => {
-  if (press && !press.fired && Math.hypot(e.clientX - press.x, e.clientY - press.y) > 10) clearTimeout(press.timer);
-});
-for (const ev of ['pointerup', 'pointercancel']) app.addEventListener(ev, () => { if (press) clearTimeout(press.timer); });
-app.addEventListener('contextmenu', (e) => {
-  const b = e.target.closest?.('.ww[data-w]');
-  if (!b || UI.view() !== 'skriv') return;
-  e.preventDefault();
-  if (!press?.fired) openPop(+b.dataset.w);
-});
+// Utanför rutan stänger den; rutan följer med när fönstret ändrar storlek.
 document.addEventListener('pointerdown', (e) => {
   if (st.sel != null && UI.view() === 'skriv' && !e.target.closest?.('#write-pop, .ww[data-w]')) closePop();
 });
@@ -180,8 +146,8 @@ function skriv() {
     <section class="panel">
       <div class="head"><h2>${tx('Skriv en mening', 'Write a sentence')}</h2>
         <button type="button" class="ghost" data-act="home">${tx('← Start', '← Home')}</button></div>
-      <p class="small muted" style="margin-bottom:10px">${tx('Skriv med bokstäver, så blir det Bliss. Håll in på ett ord för att byta ord eller form.',
-        'Type with letters and it becomes Bliss. Press and hold a word to change the word or form.')}</p>
+      <p class="small muted" style="margin-bottom:10px">${tx('Skriv med bokstäver, så blir det Bliss. Tryck på ett ord med ▾ för att byta ord eller form.',
+        'Type with letters and it becomes Bliss. Tap a word marked ▾ to change the word or form.')}</p>
       <label class="sr-only" for="write-in">${tx('Din mening', 'Your sentence')}</label>
       <textarea id="write-in" class="write-in" rows="2" autocapitalize="sentences" autocomplete="off" spellcheck="false"
         placeholder="${tx('Jag åt ett äpple.', 'I ate an apple.')}">${esc(st.text)}</textarea>
@@ -209,11 +175,10 @@ register('skriv', {
     if (UI.view() !== 'skriv') return false;
     if (t.dataset.w != null) {
       const i = +t.dataset.w;
-      if (press?.fired && press.i === i) { press = null; return true; }   // rutan öppnades av att hålla in
-      if (e?.detail === 0) { st.sel === i ? closePop(true) : openPop(i); return true; }   // tangentbordet
-      if (st.sel === i) { closePop(); return true; }
+      // Ett tryck: ordet läses upp, och har det alternativ öppnas (eller stängs) rutan.
+      if (st.sel === i) { closePop(e?.detail === 0); return true; }
       if (!chosen(i).skip) say(st.words[i].text);
-      if (st.words[i].options.length > 1) hint(t);
+      openPop(i);
       return true;
     }
     if (t.id === 'write-pop-close') { closePop(true); return true; }

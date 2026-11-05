@@ -74,6 +74,10 @@ h2{font-size:17px;margin-bottom:12px}
 .bar i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .primary{background:var(--btn);color:var(--btn-ink);border:0;border-radius:999px;padding:12px 24px;font-size:17px;font-weight:600}
 .primary:disabled{opacity:.45;cursor:default}
+/* Går inte att använda än, men kan väljas och säger varför (startsidan). Inte genomskinlig: texten ska gå att läsa. */
+.primary.locked{background:var(--panel-2);color:var(--dim);box-shadow:inset 0 0 0 1px var(--rule)}
+.why:empty{display:none}
+.why{margin-top:8px;padding:8px 12px;border-radius:10px;background:var(--accent-soft);color:var(--ink)}
 .ghost{background:var(--btn-2);color:var(--btn-2-ink);border:0;border-radius:999px;padding:10px 18px}
 .ghost:hover:not(:disabled){box-shadow:inset 0 0 0 2px var(--accent)}
 .ghost:disabled{opacity:.5;cursor:default}
@@ -203,7 +207,7 @@ button.ww:hover{border-color:var(--rule)}
 .ww figcaption{font-size:14px;color:var(--dim);margin-top:-4px;padding:0 6px}
 .ww.saying{border-color:var(--accent)}
 .ww.saying .sym,.ww.saying figcaption{color:var(--accent)}
-.ww-more{position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.ww-more{margin-top:3px;padding:1px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;line-height:1.4}
 .ww-text{display:flex;align-items:center;min-height:110px;padding:0 14px;font-style:italic;color:var(--dim);font-size:17px}
 .ww.txt figcaption{visibility:hidden}
 .ww.skip{justify-content:center;min-height:110px;padding:0 6px}
@@ -212,8 +216,8 @@ button.ww:hover{border-color:var(--rule)}
 .ww-none{display:flex;align-items:center;min-height:56px;font-size:12px;color:var(--dim);font-style:italic}
 #write-out{position:relative}
 .ww{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;touch-action:manipulation}
-.ww-note{font-size:11px;color:var(--accent);font-style:italic;margin-top:-2px}
-/* Rutan med alternativen, intill ordet man håller in på. Pilen (--ax) pekar på ordet. */
+.ww-note{font-size:12px;color:var(--accent);font-style:italic;margin-top:-2px}
+/* Rutan med alternativen, intill ordet man tryckt på. Pilen (--ax) pekar på ordet. */
 .write-pop{position:absolute;z-index:20;left:0;top:0;width:max-content;max-width:min(360px,100%);box-sizing:border-box;
   background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:8px 10px 10px;
   box-shadow:0 10px 30px rgba(0,0,0,.18);visibility:hidden}
@@ -226,8 +230,6 @@ button.ww:hover{border-color:var(--rule)}
 .pop-opts{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
 .pop-opts .chip{background:var(--panel-2);border:2px solid transparent;cursor:pointer}
 .pop-opts .chip[aria-pressed="true"]{border-color:var(--accent)}
-.write-hint{position:absolute;z-index:15;background:var(--ink);color:var(--panel);font-size:13px;padding:4px 10px;
-  border-radius:999px;white-space:nowrap;pointer-events:none}
 .bare-form{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:2px 0 8px}
 .bare-label{font-size:13px;color:var(--dim)}
 .merged-note{font-size:13px;color:var(--dim);margin:2px 0 6px;padding-left:10px;border-left:3px solid var(--accent-soft)}
