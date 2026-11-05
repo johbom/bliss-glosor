@@ -1,17 +1,16 @@
 /**
- * Startsidan: dagens pass, Mina ord, meningar (med skrivfältet), kylskåpspoesi, milstolpar och statistik (med dagar i rad).
+ * Startsidan i tre delar: Dagens övning (en huvudknapp), brickor för det man kan göra (Mina ord, Meningar,
+ * Skriv en mening, Kommunikationstavla, Kylskåpspoesi) och framstegen (siffror och milstolpar).
  * Inställningarna har en egen flik (installningar.js).
- * Knappar som inte går att använda än är inte avstängda: ett tryck säger vad som behövs (locked()).
+ * Det som inte går att använda än är inte avstängt: ett tryck säger vad som behövs (WHY).
  */
 (() => {
 const {
   stats, streak, bestStreak, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts, confusedPairs,
-  S, save, nextGoal,
+  S, save, nextGoal, card, symbolSVG, esc,
 } = window.Glosor;
-const { tx, app, setView, register, milestoneHTML } = window.GlosorUI;
+const { tx, fmtN, app, setView, register, milestoneHTML } = window.GlosorUI;
 
-/** En knapp som inte går att använda än. Den kan ändå väljas: trycket visar varför och vad som behövs. */
-const locked = (key, label) => `<button type="button" class="primary locked" data-why="${key}" aria-describedby="why-${key}">${label}</button>`;
 const whyBox = (key) => `<p class="why small" id="why-${key}" role="status"></p>`;
 const WHY = {
   review: () => tx('Det finns inget att repetera än. Lär dig några ord först.', 'There is nothing to review yet. Learn some words first.'),
@@ -36,102 +35,81 @@ function trackChoice() {
     </section>`;
 }
 
+/** Brickornas ikoner: BCI:s egna symboler (ord, mening, skriva, kommunicera, dikt, blanda). */
+const ICON = { mine: 18272, sentences: 16760, write: 18285, board: 13389, poem: 16210, pairs: 15481 };
+// Utsnitt runt mittfältet (himmels- till jordlinjen, med plats för indikatorer ovanför): samma ritning, mindre luft.
+const ICON_FRAME = [400, 1750];
+const icon = (k) => { const c = card(ICON[k]); return `<span class="tile-ic" aria-hidden="true">${c ? symbolSVG(c, 2.4, '', ICON_FRAME, 70) : ''}</span>`; };
+/** En bricka: hela brickan är knappen. Låst: trycket säger vad som behövs (WHY). */
+function tile(k, id, title, sub, { why = null, badge = '' } = {}) {
+  const attrs = why ? `class="tile locked" data-why="${why}" aria-describedby="why-${why}"` : `class="tile" id="${id}"`;
+  return `<button type="button" ${attrs}>${icon(k)}<span class="tile-t">${title}${badge ? ` <span class="badge">${badge}</span>` : ''}</span><span class="tile-s">${sub}</span></button>`;
+}
+
 function home() {
   if (!reviewCount() && !S.settings.track) { app.innerHTML = trackChoice(); return; }
-  const st = stats();
-  const atom = nextAtom(), goal = nextGoal();
-  const pct = (a, b) => (b ? (100 * a / b).toFixed(1) : 0);
+  app.innerHTML = heroHTML() + tilesHTML() + progressHTML();
+}
+
+/** Dagens övning: en tydlig huvudknapp, vad som väntar och nästa ord. */
+function heroHTML() {
+  const st = stats(), learnt = reviewCount(), days = streak();
   const work = st.due + st.newLeft;
-  const learnt = reviewCount();
-  const days = streak();
-  app.innerHTML = `
-    <section class="panel">
-      <div class="head"><h2>${tx('Glosor', 'Vocabulary')}</h2></div>
-      ${work ? `<p class="small muted" style="margin-bottom:8px">${tx(`${st.due} att repetera nu · ${st.newLeft} nya kvar i dag`, `${st.due} to review now · ${st.newLeft} new left today`)}</p>` : ''}
-      <div class="row">
-        ${work ? `<button type="button" class="primary" id="start">${tx('Börja öva', 'Start practising')}</button>`
-          : learnt ? `<button type="button" class="primary" id="review">${tx('Repetera det du lärt dig', 'Review what you have learned')}</button>`
-            : locked('review', tx('Repetera det du lärt dig', 'Review what you have learned'))}
-        ${work && learnt ? `<button type="button" class="ghost" id="review">${tx('Repetera fritt', 'Free review')}</button>` : ''}
-        ${work ? '' : `<button type="button" class="ghost" id="more">${tx('Lär 5 nya till', 'Learn 5 more')}</button>`}
-        ${goal ? `<span class="small muted">${tx('Nästa ord:', 'Next word:')}</span>${chip(goal, 2.6)}`
-          : atom ? `<span class="small muted">${tx('Nästa grundtecken:', 'Next basic character:')}</span>${chip(atom, 2.6)}` : ''}
+  const atom = nextAtom(), goal = nextGoal(), next = goal || atom;
+  const pairs = confusedPairs().length;
+  const title = work ? tx('Dagens övning', 'Today’s practice') : tx('Klart för i dag!', 'Done for today!');
+  const sub = work ? [st.due ? tx(`${st.due} att repetera`, `${st.due} to review`) : '', st.newLeft ? tx(`${st.newLeft} nya ord`, `${st.newLeft} new words`) : ''].filter(Boolean).join(' · ')
+    : learnt ? tx('Du kan repetera fritt eller lära dig fler ord.', 'You can review freely or learn more words.') : '';
+  const main = work ? `<button type="button" class="primary big" id="start">${tx('Börja öva', 'Start practising')}</button>`
+    : learnt ? `<button type="button" class="primary big" id="review">${tx('Repetera fritt', 'Free review')}</button>`
+      : `<button type="button" class="primary big locked" data-why="review" aria-describedby="why-review">${tx('Repetera fritt', 'Free review')}</button>`;
+  const second = work && learnt ? `<button type="button" class="hero-btn" id="review">${tx('Repetera fritt', 'Free review')}</button>`
+    : work ? '' : `<button type="button" class="hero-btn" id="more">${tx('Lär 5 nya till', 'Learn 5 more')}</button>`;
+  return `<section class="hero">
+      <div class="hero-top">
+        <div><h2>${title}</h2>${sub ? `<p class="hero-sub">${sub}</p>` : ''}</div>
+        ${days ? `<span class="streak">${days} ${days === 1 ? tx('dag i rad', 'day in a row') : tx('dagar i rad', 'days in a row')}</span>` : ''}
       </div>
-      ${work || learnt ? '' : whyBox('review')}
-      ${pairsRow()}
-    </section>
-    ${minePanel()}
-    ${sentencesPanel()}
-    ${boardPanel()}
-    ${poemPanel()}
+      <div class="hero-row">${main}${second}
+        </div>
+      ${next && work ? `<p class="hero-next">${goal ? tx('Nästa ord:', 'Next word:') : tx('Nästa grundtecken:', 'Next basic character:')}
+        <button type="button" class="next-pill" data-detail="${next.id}">${symbolSVG(next, 2.2, '', ICON_FRAME, 60)}<span>${esc(next.word)}</span></button></p>` : ''}
+      ${whyBox('review')}
+      ${pairs ? `<button type="button" class="hero-link" id="pairs">${icon('pairs')}<span>${tx(`Öva ord du blandat ihop (${pairs})`, `Practise words you mixed up (${pairs})`)}</span></button>` : ''}
+    </section>`;
+}
+
+/** Allt annat man kan göra, som brickor. */
+function tilesHTML() {
+  const mine = mineCards().length, n = sentenceCount(), total = sentenceTotal();
+  return `<h2 class="sec-title">${tx('Öva och använd', 'Practise and use')}</h2>
+    <div class="tiles">
+      ${mine ? tile('mine', 'focus', tx('Mina ord', 'My words'), tx('Ord du valt att träna extra', 'Words you chose to practise extra'), { badge: mine })
+        : tile('mine', 'focus', tx('Mina ord', 'My words'), tx('Välj ☆ på ett ord i Ordlista', 'Choose ☆ on a word in the Word list'), { why: 'focus' })}
+      ${total ? (n ? tile('sentences', 'sentences', tx('Meningar', 'Sentences'), tx('Välj ordet som saknas', 'Choose the missing word'), { badge: n < total ? `${n}/${total}` : n })
+        : tile('sentences', 'sentences', tx('Meningar', 'Sentences'), tx('Låses upp när du lärt dig ord', 'Unlock as you learn words'), { why: 'sentences' })) : ''}
+      ${tile('write', 'write-open', tx('Skriv en mening', 'Write a sentence'), tx('Bokstäver blir Bliss', 'Letters become Bliss'))}
+      ${tile('board', 'board-open', tx('Kommunikationstavla', 'Communication board'), tx('Peka på symboler – få tal', 'Point at symbols – hear speech'))}
+      ${tile('poem', 'poem-open', tx('Kylskåpspoesi', 'Fridge poetry'), tx('Dikta med ordmagneter', 'Write with word magnets'))}
+    </div>
+    ${whyBox('focus')}${whyBox('sentences')}
+    ${sentenceDrafts ? `<p class="small muted" style="margin:8px 4px 0">${tx('<b>Utkast visas</b> (granskningsläge).', '<b>Drafts shown</b> (review mode).')}</p>` : ''}`;
+}
+
+/** Framstegen: fyra siffror och milstolparna. */
+function progressHTML() {
+  const st = stats(), days = streak();
+  const pct = (a, b) => (b ? Math.min(100, 100 * a / b).toFixed(1) : 0);
+  const kpi = (big, label, bar = null) => `<div class="kpi"><b>${big}</b><span>${label}</span>${bar == null ? '' : `<i class="kpi-bar"><i style="width:${bar}%"></i></i>`}</div>`;
+  return `<h2 class="sec-title">${tx('Dina framsteg', 'Your progress')}</h2>
     <section class="panel">
+      <div class="kpis">
+        ${kpi(fmtN(st.learned), tx('lärda ord', 'learned words'))}
+        ${kpi(`${days}<small> · ${tx('rekord', 'record')} ${bestStreak()}</small>`, days === 1 ? tx('dag i rad', 'day in a row') : tx('dagar i rad', 'days in a row'))}
+        ${kpi(`${fmtN(st.atoms)}<small> / ${fmtN(st.atomTotal)}</small>`, tx('grundtecken', 'basic characters'), pct(st.atoms, st.atomTotal))}
+        ${kpi(`${fmtN(st.compounds)}<small> / ${fmtN(st.compoundTotal)}</small>`, tx('sammansatta ord', 'compound words'), pct(st.compounds, st.compoundTotal))}
+      </div>
       ${milestoneHTML()}
-      <div class="stats">
-        <div class="stat"><b>${days}</b><span>${days === 1 ? tx('dag i rad', 'day in a row') : tx('dagar i rad', 'days in a row')} · ${tx('rekord', 'record')} ${bestStreak()}</span></div>
-        <div class="stat"><b>${st.due}</b><span>${tx('att repetera nu', 'to review now')}</span></div>
-        <div class="stat"><b>${st.newLeft}</b><span>${tx('nya kvar i dag', 'new left today')}</span></div>
-        <div class="stat"><b>${st.learned}</b><span>${tx('lärda', 'learned')}</span></div>
-        <div class="stat"><b>${st.unlocked}</b><span>${tx('sammansatta ord upplåsta', 'compound words unlocked')}</span></div>
-      </div>
-      <div class="small muted">${tx(`Grundtecken: ${st.atoms} av ${st.atomTotal}`, `Basic characters: ${st.atoms} of ${st.atomTotal}`)}</div>
-      <div class="bar"><i style="width:${pct(st.atoms, st.atomTotal)}%"></i></div>
-      <div class="small muted">${tx(`Sammansatta ord: ${st.compounds} av ${st.compoundTotal}`, `Compound words: ${st.compounds} of ${st.compoundTotal}`)}</div>
-      <div class="bar"><i style="width:${pct(st.compounds, st.compoundTotal)}%"></i></div>
-    </section>`;
-}
-
-/** Förväxlade ord: syns bara när det finns par att öva (fel svar sparar dem). */
-function pairsRow() {
-  const n = confusedPairs().length;
-  if (!n) return '';
-  return `<div class="row" style="margin-top:12px"><button type="button" class="ghost" id="pairs">${tx('Öva förväxlade ord', 'Practise mixed-up words')} (${n})</button>
-      <span class="small muted">${tx('Ord du har blandat ihop.', 'Words you have mixed up.')}</span></div>`;
-}
-
-function minePanel() {
-  const mine = mineCards();
-  return `<section class="panel">
-      <div class="head"><h2>${tx('Mina ord', 'My words')}</h2>
-        ${mine.length ? `<button type="button" class="primary" id="focus">${tx('Öva mina ord', 'Practise my words')} (${mine.length})</button>`
-          : locked('focus', tx('Öva mina ord', 'Practise my words'))}</div>
-      ${mine.length
-        ? `<p class="small muted">${tx('Ord du valt att träna extra. Klicka på ett ord för att ta bort det.', 'Words you chose to practise extra. Click a word to remove it.')}</p>
-           <div class="formula">${mine.map((c) => chip(c, 2.6)).join('')}</div>`
-        : `<p class="small muted">${tx('Inga ord än. Välj ☆ på ett ord i <button type="button" class="linklike" id="go-list">Ordlista</button>.',
-           'No words yet. Choose ☆ on a word in the <button type="button" class="linklike" id="go-list">Word list</button>.')}</p>${whyBox('focus')}`}
-    </section>`;
-}
-
-function sentencesPanel() {
-  const n = sentenceCount(), total = sentenceTotal();
-  if (!total) return '';   // syns först när det finns godkända meningar
-  const more = n < total
-    ? tx(` ${n} av ${total} upplåsta.`, ` ${n} of ${total} unlocked.`)
-    : '';
-  return `<section class="panel">
-      <div class="head"><h2>${tx('Meningar', 'Sentences')}</h2>
-        ${n ? `<button type="button" class="primary" id="sentences">${tx('Öva meningar', 'Practise sentences')} (${n})</button>`
-          : locked('sentences', tx('Öva meningar', 'Practise sentences'))}</div>
-      <p class="small muted">${tx('Välj ordet som saknas.', 'Choose the missing word.')}${more}${sentenceDrafts ? tx(' <b>Utkast visas</b> (granskningsläge).', ' <b>Drafts shown</b> (review mode).') : ''}</p>
-      ${n ? '' : whyBox('sentences')}
-      <div class="row" style="margin-top:10px"><button type="button" class="ghost" id="write-open">${tx('Skriv en egen mening', 'Write your own sentence')}</button>
-        <span class="small muted">${tx('Skriv med bokstäver – det blir Bliss.', 'Type with letters – it becomes Bliss.')}</span></div>
-    </section>`;
-}
-
-function boardPanel() {
-  return `<section class="panel">
-      <div class="head"><h2>${tx('Kommunikationstavla', 'Communication board')}</h2>
-        <button type="button" class="primary" id="board-open">${tx('Öppna tavlan', 'Open the board')}</button></div>
-      <p class="small muted">${tx('Peka på symboler – det blir en mening som kan läsas upp.', 'Point at symbols – they become a sentence that can be read aloud.')}</p>
-    </section>`;
-}
-
-function poemPanel() {
-  return `<section class="panel">
-      <div class="head"><h2>${tx('Kylskåpspoesi', 'Fridge poetry')}</h2>
-        <button type="button" class="primary" id="poem-open">${tx('Börja dikta', 'Start writing')}</button></div>
-      <p class="small muted">${tx('Bygg fria dikter med ordmagneter.', 'Build free poems with word magnets.')}</p>
     </section>`;
 }
 
@@ -140,7 +118,6 @@ register('home', {
   render: home,
   refresh: home,
   click(t) {
-    if (t.id === 'go-list') return setView('list'), true;
     if (t.id === 'poem-open') return setView('poesi'), true;
     if (t.dataset.track) {
       S.settings.track = t.dataset.track;

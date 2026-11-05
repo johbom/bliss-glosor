@@ -70,12 +70,15 @@
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('glosor-sw.js').then((reg) => {
-        // På iPhone startar appen sällan om på riktigt – den vaknar ur bakgrunden. Leta efter en ny version då också.
+        // På iPhone startar en hemskärmsapp sällan om på riktigt – den vaknar ur bakgrunden.
+        // Leta därför efter en ny version varje gång appen visas igen.
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reg.update().catch(() => {}); });
       }).catch(() => {});
-      // En ny version har tagit över medan appen är öppen: erbjud att ladda om (inte automatiskt – man kan vara mitt i något).
-      let had = !!navigator.serviceWorker.controller;
-      navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) window.GlosorUI?.newVersion?.(); had = true; });
+      // Har en ny version tagit över medan appen är öppen laddas sidan om tyst nästa gång appen läggs
+      // undan (den syns inte då) – så är den nya versionen på plats när man öppnar appen igen.
+      let had = !!navigator.serviceWorker.controller, fresh = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) fresh = true; had = true; });
+      document.addEventListener('visibilitychange', () => { if (fresh && document.visibilityState === 'hidden') location.reload(); });
     });
   }
 </script>

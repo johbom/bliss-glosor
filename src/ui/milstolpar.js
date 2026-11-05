@@ -16,7 +16,8 @@ const MS_TITLE = { get words() { return tx(...MS_TITLE_T.words); }, get atoms() 
 function rankHTML(r, unit = 3.4) {
   if (!r) return '';
   const c = card(r.id);
-  return `<span class="rank">${c ? symbolSVG(c, unit) : ''}<span class="rank-name">${esc(r.name)}</span></span>`;
+  // Utsnitt runt mittfältet: samma ritning, mindre luft ovanför och under.
+  return `<span class="rank">${c ? symbolSVG(c, unit, '', [400, 1750], 60) : ''}<span class="rank-name">${esc(r.name)}</span></span>`;
 }
 function milestoneTrackHTML(track) {
   const m = milestoneState(track);
