@@ -9,7 +9,7 @@ const {
   stats, streak, bestStreak, chip, nextAtom, mineCards, reviewCount, sentenceCount, sentenceTotal, sentenceDrafts, confusedPairs,
   S, save, nextGoal, card, symbolSVG, esc,
 } = window.Glosor;
-const { tx, fmtN, app, setView, register, milestoneHTML } = window.GlosorUI;
+const { tx, fmtN, app, dlg, setView, register, milestoneHTML } = window.GlosorUI;
 
 const whyBox = (key) => `<p class="why small" id="why-${key}" role="status"></p>`;
 const WHY = {
@@ -48,7 +48,64 @@ function tile(k, id, title, sub, { why = null, badge = '' } = {}) {
 
 function home() {
   if (!reviewCount() && !S.settings.track) { app.innerHTML = trackChoice(); return; }
-  app.innerHTML = heroHTML() + tilesHTML() + progressHTML();
+  app.innerHTML = heroHTML() + tilesHTML() + installHTML() + progressHTML();
+}
+
+// ---------------------------------------------------------------- installera som app
+// Chrome, Edge och Android: webbläsarens egen installationsruta (beforeinstallprompt), sparad tills man trycker.
+// iPhone och iPad (och andra webbläsare utan den rutan): en ruta som visar hur man gör.
+// Redan installerad (öppnad från hemskärmen): kortet syns inte. Som Artifact (utan manifest) leder knappen
+// till appens adress, där den går att installera. "Dölj" sparas (S.settings.hideInstall).
+const APP_URL = 'https://johbom.github.io/bliss-glosor/';
+const UI = window.GlosorUI;
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  installPrompt = e;
+  if (UI.view() === 'home') home();
+});
+window.addEventListener('appinstalled', () => { installPrompt = null; if (UI.view() === 'home') home(); });
+const installed = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const canInstallHere = () => !!document.querySelector('link[rel="manifest"]');
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+function installHTML() {
+  if (installed() || S.settings.hideInstall) return '';
+  return `<section class="install-card">
+      <img src="icons/icon.svg" alt="" width="56" height="56">
+      <div class="install-text"><b>${tx('Installera som app', 'Install as an app')}</b>
+        <span>${tx('Ligger på hemskärmen och fungerar utan internet.', 'Sits on your home screen and works offline.')}</span></div>
+      <div class="install-btns">
+        <button type="button" class="ghost" id="install-app">${tx('Installera', 'Install')}</button>
+        <button type="button" class="linklike" id="install-hide">${tx('Dölj', 'Hide')}</button>
+      </div>
+    </section>`;
+}
+/** Hur man installerar, när webbläsaren inte har en egen ruta för det. */
+function installHelp() {
+  const share = '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" style="vertical-align:-5px"><path d="M12 3v12M8 7l4-4 4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 11H5v10h14V11h-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  const steps = isIOS()
+    ? [tx('Öppna appen i <b>Safari</b>.', 'Open the app in <b>Safari</b>.'),
+      tx(`Tryck på <b>Dela</b> ${share} (längst ner eller uppe till höger).`, `Tap <b>Share</b> ${share} (at the bottom or top right).`),
+      tx('Välj <b>Lägg till på hemskärmen</b> och tryck <b>Lägg till</b>.', 'Choose <b>Add to Home Screen</b> and tap <b>Add</b>.')]
+    : [tx('Öppna appen i <b>Chrome</b> eller <b>Edge</b>.', 'Open the app in <b>Chrome</b> or <b>Edge</b>.'),
+      tx('Välj <b>Installera</b> i menyn eller klicka på installationsikonen i adressfältet.', 'Choose <b>Install</b> in the menu or click the install icon in the address bar.'),
+      tx('I Safari på Mac: <b>Arkiv → Lägg till i Dock</b>.', 'In Safari on a Mac: <b>File → Add to Dock</b>.')];
+  dlg.innerHTML = `<div class="dlg-bar"><button type="button" class="close" data-act="close" aria-label="${tx('Stäng', 'Close')}">×</button></div>
+    <h2 style="margin-top:4px">${tx('Installera som app', 'Install as an app')}</h2>
+    <ol class="install-steps">${steps.map((x) => `<li>${x}</li>`).join('')}</ol>
+    <p class="small muted">${tx('Sedan öppnar du Bliss-glosor från hemskärmen, och den fungerar även utan internet.', 'Then open Bliss Vocabulary from the home screen – it also works offline.')}</p>`;
+  dlg.dataset.id = '';
+  if (!dlg.open) dlg.showModal();
+}
+async function install() {
+  if (!canInstallHere()) { window.open(APP_URL, '_blank', 'noopener'); return; }   // Artifact-versionen
+  if (!installPrompt) { installHelp(); return; }
+  const p = installPrompt;
+  installPrompt = null;
+  p.prompt();
+  try { await p.userChoice; } catch (_) { /* rutan stängdes */ }
+  home();
 }
 
 /** Dagens övning: en tydlig huvudknapp, vad som väntar och nästa ord. */
@@ -119,6 +176,8 @@ register('home', {
   refresh: home,
   click(t) {
     if (t.id === 'poem-open') return setView('poesi'), true;
+    if (t.id === 'install-app') return install(), true;
+    if (t.id === 'install-hide') { S.settings.hideInstall = true; save(); home(); return true; }
     if (t.dataset.track) {
       S.settings.track = t.dataset.track;
       save();
