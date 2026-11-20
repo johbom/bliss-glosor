@@ -1063,7 +1063,7 @@ window.Glosor = {
   MODES, S, save, resetProgress, stats, streak, bestStreak, nextStep, grade, checkParts, fmtInterval, boxOf, card, className, deck,
   symbolSVG, chip, classChip, formulaHTML, esc, unlockedCompounds, nextAtom, newLeft, dueIds, LEARNED_BOX,
   isMine, mineCards, toggleMine, startFocus, endFocus, focusState, mergedNote, reviewCount, nextDue,
-  noteConfusion, confusedPairs, answerPair, compareParts, nextGoal, CORE, stageOf,
+  noteConfusion, confusedPairs, answerPair, compareParts, nextGoal, CORE, EVERYDAY, stageOf,
   exportBackup, readBackup, importBackup,
   sentenceCount, sentenceTotal, startSentences, endSentences, sentenceState, nextSentence, answerSentence, wordSVG,
   frameSVG, addDrawings, hasDrawing, splitSyns,

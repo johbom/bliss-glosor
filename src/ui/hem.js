@@ -1,6 +1,6 @@
 /**
  * Startsidan i tre delar: Dagens övning (en huvudknapp), brickor för det man kan göra (Mina ord, Meningar,
- * Skriv en mening, Kommunikationstavla, Kylskåpspoesi) och framstegen (siffror och milstolpar).
+ * Skriv en mening, Kommunikationstavla, Memory, Kylskåpspoesi) och framstegen (siffror och milstolpar).
  * Inställningarna har en egen flik (installningar.js).
  * Det som inte går att använda än är inte avstängt: ett tryck säger vad som behövs (WHY).
  */
@@ -35,8 +35,8 @@ function trackChoice() {
     </section>`;
 }
 
-/** Brickornas ikoner: BCI:s egna symboler (ord, mening, skriva, kommunicera, dikt, blanda). */
-const ICON = { mine: 18272, sentences: 16760, write: 18285, board: 13389, poem: 16210, pairs: 15481 };
+/** Brickornas ikoner: BCI:s egna symboler (ord, mening, skriva, kommunicera, dikt, blanda, minne). */
+const ICON = { mine: 18272, sentences: 16760, write: 18285, board: 13389, poem: 16210, pairs: 15481, memory: 23589 };
 // Utsnitt runt mittfältet (himmels- till jordlinjen, med plats för indikatorer ovanför): samma ritning, mindre luft.
 const ICON_FRAME = [400, 1750];
 const icon = (k) => { const c = card(ICON[k]); return `<span class="tile-ic" aria-hidden="true">${c ? symbolSVG(c, 2.4, '', ICON_FRAME, 70) : ''}</span>`; };
@@ -147,6 +147,7 @@ function tilesHTML() {
         : tile('sentences', 'sentences', tx('Meningar', 'Sentences'), tx('Låses upp när du lärt dig ord', 'Unlock as you learn words'), { why: 'sentences' })) : ''}
       ${tile('write', 'write-open', tx('Skriv en mening', 'Write a sentence'), tx('Bokstäver blir Bliss', 'Letters become Bliss'))}
       ${tile('board', 'board-open', tx('Kommunikationstavla', 'Communication board'), tx('Peka på symboler – få tal', 'Point at symbols – hear speech'))}
+      ${tile('memory', 'memory-open', 'Memory', tx('Vänd korten och hitta paren', 'Turn the cards and find the pairs'))}
       ${tile('poem', 'poem-open', tx('Kylskåpspoesi', 'Fridge poetry'), tx('Dikta med ordmagneter', 'Write with word magnets'))}
     </div>
     ${whyBox('focus')}${whyBox('sentences')}

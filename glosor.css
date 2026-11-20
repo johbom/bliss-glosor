@@ -359,6 +359,44 @@ button.ww:hover{border-color:var(--rule)}
   #write-actions{grid-template-columns:2fr 1fr}
   #write-actions .say-main{grid-column:auto}
 }
+/* Memory (ui/memory.js): korten fyller spelplanen, kolumnerna väljs så att korten blir nästan kvadratiska. */
+.mem-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;min-height:32px}
+.mem-msg{font-size:17px;color:var(--dim)}
+.mem-msg.good{color:var(--ok);font-weight:700} .mem-msg.bad{color:var(--bad)}
+.mem-score{display:flex;gap:8px;flex-wrap:wrap;font-size:15px;color:var(--dim)}
+.mem-score b{color:var(--ink)}
+.mpl{padding:2px 10px;border-radius:999px;border:2px solid transparent}
+.mpl.on{border-color:var(--accent);background:var(--accent-soft);color:var(--ink)}
+.mem-board{display:grid;gap:clamp(6px,1.4vmin,12px);height:min(62vh,640px);
+  grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));grid-template-rows:repeat(var(--rows,3),minmax(0,1fr))}
+.mcard{position:relative;container-type:size;padding:0;border-radius:14px;border:2px solid var(--rule);background:var(--panel);
+  color:var(--ink);overflow:hidden;font:inherit;min-height:0;cursor:pointer}
+.mcard:focus-visible{outline:4px solid var(--btn-ink);outline-offset:2px}
+.mback,.mface{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4%}
+.mback{background:var(--accent);
+  background-image:radial-gradient(circle at 50% 50%,transparent 0 22%,rgba(255,255,255,.22) 22.5% 25%,transparent 25.5%),
+    radial-gradient(circle at 50% 50%,rgba(255,255,255,.22) 0 6%,transparent 6.5%)}
+.mnum{position:absolute;left:8px;top:5px;font-size:clamp(11px,12cqmin,18px);color:#FFFFFF;opacity:.85}
+.mface{display:none;padding:6%}
+.mcard.up .mface,.mcard.found .mface{display:flex}
+.mcard.up .mback,.mcard.found .mback{display:none}
+.mcard.up{border-color:var(--accent);animation:mflip .2s ease-out}
+.mcard.found{border-color:var(--ok);cursor:default;opacity:.75}
+.mcard.found::after{content:"✓";position:absolute;right:8px;top:4px;color:var(--ok);font-weight:700;font-size:clamp(12px,13cqmin,22px)}
+.mcard.miss{border-color:var(--bad);box-shadow:0 0 0 3px var(--bad-soft)}
+.mem-board.won .mcard.found{opacity:1;box-shadow:0 0 0 3px var(--ok-soft)}
+@keyframes mflip{0%{transform:scaleX(.05)}100%{transform:scaleX(1)}}
+@media (prefers-reduced-motion: reduce){.mcard.up{animation:none}}
+.mface .sym{width:84%;height:64%;flex:none}
+.mface.nolabel .sym{height:80%}
+.mlbl{font-size:clamp(13px,14cqmin,30px);line-height:1.1;text-align:center;overflow-wrap:anywhere}
+.mword{font-size:clamp(14px,19cqmin,52px);font-weight:700;line-height:1.1;text-align:center;overflow-wrap:anywhere}
+.mem-settings{margin-top:22px}
+.set-select{flex:none;max-width:58%;font:inherit;font-size:16px;padding:8px 10px;border-radius:10px;border:1px solid var(--rule);background:var(--panel-2);color:var(--ink)}
+.mem-own{flex-direction:column;align-items:stretch;cursor:default}
+.mem-own[hidden]{display:none}
+.mem-own .ghost{align-self:flex-start}
+@media (max-width:520px){.mem-board{height:min(68vh,125vw)}.set-row:has(.set-select){flex-wrap:wrap}.set-select{max-width:100%}}
 /* Kommunikationstavlan (ui/tavla.js). Meningen stannar överst när man bläddrar bland symbolerna. */
 .board-top{position:sticky;top:0;z-index:5;box-shadow:0 8px 18px -12px rgba(2,33,52,.45)}
 .board-sent{display:flex;flex-wrap:wrap;gap:2px 4px;align-items:flex-end;max-height:30vh;overflow-y:auto}
